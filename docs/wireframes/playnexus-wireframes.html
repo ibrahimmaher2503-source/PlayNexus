@@ -1,0 +1,1694 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PlayNexus MVP wireframe navigator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: oklch(97% 0.008 85);
+      color: oklch(24% 0.018 250);
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: oklch(97% 0.008 85);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button,
+    select,
+    input,
+    textarea {
+      min-height: 44px;
+    }
+
+    button,
+    select {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    a:focus-visible {
+      outline: 3px solid oklch(56% 0.16 244);
+      outline-offset: 2px;
+    }
+
+    button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.48;
+    }
+
+    .skip-link {
+      position: fixed;
+      inset-block-start: -6rem;
+      inset-inline-start: 0.5rem;
+      z-index: 20;
+      padding: 0.75rem 1rem;
+      color: oklch(20% 0.02 250);
+      background: oklch(96% 0.06 95);
+      border: 1px solid oklch(58% 0.1 85);
+      border-radius: 0.4rem;
+    }
+
+    .skip-link:focus-visible {
+      inset-block-start: 0.5rem;
+    }
+
+    .prototype-note {
+      margin: 0;
+      padding: 0.65rem 1rem;
+      color: oklch(28% 0.04 65);
+      background: oklch(94% 0.055 86);
+      border-block-end: 1px solid oklch(79% 0.05 78);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .app-header {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1.25rem;
+      background: oklch(99% 0.004 85);
+      border-block-end: 1px solid oklch(84% 0.012 250);
+    }
+
+    .wordmark {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 760;
+      letter-spacing: -0.02em;
+    }
+
+    .branch-context {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-inline-end: auto;
+      padding-inline-start: 1rem;
+      border-inline-start: 1px solid oklch(84% 0.012 250);
+      color: oklch(39% 0.02 250);
+      font-size: 0.9rem;
+    }
+
+    .header-actions,
+    .prototype-actions,
+    .button-row,
+    .filter-row,
+    .chips,
+    .inline-fields {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      min-height: calc(100vh - 105px);
+    }
+
+    .side-nav {
+      padding: 1rem;
+      background: oklch(94% 0.01 245);
+      border-inline-end: 1px solid oklch(82% 0.015 245);
+    }
+
+    .side-nav h2 {
+      margin: 0.25rem 0 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: oklch(45% 0.025 250);
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .nav-button {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.55rem 0.75rem;
+      text-align: start;
+      color: oklch(31% 0.022 250);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 0.45rem;
+    }
+
+    .nav-button:hover {
+      background: oklch(90% 0.018 245);
+    }
+
+    .nav-button[aria-current="page"] {
+      color: oklch(25% 0.075 245);
+      background: oklch(88% 0.05 242);
+      border-color: oklch(70% 0.085 242);
+      font-weight: 720;
+    }
+
+    main {
+      min-width: 0;
+      padding: 1.25rem clamp(1rem, 2.4vw, 2rem) 2.5rem;
+    }
+
+    .prototype-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-block-end: 1rem;
+      border-block-end: 1px solid oklch(84% 0.012 250);
+    }
+
+    .screen-picker {
+      display: none;
+      flex: 1 1 18rem;
+    }
+
+    .screen-picker label {
+      flex: 1;
+    }
+
+    .screen-picker select {
+      width: 100%;
+    }
+
+    .tool-button,
+    .secondary-button,
+    .quiet-button,
+    .primary-button,
+    .danger-button {
+      min-height: 44px;
+      padding: 0.55rem 0.9rem;
+      border-radius: 0.45rem;
+      border: 1px solid oklch(70% 0.02 250);
+      font-weight: 680;
+    }
+
+    .tool-button,
+    .secondary-button {
+      color: oklch(29% 0.025 250);
+      background: oklch(98% 0.006 85);
+    }
+
+    .quiet-button {
+      color: oklch(34% 0.025 250);
+      background: transparent;
+      border-color: transparent;
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+    }
+
+    .primary-button {
+      color: oklch(98% 0.006 85);
+      background: oklch(43% 0.13 245);
+      border-color: oklch(36% 0.12 245);
+    }
+
+    .danger-button {
+      color: oklch(34% 0.13 28);
+      background: oklch(96% 0.025 28);
+      border-color: oklch(65% 0.12 28);
+    }
+
+    .screen {
+      display: none;
+      max-width: 1480px;
+      margin-inline: auto;
+      padding-block-start: 1.25rem;
+    }
+
+    .screen.is-active {
+      display: block;
+    }
+
+    .screen-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-block-end: 1.25rem;
+    }
+
+    .screen-title {
+      margin: 0;
+      font-size: 1.72rem;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+    }
+
+    .screen-purpose {
+      max-width: 70ch;
+      margin: 0.4rem 0 0;
+      color: oklch(43% 0.02 250);
+      line-height: 1.5;
+    }
+
+    .eyebrow {
+      display: block;
+      margin-block-end: 0.35rem;
+      color: oklch(45% 0.065 245);
+      font-size: 0.78rem;
+      font-weight: 760;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .panel,
+    .form-panel,
+    .detail-panel {
+      padding: clamp(1rem, 2.5vw, 1.5rem);
+      background: oklch(99% 0.004 85);
+      border: 1px solid oklch(82% 0.014 250);
+      border-radius: 0.65rem;
+    }
+
+    .panel + .panel {
+      margin-block-start: 1rem;
+    }
+
+    .auth-layout {
+      max-width: 520px;
+      margin: 2rem auto;
+    }
+
+    .form-grid,
+    .two-column,
+    .checkout-grid,
+    .pos-layout,
+    .settings-layout {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .two-column {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .checkout-grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+    }
+
+    .pos-layout {
+      grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+    }
+
+    .settings-layout {
+      grid-template-columns: 210px minmax(0, 1fr);
+    }
+
+    .field {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .field label,
+    .field-label {
+      color: oklch(31% 0.02 250);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select,
+    .field textarea,
+    .filter-row input,
+    .filter-row select,
+    .screen-picker select {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      color: oklch(25% 0.02 250);
+      background: oklch(99% 0.004 85);
+      border: 1px solid oklch(67% 0.025 250);
+      border-radius: 0.4rem;
+    }
+
+    .field textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .field small,
+    .muted {
+      color: oklch(48% 0.018 250);
+      line-height: 1.45;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      min-height: 44px;
+      padding-block: 0.4rem;
+    }
+
+    .checkbox-row input {
+      width: 20px;
+      min-height: 20px;
+      margin-block-start: 0.15rem;
+    }
+
+    .full-span {
+      grid-column: 1 / -1;
+    }
+
+    .step-row {
+      display: flex;
+      gap: 0.35rem;
+      margin: 0 0 1.25rem;
+      padding: 0;
+      list-style: none;
+    }
+
+    .step-row li {
+      flex: 1;
+      padding: 0.65rem 0.75rem;
+      color: oklch(44% 0.02 250);
+      background: oklch(93% 0.012 245);
+      border-radius: 0.4rem;
+      font-size: 0.86rem;
+    }
+
+    .step-row li[aria-current="step"] {
+      color: oklch(24% 0.075 245);
+      background: oklch(88% 0.05 242);
+      font-weight: 720;
+    }
+
+    .notice,
+    .warning,
+    .success,
+    .stale {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.8rem 1rem;
+      border: 1px solid;
+      border-radius: 0.5rem;
+    }
+
+    .notice {
+      color: oklch(30% 0.06 245);
+      background: oklch(95% 0.025 245);
+      border-color: oklch(72% 0.07 245);
+    }
+
+    .warning {
+      color: oklch(31% 0.075 65);
+      background: oklch(95% 0.045 78);
+      border-color: oklch(70% 0.1 73);
+    }
+
+    .success {
+      color: oklch(30% 0.08 155);
+      background: oklch(95% 0.035 155);
+      border-color: oklch(67% 0.09 155);
+    }
+
+    .stale {
+      color: oklch(31% 0.075 40);
+      background: oklch(95% 0.035 42);
+      border-color: oklch(68% 0.09 42);
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-block: 1rem;
+      background: oklch(99% 0.004 85);
+      border-block: 1px solid oklch(82% 0.014 250);
+    }
+
+    .metric {
+      min-height: 100px;
+      padding: 1rem;
+      border-inline-end: 1px solid oklch(84% 0.012 250);
+    }
+
+    .metric:last-child {
+      border-inline-end: 0;
+    }
+
+    .metric strong {
+      display: block;
+      margin-block-start: 0.4rem;
+      font-size: 1.3rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: oklch(99% 0.004 85);
+      border: 1px solid oklch(82% 0.014 250);
+      border-radius: 0.6rem;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+    }
+
+    caption {
+      padding: 1rem;
+      text-align: start;
+      font-weight: 760;
+    }
+
+    th,
+    td {
+      padding: 0.8rem 0.9rem;
+      text-align: start;
+      vertical-align: middle;
+      border-block-start: 1px solid oklch(88% 0.01 250);
+    }
+
+    th {
+      color: oklch(41% 0.025 250);
+      background: oklch(95% 0.009 245);
+      font-size: 0.82rem;
+      letter-spacing: 0.025em;
+    }
+
+    tbody tr:hover {
+      background: oklch(97% 0.012 245);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 28px;
+      padding: 0.2rem 0.55rem;
+      border: 1px solid oklch(70% 0.04 250);
+      border-radius: 999px;
+      color: oklch(34% 0.035 250);
+      background: oklch(95% 0.015 250);
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status::before {
+      content: "●";
+      font-size: 0.68em;
+    }
+
+    .status.warning-state {
+      color: oklch(35% 0.08 65);
+      background: oklch(94% 0.045 78);
+      border-color: oklch(72% 0.09 72);
+    }
+
+    .status.danger-state {
+      color: oklch(36% 0.12 28);
+      background: oklch(95% 0.035 28);
+      border-color: oklch(70% 0.1 28);
+    }
+
+    .status.success-state {
+      color: oklch(32% 0.09 155);
+      background: oklch(95% 0.035 155);
+      border-color: oklch(69% 0.08 155);
+    }
+
+    .amount {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .summary-list {
+      margin: 0;
+    }
+
+    .summary-list div {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-block: 0.65rem;
+      border-block-end: 1px solid oklch(88% 0.01 250);
+    }
+
+    .summary-list dt,
+    .summary-list dd {
+      margin: 0;
+    }
+
+    .summary-list dd {
+      text-align: end;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-list .total {
+      padding-block-start: 1rem;
+      border-block-end: 0;
+      font-size: 1.2rem;
+      font-weight: 780;
+    }
+
+    .catalog-list {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .catalog-item,
+    .activity-item,
+    .approval-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-block-end: 1px solid oklch(88% 0.01 250);
+    }
+
+    .catalog-item:last-child,
+    .activity-item:last-child {
+      border-block-end: 0;
+    }
+
+    .segmented {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.25rem;
+      background: oklch(92% 0.012 245);
+      border-radius: 0.5rem;
+    }
+
+    .segmented button {
+      min-height: 38px;
+      padding: 0.4rem 0.7rem;
+      border: 1px solid transparent;
+      border-radius: 0.35rem;
+      color: oklch(36% 0.025 250);
+      background: transparent;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      color: oklch(24% 0.07 245);
+      background: oklch(99% 0.004 85);
+      border-color: oklch(76% 0.04 245);
+      font-weight: 720;
+    }
+
+    .settings-nav {
+      display: grid;
+      align-content: start;
+      gap: 0.25rem;
+    }
+
+    .settings-nav button {
+      padding: 0.6rem 0.75rem;
+      text-align: start;
+      color: oklch(34% 0.025 250);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 0.4rem;
+    }
+
+    .settings-nav button[aria-current="page"] {
+      background: oklch(90% 0.025 245);
+      border-color: oklch(75% 0.045 245);
+      font-weight: 720;
+    }
+
+    .annotation {
+      margin-block-start: 1.25rem;
+      padding: 1rem;
+      color: oklch(40% 0.025 250);
+      background: oklch(94% 0.01 245);
+      border: 1px dashed oklch(65% 0.035 245);
+      border-radius: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .annotation strong {
+      color: oklch(30% 0.04 245);
+    }
+
+    .screen-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-block-start: 1.5rem;
+      padding-block-start: 1rem;
+      border-block-start: 1px solid oklch(84% 0.012 250);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .screen-reader-status {
+      position: fixed;
+      inset-inline-end: 1rem;
+      inset-block-end: 1rem;
+      z-index: 30;
+      max-width: min(380px, calc(100vw - 2rem));
+      padding: 0.8rem 1rem;
+      color: oklch(24% 0.02 250);
+      background: oklch(97% 0.035 155);
+      border: 1px solid oklch(64% 0.08 155);
+      border-radius: 0.5rem;
+      box-shadow: 0 8px 24px oklch(30% 0.02 250 / 0.14);
+    }
+
+    .screen-reader-status:empty {
+      display: none;
+    }
+
+    body.tablet-mode .shell {
+      grid-template-columns: 1fr;
+      max-width: 840px;
+      margin-inline: auto;
+      border-inline: 1px solid oklch(82% 0.014 250);
+    }
+
+    body.tablet-mode .side-nav {
+      display: none;
+    }
+
+    body.tablet-mode .screen-picker {
+      display: grid;
+      flex: 0 0 auto;
+      width: 100%;
+    }
+
+    body.tablet-mode .form-grid,
+    body.tablet-mode .two-column,
+    body.tablet-mode .checkout-grid,
+    body.tablet-mode .pos-layout,
+    body.tablet-mode .settings-layout {
+      grid-template-columns: 1fr;
+    }
+
+    body.tablet-mode .metric-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 900px) {
+      .branch-context {
+        display: none;
+      }
+
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .side-nav {
+        display: none;
+      }
+
+      .screen-picker {
+        display: grid;
+        flex: 0 0 auto;
+        width: 100%;
+      }
+
+      .prototype-toolbar,
+      .screen-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .form-grid,
+      .two-column,
+      .checkout-grid,
+      .pos-layout,
+      .settings-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .app-header {
+        flex-wrap: wrap;
+      }
+
+      .header-actions {
+        width: 100%;
+      }
+
+      .metric-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .metric {
+        border-inline-end: 0;
+        border-block-end: 1px solid oklch(84% 0.012 250);
+      }
+
+      .metric:last-child {
+        border-block-end: 0;
+      }
+
+      .step-row {
+        flex-direction: column;
+      }
+
+      main {
+        padding-inline: 0.8rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content" data-copy="skip">Skip to wireframe</a>
+  <p class="prototype-note" data-copy="prototype">Low-fidelity interaction model. Sample data only. No records are saved.</p>
+
+  <header class="app-header">
+    <p class="wordmark">PlayNexus</p>
+    <div class="branch-context" aria-label="Current operational context">
+      <strong data-copy="branch">Downtown branch</strong>
+      <span aria-hidden="true">•</span>
+      <span>24 Aug 2026, 14:35 EEST</span>
+    </div>
+    <div class="header-actions">
+      <button class="tool-button" id="locale-toggle" type="button" aria-pressed="false">العربية</button>
+      <button class="tool-button" id="viewport-toggle" type="button" aria-pressed="false" data-copy="tablet">Tablet preview</button>
+      <button class="tool-button" type="button" data-action="user-menu">Nora ▾</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="side-nav" aria-labelledby="navigator-title">
+      <h2 id="navigator-title" data-copy="navigator">Wireframe navigator</h2>
+      <nav class="nav-list" aria-label="Wireframe screens">
+        <button class="nav-button" type="button" data-screen-target="login" aria-current="page"><span>01</span> <span data-nav="login">Login</span></button>
+        <button class="nav-button" type="button" data-screen-target="onboarding"><span>02</span> <span data-nav="onboarding">Tenant onboarding</span></button>
+        <button class="nav-button" type="button" data-screen-target="dashboard"><span>03</span> <span data-nav="dashboard">Dashboard</span></button>
+        <button class="nav-button" type="button" data-screen-target="registration"><span>04</span> <span data-nav="registration">Parent and child</span></button>
+        <button class="nav-button" type="button" data-screen-target="checkin"><span>05</span> <span data-nav="checkin">Check-in</span></button>
+        <button class="nav-button" type="button" data-screen-target="sessions"><span>06</span> <span data-nav="sessions">Live sessions</span></button>
+        <button class="nav-button" type="button" data-screen-target="checkout"><span>07</span> <span data-nav="checkout">Checkout</span></button>
+        <button class="nav-button" type="button" data-screen-target="pos"><span>08</span> <span data-nav="pos">POS</span></button>
+        <button class="nav-button" type="button" data-screen-target="reports"><span>09</span> <span data-nav="reports">Reports</span></button>
+        <button class="nav-button" type="button" data-screen-target="staff"><span>10</span> <span data-nav="staff">Staff and permissions</span></button>
+        <button class="nav-button" type="button" data-screen-target="settings"><span>11</span> <span data-nav="settings">Branch settings</span></button>
+        <button class="nav-button" type="button" data-screen-target="tenants"><span>12</span> <span data-nav="tenants">Tenant administration</span></button>
+        <button class="nav-button" type="button" data-screen-target="tickets"><span>13</span> <span data-nav="tickets">Ticket lifecycle</span></button>
+        <button class="nav-button" type="button" data-screen-target="notifications"><span>14</span> <span data-nav="notifications">Notifications</span></button>
+        <button class="nav-button" type="button" data-screen-target="incidents"><span>15</span> <span data-nav="incidents">Incidents and audit</span></button>
+      </nav>
+    </aside>
+
+    <main id="main-content" tabindex="-1">
+      <div class="prototype-toolbar">
+        <div class="screen-picker field">
+          <label for="screen-select" data-copy="screen">Screen</label>
+          <select id="screen-select">
+            <option value="login">01 Login</option>
+            <option value="onboarding">02 Tenant onboarding</option>
+            <option value="dashboard">03 Dashboard</option>
+            <option value="registration">04 Parent and child</option>
+            <option value="checkin">05 Check-in</option>
+            <option value="sessions">06 Live sessions</option>
+            <option value="checkout">07 Checkout</option>
+            <option value="pos">08 POS</option>
+            <option value="reports">09 Reports</option>
+            <option value="staff">10 Staff and permissions</option>
+            <option value="settings">11 Branch settings</option>
+            <option value="tenants">12 Tenant administration</option>
+            <option value="tickets">13 Ticket lifecycle</option>
+            <option value="notifications">14 Notifications</option>
+            <option value="incidents">15 Incidents and audit</option>
+          </select>
+        </div>
+        <div class="prototype-actions">
+          <span class="muted" data-copy="keyboard">Keyboard: Tab, Shift+Tab, arrow keys in navigator</span>
+        </div>
+      </div>
+
+      <section class="screen is-active" id="screen-login" data-screen="login" aria-labelledby="title-login">
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-01</span>
+            <h1 class="screen-title" id="title-login" data-title-key="login">Login</h1>
+            <p class="screen-purpose">Fast staff authentication with neutral tenant context and recoverable errors.</p>
+          </div>
+        </header>
+        <div class="auth-layout form-panel">
+          <h2>Sign in to operations</h2>
+          <div class="field">
+            <label for="login-id">Staff ID or email</label>
+            <input id="login-id" autocomplete="username" value="nora@example.com">
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" value="prototype">
+          </div>
+          <label class="checkbox-row"><input type="checkbox"> <span>Remember this device when venue policy allows</span></label>
+          <div class="button-row">
+            <button class="primary-button" type="button" data-action="sign-in">Sign in</button>
+            <button class="quiet-button" type="button" data-action="forgot">Forgot password?</button>
+          </div>
+        </div>
+        <p class="annotation"><strong>Interaction note:</strong> Failed authentication moves focus to an error summary without clearing the identifier. Password managers and paste remain available.</p>
+      </section>
+
+      <section class="screen" id="screen-onboarding" data-screen="onboarding" aria-labelledby="title-onboarding" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-02</span>
+            <h1 class="screen-title" id="title-onboarding" data-title-key="onboarding">Tenant onboarding</h1>
+            <p class="screen-purpose">Create the minimum usable tenant, first branch, local rules, and owner.</p>
+          </div>
+          <button class="secondary-button" type="button" data-action="save-draft">Save and exit</button>
+        </header>
+        <ol class="step-row" aria-label="Onboarding progress">
+          <li>Business</li>
+          <li aria-current="step">First branch</li>
+          <li>Local rules</li>
+          <li>Owner</li>
+          <li>Review</li>
+        </ol>
+        <div class="form-panel">
+          <h2>First branch</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="branch-name">Branch name *</label>
+              <input id="branch-name" value="Downtown">
+            </div>
+            <div class="field">
+              <label for="country">Country *</label>
+              <select id="country"><option>Egypt</option><option>Saudi Arabia</option><option>United Arab Emirates</option></select>
+            </div>
+            <div class="field">
+              <label for="timezone">Time zone *</label>
+              <select id="timezone"><option>Africa/Cairo</option><option>Asia/Riyadh</option><option>Asia/Dubai</option></select>
+            </div>
+            <div class="field">
+              <label for="currency">Currency *</label>
+              <select id="currency"><option>EGP</option><option>SAR</option><option>AED</option></select>
+              <small>Controlled after the first financial transaction.</small>
+            </div>
+            <div class="field">
+              <label for="tax-mode">Tax mode *</label>
+              <select id="tax-mode"><option>Prices include tax</option><option>Tax added at checkout</option></select>
+            </div>
+            <div class="field">
+              <label for="capacity">Branch capacity *</label>
+              <input id="capacity" type="number" min="1" value="100">
+            </div>
+          </div>
+          <div class="button-row" style="justify-content: flex-end; margin-block-start: 1.25rem;">
+            <button class="secondary-button" type="button" data-action="back">Back</button>
+            <button class="primary-button" type="button" data-action="continue">Continue</button>
+          </div>
+        </div>
+        <p class="annotation"><strong>Scope note:</strong> Advanced pricing, notifications, and receipt customization remain in Settings. Setup asks only for values required to create a safe first session.</p>
+      </section>
+
+      <section class="screen" id="screen-dashboard" data-screen="dashboard" aria-labelledby="title-dashboard" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-03</span>
+            <h1 class="screen-title" id="title-dashboard" data-title-key="dashboard">Operations dashboard</h1>
+            <p class="screen-purpose">Exceptions first, then live operational context and daily summaries.</p>
+          </div>
+          <div class="button-row">
+            <button class="secondary-button" type="button" data-go="registration">Register family</button>
+            <button class="primary-button" type="button" data-go="checkin">Check in</button>
+          </div>
+        </header>
+        <div class="warning">
+          <div><strong>Action required</strong><br>2 sessions are overtime and 1 payment failed.</div>
+          <button class="secondary-button" type="button" data-go="sessions">Review exceptions</button>
+        </div>
+        <div class="metric-strip" aria-label="Live operations summary">
+          <div class="metric"><span>Active sessions</span><strong>48</strong></div>
+          <div class="metric"><span>Due in 15 minutes</span><strong>6</strong></div>
+          <div class="metric"><span>Current capacity</span><strong>72 / 100</strong></div>
+          <div class="metric"><span>Revenue today</span><strong class="amount">EGP 18,420.00</strong></div>
+        </div>
+        <div class="two-column">
+          <section class="panel">
+            <h2>Operational attention</h2>
+            <div class="activity-item"><span><span class="status danger-state">Overtime</span> Sami Noor, 10 minutes</span><button class="secondary-button" type="button" data-go="checkout">Checkout</button></div>
+            <div class="activity-item"><span><span class="status warning-state">Due soon</span> 6 sessions</span><button class="secondary-button" type="button" data-go="sessions">View</button></div>
+            <div class="activity-item"><span><span class="status danger-state">Failed</span> Payment for PN-20479</span><button class="secondary-button" type="button" data-go="checkout">Retry</button></div>
+          </section>
+          <section class="panel">
+            <h2>Recent staff activity</h2>
+            <div class="activity-item"><span>14:31 Checkout completed</span><span>Omar</span></div>
+            <div class="activity-item"><span>14:28 Discount approved</span><span>Nora</span></div>
+            <div class="activity-item"><span>14:24 Session paused</span><span>Sara</span></div>
+          </section>
+        </div>
+        <p class="annotation"><strong>Freshness:</strong> Updated 14:35:08 EEST. Background refresh does not reorder a row that currently contains keyboard focus.</p>
+      </section>
+
+      <section class="screen" id="screen-registration" data-screen="registration" aria-labelledby="title-registration" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-04</span>
+            <h1 class="screen-title" id="title-registration" data-title-key="registration">Parent and child quick registration</h1>
+            <p class="screen-purpose">Search before creation, then capture one guardian and at least one child without losing context.</p>
+          </div>
+        </header>
+        <div class="panel">
+          <div class="field">
+            <label for="family-search">Search existing family by phone or child name</label>
+            <div class="inline-fields">
+              <input id="family-search" style="flex: 1 1 20rem;" placeholder="+20 or child name">
+              <button class="secondary-button" type="button" data-action="family-search">Search</button>
+            </div>
+          </div>
+        </div>
+        <div class="two-column" style="margin-block-start: 1rem;">
+          <section class="form-panel">
+            <h2>Guardian</h2>
+            <div class="field"><label for="guardian-name">Full name *</label><input id="guardian-name" value="Ahmed Ali"></div>
+            <div class="field"><label for="guardian-phone">Mobile *</label><input id="guardian-phone" dir="ltr" inputmode="tel" value="+20 100 000 0000"></div>
+            <div class="field"><label for="guardian-email">Email</label><input id="guardian-email" dir="ltr" inputmode="email"></div>
+            <div class="field"><label for="language">Preferred language</label><select id="language"><option>Arabic</option><option>English</option></select></div>
+            <label class="checkbox-row"><input type="checkbox" checked> <span>Operational contact consent</span></label>
+            <label class="checkbox-row"><input type="checkbox"> <span>Marketing consent, optional and separate</span></label>
+          </section>
+          <section class="form-panel">
+            <h2>Child 1</h2>
+            <div class="field"><label for="child-name">Full name *</label><input id="child-name" value="Maya Ahmed"></div>
+            <div class="field"><label for="birth-date">Date of birth</label><input id="birth-date" type="date" value="2019-04-12"></div>
+            <div class="field"><label for="child-notes">Safety and access notes</label><textarea id="child-notes">Peanut allergy</textarea></div>
+            <button class="secondary-button" type="button" data-action="add-child">Add another child</button>
+          </section>
+        </div>
+        <div class="notice" style="margin-block-start: 1rem;">
+          <span><strong>Possible match:</strong> Ahmed Ali, mobile ending 0000. Review before creating a duplicate.</span>
+          <button class="secondary-button" type="button" data-action="review-match">Review match</button>
+        </div>
+        <div class="button-row" style="justify-content: flex-end; margin-block-start: 1rem;">
+          <button class="secondary-button" type="button" data-action="save-family">Save</button>
+          <button class="primary-button" type="button" data-go="checkin">Save and check in</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-checkin" data-screen="checkin" aria-labelledby="title-checkin" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-05</span>
+            <h1 class="screen-title" id="title-checkin" data-title-key="checkin">Check-in</h1>
+            <p class="screen-purpose">Create one complete, capacity-safe session with a clear expected end and price.</p>
+          </div>
+        </header>
+        <div class="field" style="margin-block-end: 1rem;">
+          <label for="child-search">Find child by name, guardian phone, or scan</label>
+          <input id="child-search" value="Maya Ahmed">
+        </div>
+        <div class="two-column">
+          <section class="detail-panel">
+            <h2>Selected child</h2>
+            <p><strong>Maya Ahmed</strong>, age 7</p>
+            <p>Guardian: Ahmed Ali, <span dir="ltr">+20 100 000 0000</span></p>
+            <div class="warning"><span><strong>Safety note:</strong> Peanut allergy</span></div>
+            <p class="muted">Last visit: 19 Aug 2026</p>
+            <button class="secondary-button" type="button" data-action="change-child">Change child</button>
+          </section>
+          <section class="form-panel">
+            <h2>Session</h2>
+            <div class="field"><label for="plan">Ticket or plan *</label><select id="plan"><option>60 minutes, EGP 180.00</option><option>30 minutes, EGP 110.00</option></select></div>
+            <div class="field"><label for="start-time">Starts</label><select id="start-time"><option>Now, 14:35 EEST</option></select></div>
+            <div class="field"><label for="wristband">Wristband or QR</label><input id="wristband" value="A104"></div>
+            <dl class="summary-list">
+              <div><dt>Expected end</dt><dd>15:35 EEST</dd></div>
+              <div class="total"><dt>Price</dt><dd>EGP 180.00</dd></div>
+            </dl>
+            <label class="checkbox-row"><input type="checkbox" checked> <span>Safety notes reviewed with operator</span></label>
+          </section>
+        </div>
+        <div class="success" style="margin-block-start: 1rem;"><span><strong>Capacity after check-in:</strong> 73 of 100</span><button class="primary-button" type="button" data-action="start-session">Start session</button></div>
+        <p class="annotation"><strong>Guardrail:</strong> Starting is blocked when the branch is inactive, required fields are absent, the child already has an active session, or capacity is reached without an approved override.</p>
+      </section>
+
+      <section class="screen" id="screen-sessions" data-screen="sessions" aria-labelledby="title-sessions" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-06</span>
+            <h1 class="screen-title" id="title-sessions" data-title-key="sessions">Live sessions</h1>
+            <p class="screen-purpose">Find and act on current sessions without interrupting background updates.</p>
+          </div>
+          <button class="primary-button" type="button" data-go="checkin">Check in child</button>
+        </header>
+        <div class="filter-row">
+          <div class="field" style="flex: 1 1 20rem;"><label for="session-search">Search or scan</label><input id="session-search" placeholder="Child, guardian, session, or band"></div>
+          <div class="field"><label for="session-status">Status</label><select id="session-status"><option>All live</option><option>Active</option><option>Paused</option><option>Due soon</option><option>Overtime</option></select></div>
+          <button class="secondary-button" type="button" data-action="refresh">Refresh</button>
+        </div>
+        <div class="metric-strip" aria-label="Session status summary">
+          <div class="metric"><span>Active</span><strong>48</strong></div>
+          <div class="metric"><span>Paused</span><strong>4</strong></div>
+          <div class="metric"><span>Due soon</span><strong>6</strong></div>
+          <div class="metric"><span>Overtime</span><strong>2</strong></div>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Live sessions table" tabindex="0">
+          <table>
+            <caption>Updated 14:35:08 EEST</caption>
+            <thead><tr><th>Child</th><th>Guardian</th><th>Started</th><th>Remaining</th><th>Status</th><th>Band</th><th>Next action</th></tr></thead>
+            <tbody>
+              <tr><td>Maya Ahmed</td><td>Ahmed Ali</td><td>14:02</td><td>27 min</td><td><span class="status success-state">Active</span></td><td>A104</td><td><button class="secondary-button" type="button" data-go="checkout">Checkout</button></td></tr>
+              <tr><td>Sami Noor</td><td>Huda Noor</td><td>13:25</td><td>10 min over</td><td><span class="status danger-state">Overtime</span></td><td>B221</td><td><button class="secondary-button" type="button" data-go="checkout">Checkout</button></td></tr>
+              <tr><td>Lina Omar</td><td>Omar Saleh</td><td>14:20</td><td>Paused 8 min</td><td><span class="status warning-state">Paused</span></td><td>C019</td><td><button class="secondary-button" type="button" data-action="resume">Resume</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="button-row" style="margin-block-start: 1rem;">
+          <strong style="margin-inline-end: auto;">Selected: Maya Ahmed</strong>
+          <button class="secondary-button" type="button" data-action="pause">Pause</button>
+          <button class="secondary-button" type="button" data-action="extend">Extend</button>
+          <button class="secondary-button" type="button" data-action="adjust">Adjust</button>
+          <button class="danger-button" type="button" data-action="cancel-session">Cancel session</button>
+          <button class="primary-button" type="button" data-go="checkout">Checkout</button>
+        </div>
+        <p class="annotation"><strong>Concurrency and terminal safety:</strong> Before a write, compare the server version or update timestamp. Cancellation/adjustment requires permission, reason, and configured approval. Completed and Cancelled sessions reject ordinary mutation.</p>
+      </section>
+
+      <section class="screen" id="screen-checkout" data-screen="checkout" aria-labelledby="title-checkout" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-07</span>
+            <h1 class="screen-title" id="title-checkout" data-title-key="checkout">Checkout and payment</h1>
+            <p class="screen-purpose">Verify the collecting guardian, refresh the bill, then submit the payment and completion handoff safely.</p>
+          </div>
+          <span class="status warning-state">Payment due</span>
+        </header>
+        <div class="checkout-grid">
+          <div>
+            <section class="form-panel">
+              <h2>1. Guardian verification</h2>
+              <div class="field"><label for="authorized-guardian">Authorized guardian</label><select id="authorized-guardian"><option>Ahmed Ali, primary</option><option>Mona Hassan, authorized</option></select></div>
+              <div class="field"><label for="verification-method">Verification method</label><select id="verification-method"><option>Guardian QR</option><option>Registered phone</option><option>Photo ID reference</option></select></div>
+              <div class="field"><label for="verification-reference">Verification reference</label><input id="verification-reference" dir="ltr" value="QR-19A4"></div>
+              <label class="checkbox-row"><input type="checkbox" checked> <span>Guardian identity confirmed</span></label>
+            </section>
+            <section class="form-panel" style="margin-block-start: 1rem;">
+              <h2>2. Payment</h2>
+              <div class="form-grid">
+                <div class="field"><label for="payment-method">Method</label><select id="payment-method"><option>Cash</option><option>Card terminal, recorded</option></select></div>
+                <div class="field"><label for="received">Amount received</label><input id="received" inputmode="decimal" value="260.00"></div>
+              </div>
+              <p><strong>Change due:</strong> <span class="amount">EGP 6.92</span></p>
+              <button class="secondary-button" type="button" data-action="manager-override">Request manager override</button>
+            </section>
+          </div>
+          <aside class="detail-panel" aria-label="Checkout bill">
+            <h2>Maya Ahmed</h2>
+            <p class="muted">Session <span dir="ltr">PN-20481</span>, started 14:02 EEST</p>
+            <dl class="summary-list">
+              <div><dt>60 minute ticket</dt><dd>EGP 180.00</dd></div>
+              <div><dt>Extra 12 minutes</dt><dd>EGP 42.00</dd></div>
+              <div><dt>Discount</dt><dd>EGP 0.00</dd></div>
+              <div><dt>Tax</dt><dd>EGP 31.08</dd></div>
+              <div class="total"><dt>Total</dt><dd>EGP 253.08</dd></div>
+            </dl>
+            <p class="muted">The server recalculates this quote when checkout is submitted.</p>
+          <button class="primary-button" style="width: 100%;" type="button" data-action="complete-checkout">Submit checkout</button>
+          </aside>
+        </div>
+        <div class="notice" style="margin-block-start: 1rem;">
+          <span><strong>Recovery example:</strong> Payment Posted, checkout completion pending. Resume with the existing payment and receipt; do not charge again.</span>
+          <button class="secondary-button" type="button" data-action="resume-checkout">Resume checkout</button>
+        </div>
+        <p class="annotation"><strong>Safe handoff:</strong> Submission is idempotent. If payment and completion use separate stations, the interface must expose a recoverable current state. OQ-19 selects the pilot model.</p>
+      </section>
+
+      <section class="screen" id="screen-pos" data-screen="pos" aria-labelledby="title-pos" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-08</span>
+            <h1 class="screen-title" id="title-pos" data-title-key="pos">Point of sale</h1>
+            <p class="screen-purpose">One cashier surface for tickets, F&amp;B, merchandise, add-ons, discounts, and payment.</p>
+          </div>
+          <button class="secondary-button" type="button" data-action="find-transaction">Transactions / refunds</button>
+        </header>
+        <div class="pos-layout">
+          <section class="panel">
+            <div class="field"><label for="item-search">Scan or search item</label><input id="item-search" placeholder="Barcode or item name"></div>
+            <div class="segmented" aria-label="Catalog category" style="margin-block: 1rem;">
+              <button type="button" aria-pressed="true">Tickets</button>
+              <button type="button" aria-pressed="false">F&amp;B</button>
+              <button type="button" aria-pressed="false">Merchandise</button>
+              <button type="button" aria-pressed="false">Add-ons</button>
+            </div>
+            <div class="catalog-list">
+              <div class="catalog-item"><span><strong>60 minute ticket</strong><br><span class="muted">EGP 180.00</span></span><button class="secondary-button" type="button" data-action="add-item">Add</button></div>
+              <div class="catalog-item"><span><strong>30 minute ticket</strong><br><span class="muted">EGP 110.00</span></span><button class="secondary-button" type="button" data-action="add-item">Add</button></div>
+              <div class="catalog-item"><span><strong>Water bottle</strong><br><span class="muted">EGP 20.00</span></span><button class="secondary-button" type="button" data-action="add-item">Add</button></div>
+              <div class="catalog-item"><span><strong>Grip socks</strong><br><span class="muted">EGP 45.00</span></span><button class="secondary-button" type="button" data-action="add-item">Add</button></div>
+            </div>
+          </section>
+          <aside class="detail-panel" aria-label="Current sale">
+            <h2>Current sale</h2>
+            <div class="activity-item"><span>60 minute ticket × 1</span><span class="amount">EGP 180.00</span></div>
+            <div class="activity-item"><span>Water bottle × 2</span><span class="amount">EGP 40.00</span></div>
+            <dl class="summary-list" style="margin-block-start: 1rem;">
+              <div><dt>Subtotal</dt><dd>EGP 220.00</dd></div>
+              <div><dt>Discount</dt><dd>EGP 0.00</dd></div>
+              <div><dt>Tax</dt><dd>EGP 30.80</dd></div>
+              <div class="total"><dt>Total</dt><dd>EGP 250.80</dd></div>
+            </dl>
+            <div class="button-row">
+              <button class="secondary-button" type="button" data-action="discount">Add discount</button>
+              <button class="primary-button" type="button" data-action="take-payment">Take payment</button>
+            </div>
+          </aside>
+        </div>
+        <section class="form-panel" style="margin-block-start: 1rem;">
+          <h2>Full refund from a posted payment</h2>
+          <div class="form-grid">
+            <div class="field"><label for="refund-receipt">Receipt or payment reference</label><input id="refund-receipt" dir="ltr" value="R-001736"></div>
+            <div class="field"><label for="refund-reason">Refund reason *</label><input id="refund-reason" value="Duplicate item recorded"></div>
+          </div>
+          <p class="muted">Original payment EGP 45.00, Posted. A full linked refund preserves the original receipt and requires permission/approval.</p>
+          <button class="danger-button" type="button" data-action="refund">Request full refund</button>
+        </section>
+        <p class="annotation"><strong>MVP boundary:</strong> Barcode input works as keyboard input. Discounts above policy and full refunds use visible approval and audit evidence. Cashier shifts, split/partial tender, partial refunds, and inventory depletion are not modeled.</p>
+      </section>
+
+      <section class="screen" id="screen-reports" data-screen="reports" aria-labelledby="title-reports" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-09</span>
+            <h1 class="screen-title" id="title-reports" data-title-key="reports">Reports</h1>
+            <p class="screen-purpose">Explicit scope, freshness, and reconciliation for operational and financial questions.</p>
+          </div>
+          <button class="secondary-button" type="button" data-action="export">Export CSV</button>
+        </header>
+        <div class="filter-row">
+          <div class="field"><label for="date-range">Date range</label><select id="date-range"><option>Today</option><option>Yesterday</option><option>Last 7 days</option><option>Custom</option></select></div>
+          <div class="field"><label for="report-branch">Branch</label><select id="report-branch"><option>Downtown</option><option>All permitted branches</option></select></div>
+          <div class="field"><label for="cashier">Cashier</label><select id="cashier"><option>All</option><option>Omar</option><option>Sara</option></select></div>
+          <button class="primary-button" type="button" data-action="apply-filters">Apply</button>
+        </div>
+        <p class="notice" style="margin-block: 1rem;">Data through 14:30 EEST. Includes durable payments and refunds. Excludes void drafts.</p>
+        <div class="metric-strip" aria-label="Revenue report totals">
+          <div class="metric"><span>Net revenue</span><strong class="amount">EGP 18,420.00</strong></div>
+          <div class="metric"><span>Transactions</span><strong>164</strong></div>
+          <div class="metric"><span>Refunds</span><strong class="amount">EGP 320.00</strong></div>
+          <div class="metric"><span>Unpaid checkout</span><strong class="amount">EGP 253.08</strong></div>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Revenue transaction table" tabindex="0">
+          <table>
+            <caption>Revenue transactions</caption>
+            <thead><tr><th>Time</th><th>Receipt</th><th>Cashier</th><th>Type</th><th>Gross</th><th>Refund</th><th>Net</th></tr></thead>
+            <tbody>
+              <tr><td>14:28</td><td dir="ltr">R-001742</td><td>Omar</td><td>Checkout</td><td>EGP 253.08</td><td>EGP 0.00</td><td>EGP 253.08</td></tr>
+              <tr><td>14:21</td><td dir="ltr">R-001741</td><td>Sara</td><td>POS</td><td>EGP 120.00</td><td>EGP 0.00</td><td>EGP 120.00</td></tr>
+              <tr><td>14:08</td><td dir="ltr">R-001736</td><td>Omar</td><td>Refund</td><td>EGP 0.00</td><td>EGP 45.00</td><td>-EGP 45.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="annotation"><strong>URL state:</strong> Report filters belong in the URL so refresh, bookmarks, and authorized links preserve scope. Export must apply the same tenant and branch authorization.</p>
+      </section>
+
+      <section class="screen" id="screen-staff" data-screen="staff" aria-labelledby="title-staff" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-10</span>
+            <h1 class="screen-title" id="title-staff" data-title-key="staff">Staff and permissions</h1>
+            <p class="screen-purpose">Assign predefined roles and branch scope, then preview effective access.</p>
+          </div>
+          <button class="primary-button" type="button" data-action="invite">Invite staff member</button>
+        </header>
+        <div class="filter-row" style="margin-block-end: 1rem;">
+          <div class="field" style="flex: 1 1 18rem;"><label for="staff-search">Search staff</label><input id="staff-search"></div>
+          <div class="field"><label for="role-filter">Role</label><select id="role-filter"><option>All</option><option>Reception Staff</option><option>Cashier</option><option>Branch Manager</option></select></div>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Staff table" tabindex="0">
+          <table>
+            <caption>Downtown branch staff</caption>
+            <thead><tr><th>Name</th><th>Role</th><th>Branch scope</th><th>Status</th><th>Last active</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Sara Hassan</td><td>Reception Staff</td><td>Downtown</td><td><span class="status success-state">Active</span></td><td>14:31</td><td><button class="secondary-button" type="button" data-action="manage-staff">Manage</button></td></tr>
+              <tr><td>Omar Adel</td><td>Cashier</td><td>Downtown</td><td><span class="status success-state">Active</span></td><td>14:28</td><td><button class="secondary-button" type="button" data-action="manage-staff">Manage</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <section class="form-panel" style="margin-block-start: 1rem;">
+          <h2>Manage Sara Hassan</h2>
+          <div class="form-grid">
+            <div class="field"><label for="staff-role">Role *</label><select id="staff-role"><option>Reception Staff</option><option>Cashier</option><option>Branch Manager</option></select></div>
+            <div class="field"><label for="staff-branch">Branch scope *</label><select id="staff-branch"><option>Downtown</option><option>All permitted branches</option></select></div>
+          </div>
+          <div class="notice" style="margin-block: 1rem;"><span><strong>Effective access:</strong> Register families, check in, view live sessions, complete standard checkout. Cannot refund, approve overrides, edit pricing, or manage staff.</span></div>
+          <div class="button-row" style="justify-content: space-between;">
+            <button class="danger-button" type="button" data-action="deactivate">Deactivate account</button>
+            <button class="primary-button" type="button" data-action="save-staff">Save changes</button>
+          </div>
+        </section>
+        <p class="annotation"><strong>MVP simplification:</strong> Start with predefined roles. Add a custom permission editor only when pilot evidence shows the standard roles cannot express real operating policy.</p>
+      </section>
+
+      <section class="screen" id="screen-settings" data-screen="settings" aria-labelledby="title-settings" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-11</span>
+            <h1 class="screen-title" id="title-settings" data-title-key="settings">Branch settings</h1>
+            <p class="screen-purpose">Configure branch-local rules with clear consequences, locks, and effective dates.</p>
+          </div>
+          <span class="status success-state">Active</span>
+        </header>
+        <div class="settings-layout">
+          <nav class="settings-nav" aria-label="Branch settings sections">
+            <button type="button" aria-current="page">General</button>
+            <button type="button">Opening hours</button>
+            <button type="button">Capacity</button>
+            <button type="button">Pricing</button>
+            <button type="button">Tax and receipt</button>
+            <button type="button">Alerts</button>
+          </nav>
+          <section class="form-panel">
+            <h2>General</h2>
+            <div class="form-grid">
+              <div class="field"><label for="settings-name">Branch name *</label><input id="settings-name" value="Downtown"></div>
+              <div class="field"><label for="settings-status">Status</label><select id="settings-status"><option>Active</option><option>Inactive</option></select></div>
+              <div class="field"><label for="settings-country">Country</label><input id="settings-country" value="Egypt" readonly><small>Locked after first transaction.</small></div>
+              <div class="field"><label for="settings-timezone">Time zone *</label><select id="settings-timezone"><option>Africa/Cairo</option></select></div>
+              <div class="field"><label for="settings-currency">Currency</label><input id="settings-currency" value="EGP" readonly><small>Locked after first transaction.</small></div>
+              <div class="field"><label for="settings-capacity">Capacity *</label><input id="settings-capacity" type="number" min="1" value="100"></div>
+            </div>
+            <div class="warning" style="margin-block: 1rem;"><span>Changing to inactive blocks new sessions but does not end 48 active sessions.</span></div>
+            <div class="button-row" style="justify-content: flex-end;">
+              <button class="secondary-button" type="button" data-action="discard">Discard changes</button>
+              <button class="primary-button" type="button" data-action="save-settings">Save changes</button>
+            </div>
+          </section>
+        </div>
+        <p class="annotation"><strong>Financial history:</strong> Pricing and tax changes receive an effective timestamp. They never rewrite completed transactions or receipts. Pricing uses versioned rules and an approved worked-example preview; exact pricing, tax, receipt, capacity, and alert behavior remains a named decision.</p>
+      </section>
+
+      <section class="screen" id="screen-tenants" data-screen="tenants" aria-labelledby="title-tenants" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-12</span>
+            <h1 class="screen-title" id="title-tenants" data-title-key="tenants">Tenant administration</h1>
+            <p class="screen-purpose">Provision and control tenant status from a separate, least-privilege platform context.</p>
+          </div>
+          <button class="primary-button" type="button" data-action="create-tenant">Create tenant</button>
+        </header>
+        <div class="filter-row" style="margin-block-end: 1rem;">
+          <div class="field" style="flex: 1 1 18rem;"><label for="tenant-search">Search tenants</label><input id="tenant-search"></div>
+          <div class="field"><label for="tenant-status">Status</label><select id="tenant-status"><option>All</option><option>Pending</option><option>Active</option><option>Suspended</option></select></div>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Tenant table" tabindex="0">
+          <table>
+            <caption>Platform tenants</caption>
+            <thead><tr><th>Tenant</th><th>Owner</th><th>Branches</th><th>Status</th><th>Last change</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Little Stars</td><td>nora@example.com</td><td>2</td><td><span class="status success-state">Active</span></td><td>24 Aug, 14:20</td><td><button class="secondary-button" type="button" data-action="manage-tenant">Manage</button></td></tr>
+              <tr><td>Fun Yard</td><td>owner@example.com</td><td>1</td><td><span class="status warning-state">Pending</span></td><td>Invitation pending</td><td><button class="secondary-button" type="button" data-action="resume-tenant">Resume</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <section class="form-panel" style="margin-block-start: 1rem;">
+          <h2>Suspend Little Stars</h2>
+          <p>Staff access is revoked and new venue work is blocked. Historical records remain.</p>
+          <div class="field"><label for="tenant-suspend-reason">Reason *</label><input id="tenant-suspend-reason"></div>
+          <button class="danger-button" type="button" data-action="suspend-tenant">Suspend tenant</button>
+        </section>
+        <p class="annotation"><strong>Scope:</strong> Pending, Active, and Suspended transitions are audited. Support access to tenant content is denied by default. Subscription plans/limits remain an OQ-04 decision, not invented prototype behavior.</p>
+      </section>
+
+      <section class="screen" id="screen-tickets" data-screen="tickets" aria-labelledby="title-tickets" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-13</span>
+            <h1 class="screen-title" id="title-tickets" data-title-key="tickets">Ticket lifecycle</h1>
+            <p class="screen-purpose">Issue, validate, cancel, reprint, and inspect scan history without reviving terminal tickets.</p>
+          </div>
+          <div class="button-row"><button class="secondary-button" type="button" data-action="scan-ticket">Scan / validate</button><button class="primary-button" type="button" data-action="issue-ticket">Issue ticket</button></div>
+        </header>
+        <div class="filter-row" style="margin-block-end: 1rem;">
+          <div class="field" style="flex: 1 1 18rem;"><label for="ticket-search">Ticket or QR</label><input id="ticket-search" dir="ltr"></div>
+          <div class="field"><label for="ticket-status">Status</label><select id="ticket-status"><option>All</option><option>Issued</option><option>Consumed</option><option>Expired</option><option>Cancelled</option></select></div>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Ticket lifecycle table" tabindex="0">
+          <table>
+            <caption>Tickets and latest validation</caption>
+            <thead><tr><th>Ticket</th><th>Type</th><th>Valid until</th><th>Status</th><th>Latest validation</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td dir="ltr">TK-A71Q</td><td>60 minutes</td><td>24 Aug, 16:00 EEST</td><td><span class="status success-state">Issued</span></td><td>Not scanned</td><td><button class="secondary-button" type="button" data-action="open-ticket">Open</button></td></tr>
+              <tr><td dir="ltr">TK-C22M</td><td>Family</td><td>24 Aug, 15:00 EEST</td><td><span class="status">Consumed</span></td><td>14:02, Valid</td><td><button class="secondary-button" type="button" data-action="ticket-history">History</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <section class="form-panel" style="margin-block-start: 1rem;">
+          <h2><span dir="ltr">TK-A71Q</span>, Issued</h2>
+          <p>Reprint preserves the opaque QR, identifier, EGP 180.00 price, validity, and state. Cancellation requires permission and reason.</p>
+          <div class="field"><label for="ticket-cancel-reason">Cancellation reason</label><input id="ticket-cancel-reason"></div>
+          <div class="button-row"><button class="secondary-button" type="button" data-action="reprint-ticket">Reprint same ticket</button><button class="danger-button" type="button" data-action="cancel-ticket">Cancel ticket</button><button class="secondary-button" type="button" data-action="ticket-history">View scan history</button></div>
+        </section>
+        <p class="annotation"><strong>State rule:</strong> Issued may become Consumed, Cancelled, or Expired. Terminal tickets cannot authorize check-in. Every validation attempt records a safe result; the QR contains no child-sensitive data.</p>
+      </section>
+
+      <section class="screen" id="screen-notifications" data-screen="notifications" aria-labelledby="title-notifications" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-14</span>
+            <h1 class="screen-title" id="title-notifications" data-title-key="notifications">Operational notifications</h1>
+            <p class="screen-purpose">Monitor truthful session-ending and receipt outcomes without coupling them to core transaction success.</p>
+          </div>
+        </header>
+        <div class="filter-row" style="margin-block-end: 1rem;">
+          <div class="field"><label for="notification-type">Type</label><select id="notification-type"><option>All operational</option><option>Session ending</option><option>Receipt</option></select></div>
+          <div class="field"><label for="notification-status">Status</label><select id="notification-status"><option>Needs attention</option><option>All</option><option>Sent</option><option>Delivered</option><option>Failed</option><option>Cancelled/Stale</option></select></div>
+          <button class="primary-button" type="button" data-action="apply-notification-filters">Apply</button>
+        </div>
+        <div class="table-wrap" role="region" aria-label="Operational notification attempts" tabindex="0">
+          <table>
+            <caption>Notification requests and current truthful state</caption>
+            <thead><tr><th>Time</th><th>Subject/event</th><th>Channel</th><th>Recipient</th><th>Status</th><th>Attempt</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>14:31</td><td>Receipt <span dir="ltr">R-001742</span></td><td>SMS</td><td dir="ltr">•••• 0000</td><td><span class="status warning-state">Sent</span></td><td>1</td><td><button class="secondary-button" type="button" data-action="notification-details">Details</button></td></tr>
+              <tr><td>14:15</td><td>Session ending</td><td>Email</td><td dir="ltr">a•••@example.com</td><td><span class="status danger-state">FailedRetryable</span></td><td>2 of 3</td><td><button class="secondary-button" type="button" data-action="retry-notification">Retry</button></td></tr>
+              <tr><td>14:05</td><td>Stale ending alert</td><td>SMS</td><td dir="ltr">•••• 2211</td><td><span class="status">Cancelled/Stale</span></td><td>Not sent</td><td><button class="secondary-button" type="button" data-action="notification-details">Details</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="annotation"><strong>Truthful state:</strong> Provider acceptance is Sent, not Delivered. Verified callbacks may set Delivered. Retry is bounded and idempotent; permanent/not-sendable/stale outcomes do not send. Marketing campaigns remain disabled in MVP.</p>
+      </section>
+
+      <section class="screen" id="screen-incidents" data-screen="incidents" aria-labelledby="title-incidents" hidden>
+        <header class="screen-header">
+          <div>
+            <span class="eyebrow">WF-15</span>
+            <h1 class="screen-title" id="title-incidents" data-title-key="incidents">Incidents and audit</h1>
+            <p class="screen-purpose">Record original facts, append authorized follow-up, and search scoped safety history.</p>
+          </div>
+          <button class="primary-button" type="button" data-action="create-incident">Record incident</button>
+        </header>
+        <div class="filter-row" style="margin-block-end: 1rem;">
+          <div class="field"><label for="incident-child">Child</label><input id="incident-child" placeholder="All permitted"></div>
+          <div class="field"><label for="incident-date">Date</label><input id="incident-date" type="date" value="2026-08-24"></div>
+          <div class="field"><label for="incident-reporter">Reporter</label><select id="incident-reporter"><option>All</option><option>Sara</option><option>Nora</option></select></div>
+          <div class="field"><label for="incident-status">Status</label><select id="incident-status" dir="ltr"><option>Open</option><option>Under review</option><option>Closed</option><option>All</option></select></div>
+        </div>
+        <section class="form-panel">
+          <h2><bdi dir="ltr">INC-0028, Open</bdi></h2>
+          <p class="muted">Maya Ahmed, Downtown. Reported 24 Aug, 14:12 EEST by Sara.</p>
+          <div class="form-grid">
+            <div class="field"><label for="incident-category">Category</label><select id="incident-category"><option>Approved category pending OQ-20</option></select></div>
+            <div class="field"><label for="incident-severity">Severity</label><select id="incident-severity"><option>Approved severity pending OQ-20</option></select></div>
+            <div class="field full-span"><label for="incident-original">Original description, read-only after creation</label><textarea id="incident-original" readonly>Child slipped near the play-area entrance. Venue safety procedure followed.</textarea></div>
+            <div class="field full-span"><label for="incident-followup">Follow-up note *</label><textarea id="incident-followup"></textarea></div>
+            <div class="field"><label for="incident-next-state">Next state</label><select id="incident-next-state"><option>Under review</option><option>Closed</option></select></div>
+          </div>
+          <button class="primary-button" type="button" data-action="append-incident">Append update</button>
+        </section>
+        <div class="notice" style="margin-block-start: 1rem;"><span><strong>History:</strong> 14:12 Created by Sara; 14:25 note added by Nora. Original facts and actor/time evidence are immutable.</span></div>
+        <p class="annotation"><strong>Safety boundary:</strong> Exact categories, severities, transitions/reopen, visibility, retention, and escalation await OQ-20. PlayNexus records incidents; it is not emergency dispatch or medical advice.</p>
+      </section>
+
+      <footer class="screen-footer" aria-label="Wireframe sequence">
+        <button class="secondary-button" id="previous-screen" type="button">Previous</button>
+        <span class="muted" id="screen-position">1 of 15</span>
+        <button class="secondary-button" id="next-screen" type="button">Next</button>
+      </footer>
+    </main>
+  </div>
+
+  <div class="screen-reader-status" id="live-status" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var order = ['login', 'onboarding', 'dashboard', 'registration', 'checkin', 'sessions', 'checkout', 'pos', 'reports', 'staff', 'settings', 'tenants', 'tickets', 'notifications', 'incidents'];
+      var names = {
+        en: {
+          login: 'Login',
+          onboarding: 'Tenant onboarding',
+          dashboard: 'Dashboard',
+          registration: 'Parent and child',
+          checkin: 'Check-in',
+          sessions: 'Live sessions',
+          checkout: 'Checkout',
+          pos: 'POS',
+          reports: 'Reports',
+          staff: 'Staff and permissions',
+          settings: 'Branch settings',
+          tenants: 'Tenant administration',
+          tickets: 'Ticket lifecycle',
+          notifications: 'Notifications',
+          incidents: 'Incidents and audit'
+        },
+        ar: {
+          login: 'تسجيل الدخول',
+          onboarding: 'إعداد المنشأة',
+          dashboard: 'لوحة التشغيل',
+          registration: 'ولي الأمر والطفل',
+          checkin: 'تسجيل الدخول للعب',
+          sessions: 'الجلسات الحالية',
+          checkout: 'إنهاء الجلسة',
+          pos: 'نقطة البيع',
+          reports: 'التقارير',
+          staff: 'الموظفون والصلاحيات',
+          settings: 'إعدادات الفرع',
+          tenants: 'إدارة المنشآت',
+          tickets: 'دورة حياة التذكرة',
+          notifications: 'الإشعارات التشغيلية',
+          incidents: 'الحوادث وسجل التدقيق'
+        }
+      };
+      var copy = {
+        en: {
+          skip: 'Skip to wireframe',
+          prototype: 'Low-fidelity interaction model. Sample data only. No records are saved.',
+          branch: 'Downtown branch',
+          tablet: 'Tablet preview',
+          desktop: 'Desktop preview',
+          navigator: 'Wireframe navigator',
+          screen: 'Screen',
+          keyboard: 'Keyboard: Tab, Shift+Tab, arrow keys in navigator',
+          previous: 'Previous',
+          next: 'Next',
+          action: 'Prototype action completed. No data was saved.'
+        },
+        ar: {
+          skip: 'انتقل إلى النموذج',
+          prototype: 'نموذج منخفض الدقة لاتجاه RTL والعناوين العربية. محتوى الشاشات الإنجليزية مثال بنيوي فقط ولا تُحفظ بيانات.',
+          branch: 'فرع وسط المدينة',
+          tablet: 'معاينة الجهاز اللوحي',
+          desktop: 'معاينة سطح المكتب',
+          navigator: 'التنقل بين الشاشات',
+          screen: 'الشاشة',
+          keyboard: 'لوحة المفاتيح: Tab وShift+Tab والأسهم داخل قائمة الشاشات',
+          previous: 'السابق',
+          next: 'التالي',
+          action: 'تم تنفيذ الإجراء التجريبي. لم يتم حفظ أي بيانات.'
+        }
+      };
+      var locale = 'en';
+      var current = 'login';
+      var statusTimer;
+      var navButtons = Array.prototype.slice.call(document.querySelectorAll('[data-screen-target]'));
+      var screens = Array.prototype.slice.call(document.querySelectorAll('[data-screen]'));
+      var screenSelect = document.getElementById('screen-select');
+      var localeToggle = document.getElementById('locale-toggle');
+      var viewportToggle = document.getElementById('viewport-toggle');
+      var previous = document.getElementById('previous-screen');
+      var next = document.getElementById('next-screen');
+      var position = document.getElementById('screen-position');
+      var liveStatus = document.getElementById('live-status');
+
+      function announce(message) {
+        window.clearTimeout(statusTimer);
+        liveStatus.textContent = message;
+        statusTimer = window.setTimeout(function () {
+          liveStatus.textContent = '';
+        }, 3200);
+      }
+
+      function safeScreen(value) {
+        return order.indexOf(value) >= 0 ? value : 'login';
+      }
+
+      function showScreen(value, moveFocus) {
+        current = safeScreen(value);
+        screens.forEach(function (screen) {
+          var active = screen.getAttribute('data-screen') === current;
+          screen.hidden = !active;
+          screen.classList.toggle('is-active', active);
+        });
+        navButtons.forEach(function (button) {
+          if (button.getAttribute('data-screen-target') === current) {
+            button.setAttribute('aria-current', 'page');
+          } else {
+            button.removeAttribute('aria-current');
+          }
+        });
+        screenSelect.value = current;
+        var index = order.indexOf(current);
+        position.textContent = String(index + 1) + ' / ' + String(order.length);
+        previous.disabled = index === 0;
+        next.disabled = index === order.length - 1;
+        window.history.replaceState(null, '', '#' + current);
+        document.title = names[locale][current] + ' | PlayNexus wireframes';
+        if (moveFocus) {
+          document.getElementById('title-' + current).focus({ preventScroll: true });
+          document.getElementById('title-' + current).scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+      }
+
+      function applyLocale() {
+        var isArabic = locale === 'ar';
+        document.documentElement.lang = locale;
+        document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+        localeToggle.textContent = isArabic ? 'English' : 'العربية';
+        localeToggle.setAttribute('aria-pressed', String(isArabic));
+        document.querySelectorAll('[data-copy]').forEach(function (element) {
+          var key = element.getAttribute('data-copy');
+          element.textContent = copy[locale][key];
+        });
+        document.querySelectorAll('[data-nav]').forEach(function (element) {
+          var key = element.getAttribute('data-nav');
+          element.textContent = names[locale][key];
+        });
+        document.querySelectorAll('[data-title-key]').forEach(function (element) {
+          var key = element.getAttribute('data-title-key');
+          element.textContent = names[locale][key];
+          element.setAttribute('tabindex', '-1');
+        });
+        Array.prototype.forEach.call(screenSelect.options, function (option, index) {
+          option.textContent = String(index + 1).padStart(2, '0') + ' ' + names[locale][option.value];
+        });
+        previous.textContent = copy[locale].previous;
+        next.textContent = copy[locale].next;
+        viewportToggle.textContent = document.body.classList.contains('tablet-mode') ? copy[locale].desktop : copy[locale].tablet;
+        showScreen(current, false);
+      }
+
+      navButtons.forEach(function (button, index) {
+        button.addEventListener('click', function () {
+          showScreen(button.getAttribute('data-screen-target'), true);
+        });
+        button.addEventListener('keydown', function (event) {
+          var target = index;
+          if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+            target = (index + 1) % navButtons.length;
+          } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+            target = (index - 1 + navButtons.length) % navButtons.length;
+          } else if (event.key === 'Home') {
+            target = 0;
+          } else if (event.key === 'End') {
+            target = navButtons.length - 1;
+          } else {
+            return;
+          }
+          event.preventDefault();
+          navButtons[target].focus();
+          showScreen(navButtons[target].getAttribute('data-screen-target'), false);
+        });
+      });
+
+      screenSelect.addEventListener('change', function () {
+        showScreen(screenSelect.value, true);
+      });
+
+      localeToggle.addEventListener('click', function () {
+        locale = locale === 'en' ? 'ar' : 'en';
+        applyLocale();
+        announce(locale === 'ar' ? 'تم تفعيل اتجاه العربية من اليمين إلى اليسار.' : 'English left-to-right direction enabled.');
+      });
+
+      viewportToggle.addEventListener('click', function () {
+        var active = document.body.classList.toggle('tablet-mode');
+        viewportToggle.setAttribute('aria-pressed', String(active));
+        viewportToggle.textContent = active ? copy[locale].desktop : copy[locale].tablet;
+        announce(active ? 'Tablet preview enabled.' : 'Desktop preview enabled.');
+      });
+
+      previous.addEventListener('click', function () {
+        var index = order.indexOf(current);
+        showScreen(order[Math.max(0, index - 1)], true);
+      });
+
+      next.addEventListener('click', function () {
+        var index = order.indexOf(current);
+        showScreen(order[Math.min(order.length - 1, index + 1)], true);
+      });
+
+      document.addEventListener('click', function (event) {
+        var go = event.target.closest('[data-go]');
+        var action = event.target.closest('[data-action]');
+        if (go) {
+          showScreen(go.getAttribute('data-go'), true);
+        } else if (action) {
+          announce(copy[locale].action);
+        }
+      });
+
+      document.querySelectorAll('.segmented button').forEach(function (button) {
+        button.addEventListener('click', function () {
+          button.parentElement.querySelectorAll('button').forEach(function (item) {
+            item.setAttribute('aria-pressed', String(item === button));
+          });
+        });
+      });
+
+      document.querySelectorAll('.settings-nav button').forEach(function (button) {
+        button.addEventListener('click', function () {
+          button.parentElement.querySelectorAll('button').forEach(function (item) {
+            item.removeAttribute('aria-current');
+          });
+          button.setAttribute('aria-current', 'page');
+          announce(copy[locale].action);
+        });
+      });
+
+      window.addEventListener('hashchange', function () {
+        showScreen(window.location.hash.slice(1), false);
+      });
+
+      applyLocale();
+      showScreen(window.location.hash.slice(1) || 'login', false);
+    }());
+  </script>
+</body>
+</html>

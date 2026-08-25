@@ -1,0 +1,52 @@
+# Decisions
+
+## 2026-08-24: Documentation-first Laravel baseline
+
+**Decision:** Use an implementation-ready documentation pack and UI-first milestones before scaffolding application code.  
+**Rationale:** Critical rules for money, time, tenant isolation, safety, and permissions must align before migrations and workflows are expensive to change.  
+**Alternative:** Scaffold immediately from the PRD; rejected because unresolved rules would be embedded as accidental behavior.
+
+## 2026-08-24: Modular monolith for MVP
+
+**Decision:** Begin with one Laravel application and relational database.  
+**Rationale:** It is the fastest operationally simple approach and preserves transactional integrity across sessions, POS, and audit.  
+**Alternative:** Microservices; deferred until measured scale or independent release needs justify them.
+
+## 2026-08-24: Shared-schema tenancy
+
+**Decision:** Use shared-schema tenancy with explicit tenant scoping and constraints for MVP.  
+**Rationale:** Lowest setup and operational cost while supporting the target model.  
+**Alternative:** Database per tenant; revisit for contractual isolation, very large tenants, or regional data residency.
+
+## 2026-08-24: Verified PRD source baseline
+
+**Decision:** Treat the re-attached PRD as the same source baseline; both inputs are 27,198 bytes and have SHA-256 `D9119C1A3325DD8DBF318296EB52DDFF95B064A0C0061EAD96CAAD68D9FEF5D2`.  
+**Rationale:** Prevents unnecessary document divergence while preserving a reproducible source check.
+
+## 2026-08-24: Documentation formats
+
+**Decision:** Deliver the project pack as Markdown, OpenAPI YAML, and standalone HTML only; do not generate Word/DOCX.  
+**Rationale:** This matches the user's requested working format and keeps specifications diffable and implementation-friendly.
+
+## 2026-08-24: Proposed fast implementation stack
+
+**Decision:** Recommend PHP 8.5, Laravel 13, Blade/Livewire 4, Tailwind CSS 4, MySQL 8.4 LTS/InnoDB, and Pest 5, using Laravel-native auth, policies, queues, cache, scheduling, notifications, and storage. Confirm supported patch versions when scaffolding.  
+**Rationale:** One conventional modular monolith is the shortest safe path to the pilot and preserves transactional correctness.  
+**Alternative:** SPA, microservices, tenancy/permission frameworks, Redis, and broad infrastructure packages; defer until a measured need exists.
+
+## 2026-08-24: Conditional module boundaries
+
+**Decision:** Keep games/queues, parent self-service, marketing campaigns, cashier shifts, and other later-phase features out of MVP. Keep basic incident routes/tables/permissions/UI disabled unless OQ-20 is approved; keep cashier close out unless OQ-24 is approved.  
+**Rationale:** These behaviors appear outside or ambiguously within the PRD's explicit MVP inventory and must not become hidden scope.
+
+## 2026-08-24: Single canonical documentation directory
+
+**Decision:** Keep every final specification and implementation guide directly under `docs/`, with supporting OpenAPI and wireframe assets in `docs/contracts/` and `docs/wireframes/`; remove the former nested documentation layer and its summary duplicates.  
+**Rationale:** One canonical path prevents drift and makes the repository ready for day-to-day implementation work.  
+**Alternative:** Maintain short summaries plus a detailed project pack; rejected because it created two sources for the same topics.
+
+## 2026-08-25: Cool mineral operational visual baseline
+
+**Decision:** Use a light, restrained product interface with cool porcelain surfaces, graphite text, and deep petrol teal reserved for primary actions, focus, and selection. Purple and cream are explicitly excluded. `DESIGN.md` is the canonical reusable visual and interaction baseline.  
+**Rationale:** Reception and cashier users work in bright, busy environments and need a calm, high-contrast interface that feels modern without becoming an arcade theme.  
+**Alternative:** Purple/cream styling, neon/playful entertainment styling, or a dark dashboard; rejected because they do not match the requested direction or reduce clarity and trust in safety and money workflows.
