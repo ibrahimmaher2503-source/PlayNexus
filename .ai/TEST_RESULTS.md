@@ -1,6 +1,33 @@
 # Test Results
 
-No application tests have run because the Laravel application has not been scaffolded.
+## 2026-09-10 Laravel foundation scaffold
+
+### T03 review correction verification
+
+| Check | Command | Result |
+|---|---|---|
+| Default tests | `php artisan test` | Pass: 2 tests, 2 assertions |
+| Frontend build | `npm run build` | Pass: Vite production build |
+| Application timezone | `php artisan config:show app` | Pass: `timezone .. UTC` |
+| Diff | `git diff --check` | Pass: no whitespace errors |
+| Documentation | `python tools/validate_documentation.py` | Pass: 30 Markdown files, 0 errors, 0 warnings |
+
+| Check | Command | Result |
+|---|---|---|
+| PHP | `php -v` | Pass: PHP 8.4.21; target is PHP 8.5 |
+| Composer | local Composer PHAR `--version` | Pass: Composer 2.10.3 during scaffold; fresh checkout requires Composer on `PATH` as documented |
+| Framework install | local Composer PHAR `install --no-interaction` | Pass: dependencies installed and autoload generated; reproducible command is now `composer install --no-interaction --prefer-dist --no-progress` |
+| Node/npm | `node --version`; `npm --version` | Pass: Node 24.15.0, npm 11.12.1 |
+| Frontend install | `npm install --ignore-scripts` | Pass |
+| Key | `php artisan key:generate --force` | Pass during initial scaffold only; clean setup now generates a key only when `.env` is absent |
+| Tests | `php artisan test` | Pass: framework default PHPUnit tests (2 tests, 2 assertions) |
+| Assets | `npm run build` | Pass: Vite production build |
+| MySQL | `mysql --version` | BLOCKED: MySQL CLI unavailable; no database migration run. This does not determine whether a database service is available elsewhere. |
+| Smoke | `php artisan serve --host=127.0.0.1 --port=8000` + `curl.exe --max-time 20 -o NUL -w '%{http_code}' http://127.0.0.1:8000/` with temporary file session/cache override | Pass: HTTP 200. With configured MySQL-backed sessions, `127.0.0.1:3306/playnexus` refused a connection during this check; no service was installed, restarted, or altered. |
+| Diff | `git diff --check` | Pass: no whitespace errors |
+| Documentation | `python tools/validate_documentation.py` | Pass: 30 Markdown files, 0 errors, 0 warnings |
+
+The entries above prove only the installed framework scaffold, default PHPUnit harness, frontend build, and file-session/cache route smoke. They do not prove MySQL migrations/runtime, tenant isolation, authorization, money/time correctness, security, or business workflows.
 
 ## 2026-08-24 documentation QA
 

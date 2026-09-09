@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-09-10
+
+### Completed
+
+- Scaffolded Laravel 13.31.0 with PHP 8.4.21 compatibility, Vite/Tailwind assets, Blade default route, and default PHPUnit test harness.
+- Configured MySQL placeholders, English/Arabic locale placeholders, and UTC application time; Africa/Cairo remains a future branch display concern.
+- Verified Composer install, application key generation, default PHPUnit tests, frontend build, and HTTP smoke with temporary file session/cache settings.
+
+### Remaining
+
+- PHP 8.5 and MySQL 8.4 are targets; PHP 8.5 and MySQL CLI were unavailable in this environment.
+- MySQL migrations and default database-backed runtime remain unverified. The configured `127.0.0.1:3306` endpoint refused a connection during smoke; this does not establish the state of other database services.
+- T04 must implement approved M1 tenant/branch foundation only.
+
 ## 2026-08-25
 
 ### Completed

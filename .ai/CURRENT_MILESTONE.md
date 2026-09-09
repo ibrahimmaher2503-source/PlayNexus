@@ -2,14 +2,14 @@
 
 ## Milestone
 
-M0: Approve the audited documentation and close implementation-blocking decisions.
+M0: Laravel foundation scaffold installed; database-backed runtime remains unverified.
 
 ## Goal
 
-Use the completed BRD, SRS, backlog, use cases, architecture, ERD, permissions, API/OpenAPI, wireframes, testing strategy, and tooling plan to close decisions that affect schema and critical workflows before scaffolding Laravel.
+Laravel 13 foundation exists with no business modules. Default PHPUnit tests, frontend build, and file-session/cache smoke are verified; MySQL migrations and runtime are not. Close required decisions before adding domain schema.
 
 ## Next three actions
 
-1. Obtain G1 stakeholder decisions listed in `docs/00-INDEX.md` and record them in `.ai/DECISIONS.md`.
-2. Approve or revise the permission, pricing, checkout, finance, and conditional-incident boundaries.
-3. Scaffold the approved Laravel baseline and prove tenant isolation with the first visible vertical slice.
+1. Provision or select an isolated MySQL 8.4 database without changing shared services, then verify the default runtime and migration path.
+2. Close required G1 decisions in the approved register.
+3. Select the first approved M1 tenant/branch story; keep business modules and speculative contracts out of the scaffold.
