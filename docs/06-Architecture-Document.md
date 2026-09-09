@@ -472,3 +472,7 @@ Implementation may start when:
 - games/queues/participation and cashier-shift migrations/routes remain absent from the MVP release;
 - OQ-01, OQ-03, OQ-06, OQ-08, OQ-11, OQ-12, OQ-15, OQ-17, OQ-19, OQ-20, and OQ-24 have owners; any schema, enum, route, or milestone affected by them is not frozen prematurely;
 - at least one end-to-end OQ-19 station flow is approved: guardian search → child selection → check-in → pause/resume/extend → quote/order → full payment → verified checkout → receipt → report.
+
+## Approved MVP decision amendment — 2026-09-10
+
+The first Egypt MVP uses branch-scoped immutable receipt numbers, QR plus registered-guardian confirmation for checkout, and fixed-duration pricing with a 10-minute grace period and 30-minute overtime units. Pause is deferred. All money remains integer minor units; branch tax configuration is snapshotted at checkout. Guardian verification failure blocks completion unless an audited manager override is approved.

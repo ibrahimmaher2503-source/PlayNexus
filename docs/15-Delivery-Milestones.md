@@ -29,3 +29,7 @@ Catalog/cart, tax, discount approval, payment recording, refund audit, digital r
 Core reports, operational notifications, audit views, localization/accessibility/performance/security passes, backups/restore exercise, pilot seed data, and staff walkthrough. Add basic incident recording/search in this milestone only if its open MVP scope interpretation is approved.
 
 Each milestone ships a usable vertical slice and must meet [Definition of Done](17-Definition-of-Done.md).
+
+## Approved MVP decision amendment — 2026-09-10
+
+M3/M4 use fixed-duration packages, 10-minute grace, 30-minute overtime units, and no pause. M4 checkout requires QR plus registered-guardian confirmation or an audited manager override. M5 receipt numbering is branch-scoped and immutable; receipt voiding preserves history.

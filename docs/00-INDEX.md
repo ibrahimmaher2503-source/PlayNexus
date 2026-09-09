@@ -64,3 +64,9 @@ Deferred: native apps, online marketplace, AI, advanced loyalty and memberships,
 - Whether basic incident recording/search is required in the MVP; it appears in the Safety module but not in the PRD's explicit MVP feature list.
 
 Unresolved items are labeled assumptions; they are not hidden product commitments.
+
+## Approved MVP baseline decisions — 2026-09-10
+
+The following initial decisions are approved for implementation planning: branded SaaS only (OQ-23); online-only operation (OQ-03); Egypt launch with EGP, Africa/Cairo, Arabic and English, and configurable tax behavior (OQ-06); minimum operational/safety data with recorded consent and lawful anonymization/retention exceptions (OQ-07); multi-branch staff with branch-scoped roles and deny-by-default authorization (OQ-10); default-deny, time-bound, reason-required, audited Super Admin support access (OQ-14); record-only in-person payments with no gateway in MVP (OQ-01); browser keyboard-input QR/barcode scanners with no proprietary hardware SDK (OQ-02); and optional child date of birth with purpose-limited age/family-band use (OQ-15).
+
+These decisions must be reflected in the affected SRS, architecture, ERD, permissions, API/OpenAPI, wireframe, testing, milestone, and blocker records before dependent implementation is frozen. OQ-08 receipt numbering/content, OQ-12 guardian verification, OQ-16 pricing, and remaining workflow decisions remain open.

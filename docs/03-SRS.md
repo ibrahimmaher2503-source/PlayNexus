@@ -588,3 +588,9 @@ The BRD decision log OQ-01 through OQ-24 is authoritative. OQ-15 through OQ-22 o
 - [ ] Architecture approves capacity, availability, recovery, integration, and concurrency requirements.
 - [ ] QA confirms every Must requirement is testable and linked to the test strategy.
 - [ ] All Gate G1 questions are decided or formally deferred with accepted impact.
+
+## Approved MVP decision amendment — 2026-09-10
+
+- OQ-08: receipts use a unique branch-scoped display number in the form `BRANCH-YYYY-000001`; numbers are never reused, and voiding preserves the record and reason. Receipt content includes seller/branch, timestamp, receipt number, service, quantity, prices, discount, tax, total, payment method, actor, and verification QR.
+- OQ-12: checkout verification uses the session/ticket QR plus confirmation of the registered guardian phone last four digits or a handoff code; failed verification blocks checkout. Manager override is reason-required, permission-checked, single-use, and audited.
+- OQ-16: fixed-duration packages are the MVP pricing model; 10-minute grace; overtime rounds up in 30-minute units; pause is deferred; extension is a package or 30-minute unit; money is integer piastres; tax is branch-configurable; checkout snapshots inputs and calculation lines.

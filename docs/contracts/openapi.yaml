@@ -1,3 +1,7 @@
+x-playnexus-approved-decisions:
+  receipt_numbering: branch-scoped unique BRANCH-YYYY-000001; voided records retained
+  checkout_verification: QR plus registered_guardian_phone_last4_or_handoff_code; manager_override_audited
+  pricing: fixed_duration; grace_seconds 600; overtime_unit_seconds 1800; pause_disabled; integer_minor_units; configurable_tax
 openapi: 3.1.0
 info:
   title: PlayNexus MVP API
@@ -4963,3 +4967,4 @@ components:
         occurred_at:
           type: string
           format: date-time
+

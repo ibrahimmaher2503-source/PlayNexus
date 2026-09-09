@@ -29,3 +29,10 @@
 - [ ] Pilot data migration/onboarding rehearsed.
 - [ ] Monitoring, support ownership, rollback, and incident contacts documented.
 - [ ] Staff training and pilot go/no-go approval complete.
+
+## Approved MVP decision amendment — 2026-09-10
+
+- [x] Approve branch-scoped immutable receipt numbers and receipt content baseline.
+- [x] Approve QR plus registered-guardian confirmation and audited manager override.
+- [x] Approve fixed-duration pricing, 10-minute grace, 30-minute overtime units, integer minor units, configurable tax, and no pause in MVP.
+- [ ] Synchronize generated migrations and OpenAPI enums/schemas during Laravel scaffold.

@@ -548,3 +548,9 @@ every cross-tenant reference has matching tenant_id
 ```
 
 Nightly reconciliation reports mismatches without mutating data. Repair requires an explicit, audited corrective action or migration.
+
+## Approved MVP decision amendment — 2026-09-10
+
+- Receipt records require a unique `(tenant_id, branch_id, display_number)` and retain voided rows with reason; display numbers use `BRANCH-YYYY-000001`.
+- Checkout/session completion stores verification method, outcome, guardian reference or handoff-code reference, and override approval reference when used.
+- Pricing rules store fixed-duration package, grace seconds (600), overtime unit seconds (1800), pause disabled for MVP, tax mode/rate, and immutable calculation snapshots.

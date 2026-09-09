@@ -50,3 +50,19 @@
 **Decision:** Use a light, restrained product interface with cool porcelain surfaces, graphite text, and deep petrol teal reserved for primary actions, focus, and selection. Purple and cream are explicitly excluded. `DESIGN.md` is the canonical reusable visual and interaction baseline.  
 **Rationale:** Reception and cashier users work in bright, busy environments and need a calm, high-contrast interface that feels modern without becoming an arcade theme.  
 **Alternative:** Purple/cream styling, neon/playful entertainment styling, or a dark dashboard; rejected because they do not match the requested direction or reduce clarity and trust in safety and money workflows.
+
+## 2026-09-10: Initial MVP decisions approved by product owner
+
+The following initial decisions are approved for the MVP baseline:
+
+- **OQ-23:** PlayNexus launches as branded SaaS only. White-label capability is deferred.
+- **OQ-03:** MVP is online-only. Offline writes and conflict synchronization are deferred; operational outage fallback is a visible failure/read-only procedure.
+- **OQ-06:** Initial market is Egypt; branch currency is EGP; default timezone is Africa/Cairo; Arabic and English are supported; tax behavior is configurable pending legal/accounting confirmation.
+- **OQ-07:** Collect only the minimum data required for operations and safety; record consent/version events; support masking and deletion/anonymization where legally permitted; retain mandatory financial, safety, and audit evidence.
+- **OQ-10:** Staff may be assigned to multiple branches with branch-scoped roles and deny-by-default authorization.
+- **OQ-14:** Super Admin support access is denied by default and requires least-privilege, time-bound, reason-required, audited access.
+- **OQ-01:** MVP records in-person payments only. Online gateway capture is deferred.
+- **OQ-02:** QR/barcode input uses browser keyboard-input scanners. Proprietary wristband/scanner SDKs are deferred.
+- **OQ-15:** Child date of birth is optional; the system may use an age/family-band value where needed, without requiring more precision than the approved purpose.
+
+**Still open:** OQ-08 receipt numbering/content requires Finance/Legal approval; OQ-16 pricing, OQ-12 guardian verification, and the remaining operational decisions must close before their affected slices are frozen.

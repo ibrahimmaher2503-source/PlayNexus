@@ -507,3 +507,7 @@ The traceability matrix is a release view, not duplicated prose. One automated t
 - [Which MySQL version to use](https://dev.mysql.com/doc/refman/8.4/en/which-version.html)
 
 These sources were verified on 24 August 2026. Pin application dependencies in lock files and review support status before implementation and each major release.
+
+## Approved MVP decision amendment — 2026-09-10
+
+Add focused checks for: branch-scoped receipt numbering under concurrency and void immutability; QR/guardian-confirmation success, mismatch, missing-code, replay, and audited manager override; fixed package pricing, 10-minute grace boundary, 30-minute overtime rounding, integer-piastre arithmetic, tax snapshotting, and rejection of pause commands in MVP.

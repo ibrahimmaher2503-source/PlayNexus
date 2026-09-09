@@ -663,3 +663,7 @@ Before implementation starts, product and operations should approve:
 12. Launch-country privacy, consent, retention, deletion, residency, and support-access rules (OQ-07 and OQ-14).
 
 These decisions materially affect acceptance criteria, data retention, and test coverage.
+
+## Approved MVP decision amendment — 2026-09-10
+
+The completion screen must show QR verification, guardian confirmation choice, blocked-verification state, manager-override reason flow, and an explainable quote with package duration, 10-minute grace, 30-minute overtime units, tax, and total. Pause controls are omitted from the MVP flow.

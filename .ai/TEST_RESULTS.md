@@ -45,3 +45,11 @@ The entries above prove only the installed framework scaffold, default PHPUnit h
 These checks validate documentation structure and the static contract/prototype only. They do not demonstrate application behavior, migrations, tenant isolation, money/time correctness, security, or release readiness; those require the Laravel scaffold and real tests.
 
 The first post-move OpenAPI and browser commands could not load their isolated validator and Playwright dependencies from the default shell. They were rerun successfully with the workspace's bundled Python/Node runtimes and isolated QA dependencies; no specification or wireframe defect caused those environment failures.
+
+## 2026-09-10 decision synchronization QA
+
+| Check | Result |
+|---|---|
+| `python tools/validate_documentation.py` | Pass: 30 Markdown files, 199 SRS IDs, 50 stories, 14 use cases, 24 OQs, 56 OpenAPI paths/70 operations, 0 errors/warnings |
+| `python -m openapi_spec_validator docs/contracts/openapi.yaml` | Not run: validator package is unavailable in the default Python runtime; rerun with the bundled QA environment before scaffold merge |
+| Contract synchronization | Pass: approved receipt, guardian-verification, and pricing amendments added to SRS, architecture, ERD, permissions, API, OpenAPI extension, wireframes, testing, milestones, checklist, and `.ai/` records |

@@ -275,3 +275,7 @@ Error messages must not disclose that another tenant's resource exists.
 - Future Game Operator, games, shifts, marketing, parent login, split/partial payment, and partial-refund permissions are absent from the MVP seed and route registration. Incident permissions are also absent until OQ-20 is approved.
 - Disabling a user or branch invalidates new operations immediately.
 - No Parent/Guardian API token can be issued until own-record policies and identity proofing are implemented.
+
+## Approved MVP decision amendment — 2026-09-10
+
+Checkout requires the normal guardian-verification permission and a successful QR plus registered-guardian confirmation. Manager override is a separate deny-by-default permission, requires a reason, is single-use, and creates an audit record. Receipt voiding is separate from receipt viewing and never deletes the original record. Pause permissions are not seeded for the MVP pricing flow.

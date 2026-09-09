@@ -679,3 +679,9 @@ Online-payment webhooks remain future scope. The MVP notification-status callbac
 - Examples use valid enum values, ULID shapes, UTC timestamps, and minor-unit money.
 - Cross-tenant and unassigned-branch tests return `404`.
 - Error codes and enum values remain synchronized with application enums and `07-Database-ERD.md`.
+
+## Approved MVP decision amendment — 2026-09-10
+
+- Receipt responses expose an immutable branch-scoped display number (`BRANCH-YYYY-000001`) and void status/reason; no delete operation exists.
+- Checkout requests require QR/session identity and guardian confirmation (`registered_phone_last4` or `handoff_code`); failed confirmation returns a stable blocked-verification problem. Manager override requires a bound approval/reason and is idempotent.
+- Quote/checkout uses fixed-duration packages, 600-second grace, 1800-second overtime units, no pause in MVP, integer minor-unit money, configurable branch tax, and server calculation snapshots.
