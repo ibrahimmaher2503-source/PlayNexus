@@ -14,6 +14,10 @@ Laravel 13 foundation exists with no business modules. Default PHPUnit tests, fr
 2. Select the first approved M1 tenant/branch story and implement only that vertical slice.
 3. Prove tenant isolation and branch authorization with focused tests before wider domain work.
 
+## 2026-09-10 M1 foundation slice
+
+Tenant/branch context and assignment-scoped access are implemented and verified with the focused SQLite suite. MySQL migration/runtime verification remains blocked by the unavailable environment.
+
 ## 2026-09-10 update
 
 Initial G1 baseline choices and OQ-08/OQ-12/OQ-16 decisions were approved and synchronized across the canonical contract documents. T03 scaffold is integrated from commit `7866de3b7c04386621217adb8b9c43c46c588cae`.

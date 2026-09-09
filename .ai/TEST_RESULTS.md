@@ -29,6 +29,18 @@
 
 The entries above prove only the installed framework scaffold, default PHPUnit harness, frontend build, and file-session/cache route smoke. They do not prove MySQL migrations/runtime, tenant isolation, authorization, money/time correctness, security, or business workflows.
 
+## 2026-09-10 T04 tenant/branch foundation
+
+| Check | Command | Result |
+|---|---|---|
+| Focused foundation tests | `php artisan test --filter=TenantBranchTest` | Pass: 4 tests, 14 assertions |
+| Full tests | `php artisan test` | Pass: 6 tests, 16 assertions |
+| Formatting | `vendor/bin/pint --test` | Pass after `vendor/bin/pint` formatting |
+| Frontend build | `npm run build` | Pass: Vite production build |
+| Documentation | `python tools/validate_documentation.py` | Pass: 30 Markdown files, 0 errors, 0 warnings |
+| Diff | `git diff --check` | Pass: no whitespace errors |
+| Database | SQLite in-memory via `phpunit.xml` | Pass: constraints and behavior covered; MySQL migration/runtime BLOCKED_BY_ENVIRONMENT (no MySQL CLI/service verified) |
+
 ## 2026-08-24 documentation QA
 
 | Check | Real result |

@@ -12,7 +12,12 @@
 
 - PHP 8.5 and MySQL 8.4 are targets; PHP 8.5 and MySQL CLI were unavailable in this environment.
 - MySQL migrations and default database-backed runtime remain unverified. The configured `127.0.0.1:3306` endpoint refused a connection during smoke; this does not establish the state of other database services.
-- T04 must implement approved M1 tenant/branch foundation only.
+- T04 tenant/branch foundation implemented on `codex/t04-tenant-branch-foundation`; MySQL remains unverified in this environment.
+
+### 2026-09-10 M1 foundation
+
+- Added tenant context from authenticated `users.tenant_id`, active tenant/branch models, branch assignments with active state and branch-scoped role, and deny-by-default branch middleware.
+- Focused SQLite-backed isolation and inactive-state tests pass; no pricing, checkout, payments, or other business modules were added.
 
 ## 2026-08-25
 
