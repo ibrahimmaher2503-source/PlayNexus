@@ -18,6 +18,7 @@
 
 - Added tenant context from authenticated `users.tenant_id`, active tenant/branch models, branch assignments with active state and branch-scoped role, and deny-by-default branch middleware.
 - Focused SQLite-backed isolation and inactive-state tests pass; no pricing, checkout, payments, or other business modules were added.
+- T04 follow-up adds tenant_id to branch assignments with composite foreign keys preventing cross-tenant branch/user references.
 
 ## 2026-08-25
 

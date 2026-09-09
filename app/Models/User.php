@@ -26,7 +26,7 @@ class User extends Authenticatable
 
     public function branches(): BelongsToMany
     {
-        return $this->belongsToMany(Branch::class)->withPivot(['role', 'is_active'])->withTimestamps();
+        return $this->belongsToMany(Branch::class)->withPivot(['tenant_id', 'role', 'is_active'])->withTimestamps();
     }
 
     /**

@@ -21,6 +21,7 @@ class EnsureBranchAccess
             ->where('tenant_id', $tenant->id)
             ->whereExists(fn ($query) => $query->from('branch_user')
                 ->whereColumn('branch_user.branch_id', 'branches.id')
+                ->where('branch_user.tenant_id', $tenant->id)
                 ->where('branch_user.user_id', auth()->id())
                 ->where('branch_user.is_active', true))
             ->first() : null;

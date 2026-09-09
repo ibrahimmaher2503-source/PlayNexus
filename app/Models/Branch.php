@@ -25,6 +25,6 @@ class Branch extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withPivot(['role', 'is_active'])->withTimestamps();
+        return $this->belongsToMany(User::class)->withPivot(['tenant_id', 'role', 'is_active'])->withTimestamps();
     }
 }

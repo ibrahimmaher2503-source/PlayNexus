@@ -17,7 +17,7 @@ return new class extends Migration
 
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('tenant_id')->nullable()->after('id')->constrained()->restrictOnDelete();
-            $table->index(['tenant_id', 'id']);
+            $table->unique(['tenant_id', 'id']);
         });
 
         Schema::create('branches', function (Blueprint $table) {
@@ -30,13 +30,16 @@ return new class extends Migration
         });
 
         Schema::create('branch_user', function (Blueprint $table) {
+            $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('role', 50);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            $table->primary(['branch_id', 'user_id']);
-            $table->index(['user_id', 'is_active']);
+            $table->primary(['tenant_id', 'branch_id', 'user_id']);
+            $table->foreign(['tenant_id', 'branch_id'])->references(['tenant_id', 'id'])->on('branches')->cascadeOnDelete();
+            $table->foreign(['tenant_id', 'user_id'])->references(['tenant_id', 'id'])->on('users')->cascadeOnDelete();
+            $table->index(['tenant_id', 'user_id', 'is_active']);
         });
     }
 

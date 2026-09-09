@@ -6,7 +6,9 @@ use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantContext;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -23,7 +25,7 @@ class TenantBranchTest extends TestCase
 
         $this->assertSame($tenant->id, app(TenantContext::class)->current()->id);
         $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
-        $user->branches()->attach($branch, ['role' => 'reception', 'is_active' => true]);
+        $user->branches()->attach($branch, ['tenant_id' => $tenant->id, 'role' => 'reception', 'is_active' => true]);
         $this->getJson('/branches/'.$branch->id.'?tenant_id='.$other->id)->assertOk();
         $this->assertSame($tenant->id, app(TenantContext::class)->current()->id);
     }
@@ -36,7 +38,7 @@ class TenantBranchTest extends TestCase
         $assigned = Branch::factory()->create(['tenant_id' => $tenant->id]);
         $unassigned = Branch::factory()->create(['tenant_id' => $tenant->id]);
         $foreign = Branch::factory()->create(['tenant_id' => $other->id]);
-        $user->branches()->attach($assigned, ['role' => 'reception', 'is_active' => true]);
+        $user->branches()->attach($assigned, ['tenant_id' => $tenant->id, 'role' => 'reception', 'is_active' => true]);
         $this->actingAs($user);
 
         $this->getJson('/branches/'.$assigned->id)->assertOk();
@@ -49,7 +51,7 @@ class TenantBranchTest extends TestCase
         $tenant = Tenant::factory()->create();
         $user = User::factory()->create(['tenant_id' => $tenant->id]);
         $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
-        $user->branches()->attach($branch, ['role' => 'cashier', 'is_active' => false]);
+        $user->branches()->attach($branch, ['tenant_id' => $tenant->id, 'role' => 'cashier', 'is_active' => false]);
         $this->actingAs($user);
 
         $this->getJson('/branches/'.$branch->id)->assertNotFound();
@@ -68,5 +70,24 @@ class TenantBranchTest extends TestCase
         $this->assertTrue(Schema::hasTable('branch_user'));
         $this->assertTrue(collect(Schema::getIndexes('branches'))->contains(fn ($index) => in_array('tenant_id', $index['columns'], true)));
         $this->assertTrue(collect(Schema::getIndexes('branch_user'))->contains(fn ($index) => in_array('branch_id', $index['columns'], true) && in_array('user_id', $index['columns'], true)));
+    }
+
+    public function test_cross_tenant_branch_assignment_is_rejected_by_composite_foreign_keys(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $other = Tenant::factory()->create();
+        $user = User::factory()->create(['tenant_id' => $tenant->id]);
+        $branch = Branch::factory()->create(['tenant_id' => $other->id]);
+
+        $this->expectException(QueryException::class);
+        DB::table('branch_user')->insert([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $branch->id,
+            'user_id' => $user->id,
+            'role' => 'reception',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }
