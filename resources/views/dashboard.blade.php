@@ -11,10 +11,21 @@
                 <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('Signed in as :user', ['user' => auth()->user()->name]) }}</p>
                 <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ $selectedBranch ? __('Current branch: :branch', ['branch' => $selectedBranch->name]) : __('Select an assigned branch to continue.') }}</p>
             </div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Sign out') }}</button>
-            </form>
+            <div class="flex flex-wrap items-end gap-3">
+                <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
+                    @csrf
+                    <label class="text-sm font-semibold" for="locale">{{ __('Language') }}</label>
+                    <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="locale" name="locale">
+                        <option value="en" @selected(app()->isLocale('en'))>{{ __('English') }}</option>
+                        <option value="ar" @selected(app()->isLocale('ar'))>{{ __('Arabic') }}</option>
+                    </select>
+                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Change') }}</button>
+                </form>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Sign out') }}</button>
+                </form>
+            </div>
         </header>
 
         <section class="mt-8 max-w-xl" aria-labelledby="branches-heading">
