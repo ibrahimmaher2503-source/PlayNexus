@@ -6,7 +6,18 @@ T08 is DONE after review of 7a3963e48011f230a8d27ce91320fc8e1f942395. This accep
 
 Verified accepted-target ancestry, four-file documentation-only diff, retained worker evidence and all substantive coordinator review entries. The omitted old statement that no scaffold/tests exist is obsolete here. Main and QA refs/status and existing stash were preserved. Independently reran 21 tests/81 assertions, Pint, build, documentation validator (0 errors, 2 status-marker warnings) and diff checks successfully. No service restart, main merge or push.
 
-Next planning step: inspect the integrated permission matrix, role representation and existing authorization boundaries to define a bounded M1 policy/gate slice. No implementation task dispatched yet.
+Next task: T09, fixed branch-role enforcement of branches.view through Laravel BranchPolicy/Gate on existing branch read/select paths. One worker; no full RBAC framework or owner/platform scope implementation.
+
+## T09 execution contract — READY
+
+- Base: accepted codex/first at 84c5b00 plus this planning-only commit. User launches one isolated worker branch codex/t09-branch-view-policy; no implementation dispatched by the orchestrator.
+- Objective: existing /app branch list, POST /branch-context/{branch}, GET /branches/{branch}, and stored branch-context revalidation enforce the same branches.view decision. Active membership alone must not grant access for arbitrary role strings.
+- Supported branch roles for this slice: branch_manager, reception_staff, cashier. Existing stored reception is an explicit compatibility alias for reception_staff; do not mass-rewrite data or remove coverage for the alias. Unknown, empty, future and misplaced tenant_owner/super_admin pivot values deny by default. This does not define actual tenant-owner/platform access; no authoritative tenant-level ownership representation exists in current User/schema. Implement that separately before claiming full M1.
+- Reuse TenantContext and activeBranches scope, plus Laravel-native BranchPolicy view and Gate authorization. Keep 404 for inaccessible branch read/select, filter denied branches from the selector, and clear denied selected context after role revocation/change. Missing permissions and stale loaded relations must not preserve access.
+- Role mapping remains server-side fixed code, no package/tables/custom permission editor. Only branches.view is delivered; do not pre-grant future operations or add an update/settings endpoint merely to exercise a second permission.
+- Owner: one worker owns policy, any minimal shared role predicate, integration points in User/branch controllers/middleware/provider/routes as actually needed, focused tests, and .ai/PROGRESS.md, .ai/TEST_RESULTS.md, .ai/CURRENT_MILESTONE.md. It may add a clearly scoped implementation note to docs/08-Permission-Matrix.md without changing the business matrix. Coordinator alone edits this ledger. No concurrent workers on these files.
+- Verification: direct policy negatives and real HTTP list/select/read negatives for unsupported role, role from a different branch, inactive tenant/branch/assignment and cross-tenant records; canonical and legacy reception success; role revocation clears selected context; auth/logout/throttle regressions unchanged. Run focused checks then full suite, Pint and docs/diff checks. Perform a bounded real-browser assigned-list/select/reload role-revocation check using isolated synthetic data; report exact engine and limitations. Do not restart shared services.
+- Delivery: focused commit(s), exact checks/results, changed files, browser evidence and remaining scope; REVIEW_REQUIRED until orchestrator review. Depends on T08 DONE. Integration order: review T09 -> accepted correction if needed -> integrate -> combined verification. Owner/platform scope, staff lifecycle and further permissions remain deferred tasks needing separate contracts.
 
 ## Current startup snapshot — 2026-09-10
 
