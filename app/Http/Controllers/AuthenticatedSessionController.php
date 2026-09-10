@@ -23,7 +23,7 @@ class AuthenticatedSessionController extends Controller
             'password' => $request->string('password')->toString(),
         ];
 
-        if (! Auth::attempt($credentials) || ! app(TenantContext::class)->current($request->user())) {
+        if (! Auth::attempt($credentials) || $request->user()->status !== 'active' || ! app(TenantContext::class)->current($request->user())) {
             Auth::logout();
             $request->session()->forget('branch_id');
             $request->session()->invalidate();
