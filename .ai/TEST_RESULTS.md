@@ -1,5 +1,9 @@
 # Test Results
 
+## 2026-09-10 independent T09 review at 0c93d50
+
+Executed in the isolated t09-branch-view-policy worktree: full suite PASS 26 tests/156 assertions (SQLite :memory:/array sessions), Pint PASS, documentation validator PASS 0 errors/2 known warnings, diff check PASS. Reviewed all changed policy integration paths and worker browser outputs for selected-context revocation and direct 403. No confirmed findings. Worker tree clean; no application edits, integration, service restart or live browser rerun by coordinator. T09 accepted on worker branch only; MySQL coverage for this policy has not been claimed.
+
 ## 2026-09-10 independent T08 acceptance at 7a3963e
 
 - Accepted ancestry and four-file documentation-only diff verified; worker evidence and substantive coordinator entries retained. Only an obsolete no-scaffold/no-tests sentence from main was omitted.

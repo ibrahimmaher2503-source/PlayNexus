@@ -6,9 +6,17 @@ T08 is DONE after review of 7a3963e48011f230a8d27ce91320fc8e1f942395. This accep
 
 Verified accepted-target ancestry, four-file documentation-only diff, retained worker evidence and all substantive coordinator review entries. The omitted old statement that no scaffold/tests exist is obsolete here. Main and QA refs/status and existing stash were preserved. Independently reran 21 tests/81 assertions, Pint, build, documentation validator (0 errors, 2 status-marker warnings) and diff checks successfully. No service restart, main merge or push.
 
-Next task: T09, fixed branch-role enforcement of branches.view through Laravel BranchPolicy/Gate on existing branch read/select paths. One worker; no full RBAC framework or owner/platform scope implementation.
+T09 is accepted on worker branch at 0c93d5073960ae8dc6c93c86d22b1c176fb09bcd. Next is local integration and combined verification; no integration performed by this review.
 
-## T09 execution contract — READY
+## T09 review — 2026-09-10
+
+- Reviewed nine-file diff against 92aca44, all policy call sites, fresh pivot lookup, scoped 403/404 behavior and regression tests. No confirmed correctness findings in the bounded contract.
+- Independently reran full suite: 26 tests/156 assertions PASS with SQLite :memory:/array sessions; Pint PASS; docs validator PASS (0 errors, 2 known marker warnings); diff check PASS. Worker tree clean. No frontend/dependency/schema changes, so no additional build or MySQL migration run. T07 MySQL evidence predates this policy; T09 validation is SQLite only.
+- Reviewed original worker browser outputs in task 01a08944-c762-7bb0-8945-a89e0044ac79: 8194/app as T09 Operator, permitted branch selection/reload, role revocation removes context, direct /branches/1 renders 403. No independent live browser rerun or screenshot-render claim. Port 8194 not listening at review.
+- T09 DONE on worker branch, not integrated. Fixed tenant-owner/platform access, staff lifecycle, full M1, PHP 8.5 and production remain incomplete. Per-branch policy queries are acceptable for this bounded selector; optimize only if measured branch scale warrants it.
+- Next integration must merge accepted worker 0c93d50 into codex/first while preserving this coordinator review commit and worker evidence. The coordinator review advances codex/first separately, so recheck ancestry and use a normal local merge if fast-forward is no longer possible. No force/rebase, main merge or push. Run combined tests and docs/diff checks before acceptance.
+
+## T09 execution contract — DONE on worker branch
 
 - Base: accepted codex/first at 84c5b00 plus this planning-only commit. User launches one isolated worker branch codex/t09-branch-view-policy; no implementation dispatched by the orchestrator.
 - Objective: existing /app branch list, POST /branch-context/{branch}, GET /branches/{branch}, and stored branch-context revalidation enforce the same branches.view decision. Active membership alone must not grant access for arbitrary role strings.
