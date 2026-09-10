@@ -17,6 +17,10 @@ class BranchPolicy
 
     public function view(User $user, Branch $branch): bool
     {
+        if (! User::query()->whereKey($user)->where('status', 'active')->exists()) {
+            return false;
+        }
+
         if (! app(TenantContext::class)->current($user)) {
             return false;
         }
