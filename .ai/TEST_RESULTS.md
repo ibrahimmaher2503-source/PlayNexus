@@ -66,6 +66,17 @@ The entries above prove only the installed framework scaffold, default PHPUnit h
 | Diff | `git diff --check` | Pass: no whitespace errors |
 | Database | SQLite in-memory via `phpunit.xml` | Pass: auth and branch boundaries tested. MySQL migration/runtime `BLOCKED_BY_ENVIRONMENT`; no MySQL service or shared configuration was changed. |
 
+## 2026-09-10 T05 auth follow-up
+
+| Check | Command | Result |
+|---|---|---|
+| Authentication regressions | `php artisan test --filter=Authentication` | Pass: 14 tests, 63 assertions |
+| Branch denial regression | `php artisan test --filter=Branch` | Pass: 11 tests, 40 assertions |
+| Full suite | `php artisan test` | Pass: 21 tests, 81 assertions |
+| Formatting | `php vendor/bin/pint --test` | Pass |
+| Documentation | `python tools/validate_documentation.py` | Pass: 29 Markdown files, 199 SRS IDs, 50 stories, 14 use cases, 24 OQs, 56 OpenAPI paths/70 operations; 0 errors, 0 warnings |
+| Diff | `git diff --check` | Pass: no whitespace errors |
+
 ## 2026-08-24 documentation QA
 
 | Check | Real result |

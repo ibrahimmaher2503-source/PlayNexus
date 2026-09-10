@@ -76,6 +76,30 @@ class AuthenticationTest extends TestCase
         $this->assertNotSame($sessionId, $this->app['session']->getId());
     }
 
+    public function test_suspended_tenant_can_log_out(): void
+    {
+        [$tenant, $user] = $this->staff();
+        $branch = $this->branchFor($tenant, $user);
+        $tenant->update(['is_active' => false]);
+        $this->actingAs($user)->withSession(['branch_id' => $branch->id]);
+        $sessionId = $this->app['session']->getId();
+
+        $this->post(route('logout'))
+            ->assertRedirect(route('login'))
+            ->assertSessionMissing('branch_id');
+
+        $this->assertGuest();
+        $this->assertNotSame($sessionId, $this->app['session']->getId());
+    }
+
+    public function test_array_email_is_rejected_by_login_validation(): void
+    {
+        $this->from(route('login'))
+            ->post(route('login.store'), ['email' => ['not-an-email'], 'password' => 'password'])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('email');
+    }
+
     public function test_unauthenticated_application_access_redirects_to_login(): void
     {
         $this->get(route('dashboard'))->assertRedirect(route('login'));

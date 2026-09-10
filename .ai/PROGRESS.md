@@ -27,6 +27,11 @@
 - Branch context is stored server-side in the session only after querying the authenticated user's active assignment in the active tenant; inaccessible selections return `404` and stale contexts are cleared on the next protected request.
 - Focused SQLite feature tests cover authentication, throttling, logout/session lifecycle, tenant/branch inactive states, cross-tenant/unassigned selection, and the existing T04 isolation behavior. MySQL migration/runtime verification remains blocked by the unavailable environment.
 
+### 2026-09-10 T05 auth follow-up
+
+- Moved logout outside tenant access so a suspended tenant can invalidate its authenticated session and clear selected branch context.
+- Made the login rate-limit key ignore non-string email input so `LoginRequest` returns the normal validation error instead of a PHP conversion warning.
+
 ## 2026-08-25
 
 ### Completed
