@@ -123,3 +123,46 @@ Base reviewed: `9056439dc341aea76040dd4723fab7e13e536f0f` on isolated worktree b
 | Formatting and whitespace | **PASS** | `php vendor/bin/pint --test` passed; `git diff --check` passed. |
 
 Runtime versions: PHP 8.4.21; Laravel 13.31.0; Node 24.15.0; npm 11.12.1; Composer 2.10.3 (local PHAR used only to provision this isolated QA worktree); SQLite 3.51.3. Browser screenshots were intentionally kept in the Codex task transcript; no local browser artifacts, credentials, `.env`, or shared database data were created.
+
+## 2026-09-10 T07B isolated MySQL 8.4 acceptance
+
+Base: `835346d8dbfad3b668813b0e93737c5767b6d371` on `codex/t07-runtime-acceptance`. Only this file is committed by T07B; application code, dependencies, `.env`, XAMPP, and `docs/agent-plan.md` were not changed.
+
+### Private runtime and download verification
+
+- Official source consulted: [MySQL 8.4 Windows installation](https://dev.mysql.com/doc/refman/8.4/en/windows-installation.html) and [package selection](https://dev.mysql.com/doc/refman/8.4/en/windows-choosing-package.html). The manual documents the noinstall ZIP archive and the Microsoft Visual C++ 2019 Redistributable prerequisite; no Windows service was installed.
+- Existing task-local cache used after bounded download retry: `C:\Users\N\AppData\Local\Temp\playnexus-t07b-mysql84\mysql-8.4.11-winx64.zip` (281,191,914 bytes; MD5 `2e833921898a9a030ea6bfe81bd811bc`, matching the official downloads page). Extracted server: `...\mysql-8.4.11-winx64\bin\mysqld.exe`.
+- Server command: `mysqld.exe --no-defaults --basedir=<ZIP_ROOT> --datadir=<PRIVATE_DATA> --port=33407 --bind-address=127.0.0.1 --mysqlx=OFF --skip-log-bin --console`.
+- Runtime proof: `mysqld.exe --version` = `8.4.11`; listener = `127.0.0.1:33407`; no shared port/service was used. A task-local application account and disposable database `playnexus_t07b_accept_20260910` were created with a password kept outside the repository.
+- Runtime versions: PHP `8.4.21` with `pdo_mysql` enabled; Laravel `13.31.0`; Node `24.15.0`; npm `11.12.1`; MySQL `8.4.11`. Composer was not on this shell's `PATH`; the existing scaffold record is Composer `2.10.3` via a local PHAR, and no dependency install was needed.
+
+### Acceptance evidence
+
+| Acceptance item | Result | Evidence |
+|---|---|---|
+| MySQL version, loopback binding, and InnoDB | **PASS** | MySQL query returned `8.4.11`, `MySQL Community Server - GPL`, port `33407`, bind `127.0.0.1`, default engine `InnoDB`; `12/12` application tables reported `InnoDB` (`branch_user`, `branches`, `cache`, `cache_locks`, `failed_jobs`, `job_batches`, `jobs`, `migrations`, `password_reset_tokens`, `sessions`, `tenants`, `users`). |
+| Disposable migrations | **PASS** | With temporary `DB_CONNECTION=mysql`, `DB_HOST=127.0.0.1`, `DB_PORT=33407`, database/user overrides, `SESSION_DRIVER=database`, and `SESSION_CONNECTION=mysql`: `php artisan migrate:fresh --force --no-interaction` completed all four migrations; `php artisan db:show --database=mysql --counts` reported MySQL 8.4.11 and 12 tables. |
+| Resolved runtime configuration | **PASS** | `php artisan config:show database.default` = `mysql`; `session.driver` = `database`; `session.connection` = `mysql`; no tracked `phpunit.xml` values were used to claim this coverage. |
+| Auth/branch checks against MySQL | **PASS** | Same temporary configuration: `php artisan test --filter='TenantBranchTest|AuthenticationTest'` = 19 tests / 78 assertions; full `php artisan test` = 21 tests / 81 assertions. |
+| Cross-tenant assignment rejection | **PASS** | PHPUnit composite-FK test passed; direct MySQL probe inserting tenant `21` + foreign branch `16` failed with `ERROR 1452` on `branch_user_tenant_id_branch_id_foreign`. |
+| English database-session browser flow | **PASS** | In-app browser tab 2, `http://127.0.0.1:8190/login`: synthetic `T07B Assigned Staff` signed in, selected `T07B Assigned Branch`, reload retained `Current branch: T07B Assigned Branch`, and logout returned `/login`. The browser used database sessions on MySQL. |
+| Invalid credentials | **PASS** | English tab 2 displayed `These credentials do not match our records.`; keyboard entry and submit were exercised. |
+| Empty assignments | **PASS** | English tab 2 as synthetic `T07B Empty Staff` displayed `No active branch assignments are available.` |
+| Foreign/unassigned denial | **PASS** | Authenticated English tab 2 navigation to `/branches/15` (unassigned) and `/branches/16` (foreign) rendered actual `404 Not Found` pages. |
+| Revoked branch context | **PASS** | Synthetic `T07B Revoked Staff` selected `T07B Revoked Branch`; its `branch_user.is_active` was then set to `0` in MySQL; reload of `/app` cleared the current branch and displayed no active assignments. |
+| Suspended-tenant logout and session clearing | **PASS** | Synthetic `T07B Suspended Staff` selected its branch; tenant `23` was then suspended in MySQL; normal logout on tab 2 returned `/login`. Post-logout query: `authenticated_user_rows=0`, `branch_context_rows=0` (one anonymous login-page row remained). |
+| Arabic RTL flow | **PASS** | In-app browser tab 3, `http://127.0.0.1:8191/login`, returned DOM `lang=ar`, `dir=rtl`; Arabic invalid credentials showed `بيانات الدخول غير صحيحة.`; valid sign-in, branch selection, reload persistence (`الفرع الحالي: T07B Assigned Branch`), and logout returned `/login`. |
+| Whitespace/docs checks | **PASS** | `git diff --check` passed; `python tools/validate_documentation.py` passed with 0 errors (the existing required TODO marker warning remains scoped to `docs/agent-plan.md`, which was not changed). |
+
+### Reproducible task-local verification (no secrets)
+
+1. Download `mysql-8.4.11-winx64.zip` from `https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.11-winx64.zip`, verify MD5 `2e833921898a9a030ea6bfe81bd811bc`, and extract under a dedicated temp directory.
+2. Start `mysqld.exe` with `--no-defaults`, a private `--datadir`, `--port=33407`, and `--bind-address=127.0.0.1` (do not register a service).
+3. Create a disposable database and least-scope task user via MySQL SQL; supply the password only through a task-local secret environment variable.
+4. Run Laravel commands with process-local overrides (PowerShell example):
+
+   `$env:DB_CONNECTION='mysql'; $env:DB_HOST='127.0.0.1'; $env:DB_PORT='33407'; $env:DB_DATABASE='playnexus_t07b_accept_20260910'; $env:DB_USERNAME='<TASK_USER>'; $env:DB_PASSWORD='<TASK_PASSWORD>'; $env:SESSION_DRIVER='database'; $env:SESSION_CONNECTION='mysql'; php artisan migrate:fresh --force --no-interaction`
+
+   Then run `php artisan config:show ...`, `php artisan test`, and the browser server with the same overrides. Never edit the tracked `phpunit.xml` or an existing `.env`.
+
+Task-owned MySQL and Laravel server processes were stopped after verification. Private temp data/credentials remain outside the repository for local cleanup; no shared service or database was altered.
