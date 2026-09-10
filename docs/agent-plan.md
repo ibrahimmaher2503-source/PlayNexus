@@ -2,13 +2,13 @@
 
 ## Parallel M1 wave — 2026-09-10
 
-Current goal: complete independent M1 gaps in parallel, then one coordinated review/integration round. Base application commit 0e360eb; start workers from the planning commit containing this section. No workers dispatched by coordinator yet; user launches separate sessions.
+Current goal: complete independent M1 gaps in parallel, then one coordinated review/integration round. Base application commit 0e360eb; start workers from the planning commit containing this section. User requested three Terra subagents; coordinator dispatched /root/staff_status (A), /root/locale_switch (B), /root/owner_contract (C), all from 38fa251 in separate worktrees. Coordinator monitors, reviews and integrates accepted results locally.
 
 | Task | Owner | Status | Dependency / acceptance |
 | --- | --- | --- | --- |
-| T10 staff status enforcement | A | READY | T09 integrated; invited/active/suspended/disabled statuses, deny non-active login and revoke existing access on next request |
-| T11 session locale switch | B | READY | T09 integrated; en/ar switch persists, LTR/RTL and validation localization work without server reconfiguration |
-| T12 owner/platform authorization contract investigation | C | READY | Read-only code/spec analysis; identify authoritative scope representation, contradictions and smallest next vertical slice |
+| T10 staff status enforcement | A | IN_PROGRESS | T09 integrated; invited/active/suspended/disabled statuses, deny non-active login and revoke existing access on next request |
+| T11 session locale switch | B | IN_PROGRESS | T09 integrated; en/ar switch persists, LTR/RTL and validation localization work without server reconfiguration |
+| T12 owner/platform authorization contract investigation | C | IN_PROGRESS | Read-only code/spec analysis; identify authoritative scope representation, contradictions and smallest next vertical slice |
 | T13 combined review/integration | Orchestrator | TODO | Review A/B independently as delivered; merge accepted A then B, combine runtime journey; C informs next wave |
 
 Ownership: A owns User/status migration and factory/seeder adjustments, existing auth controller/tenant middleware/TenantContext/BranchPolicy only as necessary, new StaffStatusTest and directly affected existing tests. B owns routes/web.php, bootstrap/app.php locale registration, new locale controller/middleware, lang files, existing Blade views/CSS only as needed, new LocaleSwitchTest. C owns only docs/owner-platform-contract-review.md; no implementation or approval edits. A/B return check evidence in their final reports; orchestrator alone updates shared .ai status/test records and this ledger at integration. Do not edit each other's tests or shared configuration. All workers use isolated data/ports/cookies; no shared DB/server/.env changes.
