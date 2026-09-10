@@ -1,8 +1,12 @@
 {
+    "Arabic": "العربية",
     "Assigned branches": "الفروع المعيّنة",
     "Branch context": "سياق الفرع",
+    "Change": "تغيير",
     "Current branch: :branch": "الفرع الحالي: :branch",
     "Email address": "البريد الإلكتروني",
+    "English": "الإنجليزية",
+    "Language": "اللغة",
     "No active branch assignments are available.": "لا توجد تعيينات فروع نشطة متاحة.",
     "Password": "كلمة المرور",
     "Select": "اختيار",

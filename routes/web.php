@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\BranchContextController;
+use App\Http\Controllers\LocaleController;
 use App\Models\Branch;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/app');
+Route::post('/locale', [LocaleController::class, 'store'])->name('locale.store');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');

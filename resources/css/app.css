@@ -22,3 +22,7 @@
     --pn-focus: oklch(0.62 0.11 200);
     --pn-danger: #b42318;
 }
+
+html[lang='ar'] {
+    font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+}
