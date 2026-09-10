@@ -20,6 +20,13 @@
 - Focused SQLite-backed isolation and inactive-state tests pass; no pricing, checkout, payments, or other business modules were added.
 - T04 follow-up adds tenant_id to branch assignments with composite foreign keys preventing cross-tenant branch/user references.
 
+### 2026-09-10 M1 staff authentication and branch context
+
+- Added staff-only Laravel session login/logout with validated email/password input, five-attempt-per-minute email/IP throttling, login session regeneration, logout invalidation, and CSRF-protected forms.
+- Added a minimal accessible Blade shell that shows the authenticated tenant, selected branch, active assigned-branch selector, and Arabic/English strings.
+- Branch context is stored server-side in the session only after querying the authenticated user's active assignment in the active tenant; inaccessible selections return `404` and stale contexts are cleared on the next protected request.
+- Focused SQLite feature tests cover authentication, throttling, logout/session lifecycle, tenant/branch inactive states, cross-tenant/unassigned selection, and the existing T04 isolation behavior. MySQL migration/runtime verification remains blocked by the unavailable environment.
+
 ## 2026-08-25
 
 ### Completed

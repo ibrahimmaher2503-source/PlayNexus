@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureBranchAccess;
+use App\Http\Middleware\EnsureTenantAccess;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +14,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['branch.access' => EnsureBranchAccess::class]);
+        $middleware->alias([
+            'branch.access' => EnsureBranchAccess::class,
+            'tenant.access' => EnsureTenantAccess::class,
+        ]);
+        $middleware->redirectGuestsTo('/login');
+        $middleware->redirectUsersTo('/app');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

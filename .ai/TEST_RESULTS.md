@@ -53,6 +53,19 @@ The entries above prove only the installed framework scaffold, default PHPUnit h
 | Diff | `git diff --check` | Pass: no whitespace errors |
 | Database | SQLite in-memory via `phpunit.xml` | Composite tenant/branch and tenant/user foreign keys reject mismatched assignment; MySQL migration/runtime remains BLOCKED_BY_ENVIRONMENT |
 
+## 2026-09-10 T05 staff authentication and branch context
+
+| Check | Command | Result |
+|---|---|---|
+| Authentication features | `php artisan test --filter=Authentication` | Pass: 12 tests, 54 assertions |
+| Branch features and T04 regression | `php artisan test --filter=Branch` | Pass: 11 tests, 40 assertions |
+| Full suite | `php artisan test` | Pass: 19 tests, 72 assertions |
+| Formatting | `vendor/bin/pint --test` | Pass |
+| Frontend build | `npm run build` | Pass: Vite production build; optional `fontaine` optimized-fallback notice only |
+| Documentation | `python tools/validate_documentation.py` | Pass: 29 Markdown files, 199 SRS IDs, 50 stories, 14 use cases, 24 OQs, 56 OpenAPI paths/70 operations; 0 errors, 0 warnings |
+| Diff | `git diff --check` | Pass: no whitespace errors |
+| Database | SQLite in-memory via `phpunit.xml` | Pass: auth and branch boundaries tested. MySQL migration/runtime `BLOCKED_BY_ENVIRONMENT`; no MySQL service or shared configuration was changed. |
+
 ## 2026-08-24 documentation QA
 
 | Check | Real result |

@@ -29,6 +29,15 @@ class User extends Authenticatable
         return $this->belongsToMany(Branch::class)->withPivot(['tenant_id', 'role', 'is_active'])->withTimestamps();
     }
 
+    public function activeBranches(): BelongsToMany
+    {
+        return $this->branches()
+            ->where('branches.tenant_id', $this->tenant_id)
+            ->where('branches.is_active', true)
+            ->wherePivot('tenant_id', $this->tenant_id)
+            ->wherePivot('is_active', true);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

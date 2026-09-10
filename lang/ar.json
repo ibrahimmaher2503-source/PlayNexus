@@ -1,0 +1,17 @@
+{
+    "Assigned branches": "الفروع المعيّنة",
+    "Branch context": "سياق الفرع",
+    "Current branch: :branch": "الفرع الحالي: :branch",
+    "Email address": "البريد الإلكتروني",
+    "No active branch assignments are available.": "لا توجد تعيينات فروع نشطة متاحة.",
+    "Password": "كلمة المرور",
+    "Select": "اختيار",
+    "Select an assigned branch to continue.": "اختر فرعًا معيّنًا للمتابعة.",
+    "Selected": "محدد",
+    "Signed in as :user": "تم تسجيل الدخول باسم :user",
+    "Sign in": "تسجيل الدخول",
+    "Sign out": "تسجيل الخروج",
+    "Staff sign in": "تسجيل دخول الموظفين",
+    "These credentials do not match our records.": "بيانات الدخول غير صحيحة.",
+    "Use your staff account to access your assigned branches.": "استخدم حساب الموظف للوصول إلى الفروع المعيّنة."
+}

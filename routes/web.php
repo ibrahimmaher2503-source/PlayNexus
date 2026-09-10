@@ -1,14 +1,25 @@
 <?php
 
+use App\Http\Controllers\AuthenticatedSessionController;
+use App\Http\Controllers\BranchContextController;
 use App\Models\Branch;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::redirect('/', '/app');
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:login')->name('login.store');
 });
 
-Route::middleware(['auth', 'branch.access'])->get('/branches/{branch}', fn (Branch $branch) => response()->json([
-    'id' => $branch->id,
-    'tenant_id' => $branch->tenant_id,
-    'name' => $branch->name,
-]));
+Route::middleware(['auth', 'tenant.access'])->group(function (): void {
+    Route::get('/app', [BranchContextController::class, 'index'])->name('dashboard');
+    Route::post('/branch-context/{branch}', [BranchContextController::class, 'store'])->name('branch-context.store');
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    Route::middleware('branch.access')->get('/branches/{branch}', fn (Branch $branch) => response()->json([
+        'id' => $branch->id,
+        'tenant_id' => $branch->tenant_id,
+        'name' => $branch->name,
+    ]));
+});
