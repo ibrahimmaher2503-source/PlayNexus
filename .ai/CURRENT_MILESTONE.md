@@ -1,5 +1,9 @@
 # Current Milestone
 
+## 2026-09-10 orchestrator acceptance
+
+T08 is DONE following independent review of 7a3963e and passing integration checks. This supersedes pending-review statements below. The accepted auth/branch baseline is on codex/first; next is scoped M1 policy/gate planning, not implementation yet. Full M1, PHP 8.5 and production readiness remain incomplete.
+
 ## Milestone
 
 M1: Staff authentication and branch-aware access foundation.

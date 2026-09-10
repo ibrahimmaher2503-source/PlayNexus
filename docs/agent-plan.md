@@ -1,5 +1,13 @@
 # PlayNexus Agent Plan
 
+## Orchestrator acceptance of T08 — 2026-09-10
+
+T08 is DONE after review of 7a3963e48011f230a8d27ce91320fc8e1f942395. This acceptance supersedes pending-review statements below. The canonical coordination baseline is now this tracked ledger on codex/first in the t08-integration worktree; the untracked main-checkout ledger is historical. The bounded auth/branch slice is integrated and accepted. Full M1, PHP 8.5 and production acceptance remain incomplete.
+
+Verified accepted-target ancestry, four-file documentation-only diff, retained worker evidence and all substantive coordinator review entries. The omitted old statement that no scaffold/tests exist is obsolete here. Main and QA refs/status and existing stash were preserved. Independently reran 21 tests/81 assertions, Pint, build, documentation validator (0 errors, 2 status-marker warnings) and diff checks successfully. No service restart, main merge or push.
+
+Next planning step: inspect the integrated permission matrix, role representation and existing authorization boundaries to define a bounded M1 policy/gate slice. No implementation task dispatched yet.
+
 ## Current startup snapshot — 2026-09-10
 
 This snapshot supersedes the current-state and readiness statements in the historical ledger below. Earlier review results remain historical evidence, not tests rerun during this startup.
@@ -41,7 +49,7 @@ One Laravel modular monolith; Blade with selective Livewire; shared-schema MySQL
 | T07 | Complete target-engine runtime acceptance | DONE | T07A and T07B evidence reviewed and accepted |
 | T07A | SQLite database-session and English/Arabic browser fallback | DONE | Reviewed 835346d and worker interaction history; explicitly excludes MySQL |
 | T07B | Provision isolated MySQL 8.4 and execute remaining acceptance | DONE | 37b4f6b: MySQL runtime, InnoDB constraints, tests and browser/database-session evidence accepted |
-| T08 | Local integration and versioned coordinator baseline | REVIEW_REQUIRED | Fast-forwarded codex/first `03108c6` -> `37b4f6b`; coordinator files and accepted worker evidence are preserved in a focused documentation commit; orchestrator review remains pending |
+| T08 | Local integration and versioned coordinator baseline | DONE | Fast-forwarded codex/first `03108c6` -> `37b4f6b`; coordinator files and accepted worker evidence are preserved in a focused documentation commit; orchestrator review remains pending |
 
 `REVIEW_REQUIRED` here is the current orchestration evidence status, not rejection of previously accepted code. Supported statuses include TODO, READY, IN_PROGRESS, BLOCKED, DONE, REVIEW_REQUIRED, CHANGES_REQUIRED and REJECTED.
 

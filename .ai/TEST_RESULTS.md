@@ -1,5 +1,11 @@
 # Test Results
 
+## 2026-09-10 independent T08 acceptance at 7a3963e
+
+- Accepted ancestry and four-file documentation-only diff verified; worker evidence and substantive coordinator entries retained. Only an obsolete no-scaffold/no-tests sentence from main was omitted.
+- Independently reran php artisan test: PASS, 21 tests/81 assertions with process-local SQLite :memory: and array sessions. Pint, npm run build and diff checks PASS. Build has optional fontaine notice. Documentation validator PASS, 0 errors/2 known status-marker warnings.
+- Integration checkout clean before acceptance-record edits; main remains b6d09e1 with original dirty/untracked state and stash; QA remains 37b4f6b. No runtime restart/main merge/push. T08 DONE; full M1 and PHP 8.5/production remain incomplete.
+
 ## 2026-09-10 T08 local integration baseline
 
 | Check | Command / evidence | Result |
