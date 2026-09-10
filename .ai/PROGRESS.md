@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-09-10 T08 local integration
+
+### Completed
+
+- Created the isolated `codex/first` checkout at `C:\Users\N\.codex\worktrees\t08-integration\PlayNexus` and fast-forwarded accepted history from `03108c6` to `37b4f6b`.
+- Imported `docs/agent-plan.md` from the main checkout by hash and preserved the source checkout's modified/untracked files, existing stash, other worktrees and QA's untracked `ibrahim.err`.
+- Reconciled the coordinator's unique review entries into `.ai/TEST_RESULTS.md` while retaining the accepted worker evidence. No application or dependency files were changed relative to `37b4f6b`.
+- Ran the required integration checks with process-local SQLite `:memory:` and array sessions; exact results and any warnings are recorded in `.ai/TEST_RESULTS.md`.
+
+### Remaining
+
+- T08 is `REVIEW_REQUIRED` pending orchestrator review of the coordination commit.
+- Full M1, PHP 8.5 validation and production readiness remain incomplete. The policies/gates slice was not started.
+
 ## 2026-09-10
 
 ### Completed

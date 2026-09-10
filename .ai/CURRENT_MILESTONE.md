@@ -6,17 +6,21 @@ M1: Staff authentication and branch-aware access foundation.
 
 ## Goal
 
-Provide staff-only session access from `users.tenant_id`, active assigned-branch selection, tenant/branch isolation, and a minimal bilingual operational shell. MySQL migrations and database-backed runtime are still unverified; no customer, session, pricing, payment, or reporting module is in scope.
+Provide staff-only session access from `users.tenant_id`, active assigned-branch selection, tenant/branch isolation, and a minimal bilingual operational shell. The bounded auth/branch slice and T07 MySQL 8.4/InnoDB runtime acceptance are accepted and integrated locally on `codex/first`; T08 remains `REVIEW_REQUIRED` pending orchestrator review. No customer, session, pricing, payment, or reporting module is in scope.
 
 ## Next three actions
 
-1. Provision or select an isolated MySQL 8.4 database without changing shared services, then verify the migration and database-session runtime path.
-2. Implement the next approved M1 policy/gate slice for fixed tenant/branch roles, retaining the current deny-by-default tenant and assignment checks.
-3. Add only the approved M1 locale/timezone/currency configuration or audit skeleton after its acceptance criteria are selected.
+1. Complete orchestrator review of the versioned T08 integration baseline.
+2. Only after review, select the next approved M1 policy/gate slice; do not broaden the accepted auth/branch scope.
+3. Track PHP 8.5 validation, full M1 completion and production readiness as separate incomplete dependencies.
 
 ## 2026-09-10 M1 foundation slice
 
 Tenant/branch context and assignment-scoped access are implemented and verified with the focused SQLite suite. MySQL migration/runtime verification remains blocked by the unavailable environment.
+
+## 2026-09-10 T08 integration
+
+`codex/first` was checked out at `C:\Users\N\.codex\worktrees\t08-integration\PlayNexus` and fast-forwarded from `03108c6` to accepted `37b4f6b`. The coordinator ledger was imported from the main checkout and the accepted worker and coordinator evidence were reconciled in a focused documentation commit. T08 is `REVIEW_REQUIRED`; full M1, PHP 8.5 validation and production readiness remain incomplete.
 
 ## 2026-09-10 update
 

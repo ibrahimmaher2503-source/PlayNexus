@@ -1,5 +1,72 @@
 # Test Results
 
+## 2026-09-10 T08 local integration baseline
+
+| Check | Command / evidence | Result |
+|---|---|---|
+| Integration checkout | `C:\Users\N\.codex\worktrees\t08-integration\PlayNexus`, branch `codex/first` | PASS: isolated worktree created for existing branch; no main checkout or other worktree changes |
+| Accepted history | `git merge --ff-only 37b4f6b782c0020984567bb774d982b42428d3cb` | PASS: fast-forward `03108c6` -> `37b4f6b`; accepted target is an ancestor of the resulting HEAD |
+| Coordinator ledger import | SHA-256 of `docs/agent-plan.md` | PASS: imported from main checkout; source and integration hash `E7F78F42DB8F2A308D4F2B5E54725E1BF211FE6CF4C8E0E8F4F888787E1654CF` |
+| Test configuration | `php artisan config:show database.default`; SQLite/session config probes | PASS: current-process overrides resolve database `sqlite`, database `:memory:`, session driver `array`; inherited MySQL QA overrides were cleared only in this process |
+| Application tests | `php artisan test` | PASS: 21 tests / 81 assertions; resolved config remained SQLite `:memory:` and array sessions |
+| Formatting | `php vendor/bin/pint --test` | PASS |
+| Frontend build | `npm run build` | PASS: Vite production build; optional `fontaine` package notice and plugin timing output |
+| Documentation | `python tools/validate_documentation.py` | PASS: 30 Markdown files, 199 SRS IDs, 50 stories, 14 use cases, 24 OQs, 56 OpenAPI paths / 70 operations; 0 errors, 2 review-placeholder warnings in `docs/agent-plan.md` and `.ai/TEST_RESULTS.md` |
+| Whitespace | `git diff --check` | PASS: no whitespace errors |
+| Scope | diff from accepted target `37b4f6b` | PASS: only the four owned coordination files are intended to differ; no application or dependency diff |
+
+T08 status is `REVIEW_REQUIRED` pending orchestrator review. The bounded auth/branch slice and T07 MySQL 8.4 acceptance remain accepted; full M1, PHP 8.5 validation and production readiness remain incomplete. No policies/gates work was started. Main's modified `.ai/TEST_RESULTS.md`, untracked `.codex/`, `bootstrap/`, and `docs/agent-plan.md`, the existing stash, and QA's pre-existing untracked `ibrahim.err` remain outside this checkout and were preserved.
+
+## 2026-09-10 coordinator acceptance of T07B at 37b4f6b
+
+- Reviewed one-file diff, ancestry, actual worker execution transcript and committed runtime evidence. MySQL output proves 8.4.11 at loopback 33407, 12/12 InnoDB tables, four migrations and cross-tenant composite FK rejection (1452).
+- Worker MySQL commands/test output: focused 19/78 and full 21/81 PASS with process-local connection/session overrides. Session inspection after logout: 0 authenticated rows and 0 branch-context rows; Arabic DOM reports ar/rtl. Browser flows accepted from worker evidence; no coordinator browser rerun or screenshot rendering claimed.
+- Current read-only listener check: no listeners on 33407, 8190, 8191. Worker application code unchanged since 9056439; unchanged tests were not rerun here. `git diff --check 9056439..37b4f6b` PASS; codex/first is an ancestor of 37b4f6b.
+- T07/T07B and bounded T06 slice accepted; integration T08 remains pending. Main working changes and worker untracked ibrahim.err preserved. PHP 8.5/full M1/production are not accepted by these checks.
+
+## 2026-09-10 coordinator review of T07 evidence 835346d
+
+- Verified single-file documentation commit, parent 9056439 and clean QA worktree. Inspected worker T07 browser-call history and runtime command results in task 01a08871-17c7-7752-8b7b-68d5d29fb433. Accepted fallback evidence only; browser was not rerun and screenshots were not independently rendered here.
+- Read-only retained SQLite inspection: evidence file exists, expected migrated tables, 0 foreign-key-check issues, 3 session rows. No session payloads or credentials output. Session row count does not establish authentication state.
+- No current listeners observed on 3306-3308 or 8187-8188; docker/mysqld absent from PATH. MySQL target runtime remains unverified and blocked pending isolated provisioning.
+- No application changes since 9056439; full tests not redundantly rerun. T07A DONE, T07 BLOCKED, T07B READY for environment provisioning and MySQL acceptance. No integration performed.
+
+## 2026-09-10 independent correction review at 9056439
+
+Executed in the auth worker worktree, which remained clean:
+
+- `php artisan test`: PASS, 21 tests / 81 assertions.
+- `php vendor/bin/pint --test`: PASS.
+- `python tools/validate_documentation.py`: PASS, 29 files, 0 errors/warnings.
+- `git diff --check`: PASS.
+- Temporary independent regression probes: PASS, 2 tests / 4 assertions. Suspended-tenant logout now returns 302 and clears authentication; array email returns normal JSON validation failure. Removed the earlier probe's exception-handler bypass so expected validation responses could render.
+- Both findings closed. No frontend changes, so previous successful build was not repeated. MySQL/database-session, browser acceptance and target PHP 8.5 remain unverified. Full slice REVIEW_REQUIRED pending T07; no merge or push performed.
+
+## 2026-09-10 independent review of auth worker c94a046
+
+Executed in `C:/Users/N/.codex/worktrees/t05-auth-branch-access/PlayNexus`, not this documentation-only main checkout:
+
+- `php artisan test`: PASS, 19 tests / 72 assertions.
+- `php vendor/bin/pint --test`: PASS.
+- `npm run build`: PASS; optional fontaine notice only.
+- `python tools/validate_documentation.py`: PASS, 29 Markdown files, 0 errors/warnings.
+- `git diff --check`: PASS; worker Git status clean after checks.
+- `php vendor/bin/phpunit --configuration phpunit.xml <TEMP>/PlayNexusAuthReviewTest.php`: two additional probes, 1 failure / 1 error. Suspended-tenant logout returns 404 and leaves auth active; array-valued login email raises a conversion exception at AppServiceProvider.php:27 before validation.
+- Verdict: CHANGES_REQUIRED. MySQL/database sessions and browser RTL/LTR not verified. No implementation edits or integration performed. See `docs/agent-plan.md` for ownership and correction acceptance.
+
+## 2026-09-10 orchestration startup on main at b6d09e1
+
+- `python tools/validate_documentation.py`: PASS, 30 Markdown files, 56 OpenAPI paths / 70 operations, 0 errors and 1 placeholder-marker warning in `docs/agent-plan.md` (the required TODO status vocabulary).
+- `git diff --check`: PASS for tracked changes; the orchestration ledger is untracked and excluded from this command.
+- Inspected local branches/worktrees/history and `codex/first:tests/Feature/TenantBranchTest.php`. Application tests, MySQL migrations and browser flows were not run. Earlier worker results in the ledger remain historical evidence.
+- Startup changes are limited to the coordination ledger and this verification record; no implementation or integration performed.
+
+## 2026-09-10 next-task planning
+
+- Re-inspected Git status, branches, worktrees, foundation history, routes, middleware, tenant context and branch-specific decision changes.
+- Recommended T05 independent foundation verification before the T06 login/branch-entry slice; no workers launched.
+- `python tools/validate_documentation.py`: PASS, 0 errors, 2 marker warnings in the ledger and this file; `git diff --check`: PASS, with Git's LF/CRLF conversion notice. Application checks not rerun.
+
 ## 2026-09-10 Laravel foundation scaffold
 
 ### T03 review correction verification
