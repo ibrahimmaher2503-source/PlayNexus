@@ -101,3 +101,25 @@ The first post-move OpenAPI and browser commands could not load their isolated v
 | `python tools/validate_documentation.py` | Pass: 30 Markdown files, 199 SRS IDs, 50 stories, 14 use cases, 24 OQs, 56 OpenAPI paths/70 operations, 0 errors/warnings |
 | `python -m openapi_spec_validator docs/contracts/openapi.yaml` | Not run: validator package is unavailable in the default Python runtime; rerun with the bundled QA environment before scaffold merge |
 | Contract synchronization | Pass: approved receipt, guardian-verification, and pricing amendments added to SRS, architecture, ERD, permissions, API, OpenAPI extension, wireframes, testing, milestones, checklist, and `.ai/` records |
+
+## 2026-09-10 T07 auth/branch runtime acceptance
+
+Base reviewed: `9056439dc341aea76040dd4723fab7e13e536f0f` on isolated worktree branch `codex/t07-runtime-acceptance`.
+
+| Acceptance item | Result | Evidence |
+|---|---|---|
+| Isolated MySQL 8.4/InnoDB migration and runtime | **BLOCKED** | Read-only discovery found no MySQL/MariaDB service, process, or listener on ports 3306-3308. The only server binary is `C:\xampp\mysql\bin\mysqld.exe`, MariaDB 10.4.32, not MySQL 8.4. No shared service or configuration was changed. |
+| Tracked PHPUnit isolation | **PASS** | `phpunit.xml` selects `DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`, and `SESSION_DRIVER=array`; it was not used to claim MySQL coverage. |
+| Disposable fallback migration and constraints | **PASS (SQLite fallback only)** | `C:\Users\N\AppData\Local\Temp\playnexus-t07-5ed7cfa55ab3411dbcec1a335356224e\playnexus-t07.sqlite`; `php artisan migrate:fresh --force` passed all four migrations. Laravel reported driver `sqlite`, version `3.51.3`; `pragma foreign_key_check` returned 0 rows and a cross-tenant `branch_user` insert was rejected. |
+| Database-session runtime | **PASS (SQLite fallback only)** | Local servers at `http://127.0.0.1:8187` (English) and `http://127.0.0.1:8188` (Arabic) ran with `SESSION_DRIVER=database`, `SESSION_CONNECTION=sqlite`, and the disposable path above. After suspended-tenant logout, session inspection returned `authenticated_user_rows=0` and `branch_context_rows=0`. |
+| English keyboard sign-in, branch select, reload, logout | **PASS** | In-app browser at `http://127.0.0.1:8187/login`: keyboard email/password/Tab/Enter reached `/app` as synthetic `T07 English Staff`; selected `T07 Assigned Branch`; reload retained it; keyboard logout returned `/login`. Visual captures are in this T07 task transcript. |
+| Invalid credentials and validation feedback | **PASS** | English browser showed alert `These credentials do not match our records.`; Arabic browser showed `بيانات الدخول غير صحيحة.`. Keyboard Tab/Enter submitted both forms. |
+| Empty assignments | **PASS** | Browser `/app` as synthetic `T07 Empty Staff` displayed `No active branch assignments are available.` |
+| Foreign and unassigned branch denial | **PASS** | Authenticated browser navigation to `http://127.0.0.1:8187/branches/2` and `/branches/3` rendered actual 404 pages for unassigned and foreign synthetic branches. |
+| Revoked branch context | **PASS** | After a selected synthetic assignment was deactivated, browser reload of `/app` removed the current branch and displayed no active assignments. |
+| Logout after tenant suspension | **PASS** | After synthetic tenant suspension, normal browser logout redirected to `http://127.0.0.1:8187/login` rather than 404; database-session inspection confirmed no authenticated or branch-context rows. |
+| Arabic RTL flow | **PASS** | Browser `http://127.0.0.1:8188/login` reported `lang=ar`, `dir=rtl`; Arabic sign-in, select, reload, and logout passed. Visual captures are in this T07 task transcript. |
+| Auth regression suite | **PASS** | `php artisan test`: 21 tests, 81 assertions. This includes `AuthenticationTest::test_array_email_is_rejected_by_login_validation`; it is SQLite/array-session test coverage, not MySQL evidence. |
+| Formatting and whitespace | **PASS** | `php vendor/bin/pint --test` passed; `git diff --check` passed. |
+
+Runtime versions: PHP 8.4.21; Laravel 13.31.0; Node 24.15.0; npm 11.12.1; Composer 2.10.3 (local PHAR used only to provision this isolated QA worktree); SQLite 3.51.3. Browser screenshots were intentionally kept in the Codex task transcript; no local browser artifacts, credentials, `.env`, or shared database data were created.
