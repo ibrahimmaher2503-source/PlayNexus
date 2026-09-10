@@ -1,5 +1,11 @@
 # PlayNexus Agent Plan
 
+## 2026-09-10 T09 integration accepted
+
+T09 integrated locally into codex/first from accepted 0c93d50, preserving coordinator 27ade78. The only conflict was .ai/TEST_RESULTS.md; both evidence sections were retained. Combined tests PASS: 26 tests/156 assertions; Pint PASS; docs validator PASS (0 errors/2 known warnings); diff check PASS. Application/tests/dependencies match accepted worker code. No additional build, MySQL or browser run was needed for this documentation-only conflict resolution. T09 integration DONE; full M1, owner/platform permissions, PHP 8.5 and production remain incomplete. No main merge or push.
+
+This entry supersedes earlier T09 pending-review/not-integrated statements below.
+
 ## Orchestrator acceptance of T08 — 2026-09-10
 
 T08 is DONE after review of 7a3963e48011f230a8d27ce91320fc8e1f942395. This acceptance supersedes pending-review statements below. The canonical coordination baseline is now this tracked ledger on codex/first in the t08-integration worktree; the untracked main-checkout ledger is historical. The bounded auth/branch slice is integrated and accepted. Full M1, PHP 8.5 and production acceptance remain incomplete.

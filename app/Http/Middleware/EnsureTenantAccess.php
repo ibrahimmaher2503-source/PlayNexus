@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Services\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureTenantAccess
@@ -20,7 +21,9 @@ class EnsureTenantAccess
         }
 
         if ($branchId = $request->session()->get('branch_id')) {
-            if (! $request->user()->activeBranches()->whereKey($branchId)->exists()) {
+            $branch = $request->user()->activeBranches()->whereKey($branchId)->first();
+
+            if (! $branch || ! Gate::forUser($request->user())->allows('view', $branch)) {
                 $request->session()->forget('branch_id');
             }
         }

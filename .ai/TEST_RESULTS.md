@@ -1,8 +1,37 @@
 # Test Results
 
+## 2026-09-10 T09 integration accepted
+
+T09 integrated locally into codex/first from accepted 0c93d50, preserving coordinator 27ade78. The only conflict was .ai/TEST_RESULTS.md; both evidence sections were retained. Combined tests PASS: 26 tests/156 assertions; Pint PASS; docs validator PASS (0 errors/2 known warnings); diff check PASS. Application/tests/dependencies match accepted worker code. No additional build, MySQL or browser run was needed for this documentation-only conflict resolution. T09 integration DONE; full M1, owner/platform permissions, PHP 8.5 and production remain incomplete. No main merge or push.
+
+This entry supersedes earlier T09 pending-review/not-integrated statements below.
+
 ## 2026-09-10 independent T09 review at 0c93d50
 
 Executed in the isolated t09-branch-view-policy worktree: full suite PASS 26 tests/156 assertions (SQLite :memory:/array sessions), Pint PASS, documentation validator PASS 0 errors/2 known warnings, diff check PASS. Reviewed all changed policy integration paths and worker browser outputs for selected-context revocation and direct 403. No confirmed findings. Worker tree clean; no application edits, integration, service restart or live browser rerun by coordinator. T09 accepted on worker branch only; MySQL coverage for this policy has not been claimed.
+
+## 2026-09-10 T09 branch view authorization
+
+Base: `92aca4457e9b4b8fc5ab6f992f23d42110747171` on isolated branch `codex/t09-branch-view-policy` at `C:\Users\N\.codex\worktrees\t09-branch-view-policy\PlayNexus`.
+
+| Check | Command / evidence | Result |
+|---|---|---|
+| Focused policy/HTTP tests | `php artisan test --filter=BranchViewAuthorizationTest` | PASS: 5 tests / 75 assertions |
+| Full suite | `php artisan test` | PASS: 26 tests / 156 assertions |
+| Resolved automated test environment | `php artisan config:show ...` with process-local overrides | PASS: SQLite `:memory:`, `SESSION_DRIVER=array`, `SESSION_CONNECTION=null`; tracked `phpunit.xml` unchanged |
+| Formatting | `php vendor/bin/pint --test` | PASS |
+| Documentation | `python tools/validate_documentation.py` | PASS: 0 errors, 2 review-placeholder warnings: `docs/agent-plan.md` and `.ai/TEST_RESULTS.md` |
+| Whitespace | `git diff --check` | PASS |
+| Browser runtime | `php artisan serve --host=127.0.0.1 --port=8194` with task-local SQLite file and file sessions | PASS: synthetic runtime only, SQLite 3.51.3, PHP 8.4.21, Laravel 13.31.0; server stopped and port released |
+
+### Browser evidence
+
+- URL `http://127.0.0.1:8194/login`: synthetic identity `T09 Operator` signed in successfully and reached `/app`.
+- URL `http://127.0.0.1:8194/app`: permitted list showed `T09 Main Branch`; unsupported-role `T09 Hidden Branch` was absent. Selecting the permitted branch showed `Current branch: T09 Main Branch`; reload retained the same context.
+- After the task-local SQLite pivot role changed from `reception_staff` to `game_operator`, reload of `/app` showed `Select an assigned branch to continue.` and `No active branch assignments are available.` with no current branch.
+- URL `http://127.0.0.1:8194/branches/1`: direct read rendered HTTP 403 with `This action is unauthorized.` after revocation. No credentials or runtime artifacts were committed.
+
+T09 is `REVIEW_REQUIRED` pending orchestrator review. This slice does not implement tenant-owner/platform authorization or claim broader M1 completion. T07's separately accepted MySQL 8.4 evidence remains historical/accepted evidence; this T09 browser and ordinary automated rerun used isolated SQLite as recorded above.
 
 ## 2026-09-10 independent T08 acceptance at 7a3963e
 

@@ -1,8 +1,18 @@
 # Current Milestone
 
+## 2026-09-10 T09 integration accepted
+
+T09 integrated locally into codex/first from accepted 0c93d50, preserving coordinator 27ade78. The only conflict was .ai/TEST_RESULTS.md; both evidence sections were retained. Combined tests PASS: 26 tests/156 assertions; Pint PASS; docs validator PASS (0 errors/2 known warnings); diff check PASS. Application/tests/dependencies match accepted worker code. No additional build, MySQL or browser run was needed for this documentation-only conflict resolution. T09 integration DONE; full M1, owner/platform permissions, PHP 8.5 and production remain incomplete. No main merge or push.
+
+This entry supersedes earlier T09 pending-review/not-integrated statements below.
+
 ## 2026-09-10 orchestrator acceptance
 
 T08 is DONE following independent review of 7a3963e and passing integration checks. This supersedes pending-review statements below. The accepted auth/branch baseline is on codex/first; next is scoped M1 policy/gate planning, not implementation yet. Full M1, PHP 8.5 and production readiness remain incomplete.
+
+## 2026-09-10 T09 branch view authorization
+
+Implemented fixed `branches.view` authorization through Laravel `BranchPolicy` and Gate across branch listing, selection, direct reads and stored-context revalidation. `branch_manager`, `reception_staff`, `cashier`, and legacy `reception` are allowed only on active assigned branches; unsupported or misplaced roles deny by default. T09 is `REVIEW_REQUIRED` pending orchestrator review. The policies/gates scope remains limited to this permission, and full M1, PHP 8.5 and production readiness remain incomplete.
 
 ## Milestone
 
@@ -10,12 +20,12 @@ M1: Staff authentication and branch-aware access foundation.
 
 ## Goal
 
-Provide staff-only session access from `users.tenant_id`, active assigned-branch selection, tenant/branch isolation, and a minimal bilingual operational shell. The bounded auth/branch slice and T07 MySQL 8.4/InnoDB runtime acceptance are accepted and integrated locally on `codex/first`; T08 remains `REVIEW_REQUIRED` pending orchestrator review. No customer, session, pricing, payment, or reporting module is in scope.
+Provide staff-only session access from `users.tenant_id`, active assigned-branch selection, tenant/branch isolation, a minimal bilingual operational shell, and fixed branch `branches.view` authorization. The bounded auth/branch slice and T07 MySQL 8.4/InnoDB runtime acceptance are accepted; T09 is implemented on `codex/t09-branch-view-policy` and remains `REVIEW_REQUIRED` pending orchestrator review. No customer, session, pricing, payment, reporting, tenant-owner, platform, or broader M1 module is in scope.
 
 ## Next three actions
 
-1. Complete orchestrator review of the versioned T08 integration baseline.
-2. Only after review, select the next approved M1 policy/gate slice; do not broaden the accepted auth/branch scope.
+1. Complete orchestrator review of the T09 BranchPolicy/Gate implementation and evidence.
+2. If accepted, integrate the focused T09 branch into `codex/first`; do not begin another permission or policy slice here.
 3. Track PHP 8.5 validation, full M1 completion and production readiness as separate incomplete dependencies.
 
 ## 2026-09-10 M1 foundation slice

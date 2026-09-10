@@ -1,8 +1,28 @@
 # Progress
 
+## 2026-09-10 T09 integration accepted
+
+T09 integrated locally into codex/first from accepted 0c93d50, preserving coordinator 27ade78. The only conflict was .ai/TEST_RESULTS.md; both evidence sections were retained. Combined tests PASS: 26 tests/156 assertions; Pint PASS; docs validator PASS (0 errors/2 known warnings); diff check PASS. Application/tests/dependencies match accepted worker code. No additional build, MySQL or browser run was needed for this documentation-only conflict resolution. T09 integration DONE; full M1, owner/platform permissions, PHP 8.5 and production remain incomplete. No main merge or push.
+
+This entry supersedes earlier T09 pending-review/not-integrated statements below.
+
 ## 2026-09-10 orchestrator acceptance
 
 T08 is DONE following independent review of 7a3963e and passing integration checks. This supersedes pending-review statements below. The accepted auth/branch baseline is on codex/first; next is scoped M1 policy/gate planning, not implementation yet. Full M1, PHP 8.5 and production readiness remain incomplete.
+
+## 2026-09-10 T09 branch view authorization
+
+### Completed
+
+- Added Laravel-native `BranchPolicy::view` and explicit Gate registration with one fixed server-side role map: `branch_manager`, `reception_staff`, `cashier`, plus the `reception` compatibility alias.
+- Applied the policy to `/app` branch filtering, `POST /branch-context/{branch}`, `GET /branches/{branch}`, and stored branch-context revalidation. Foreign, unassigned and inactive scope remains 404; active in-scope unsupported roles return 403 and revoked stored context is cleared.
+- Added focused policy and HTTP regression coverage for supported/unsupported roles, per-branch scope, stale relationship revocation, and preserved 404 scope denial. Focused suite passed 5 tests / 75 assertions; full suite passed 26 tests / 156 assertions.
+- Completed one real-browser journey using synthetic SQLite data at `http://127.0.0.1:8194`: login as `T09 Operator`, permitted list, select, reload persistence, role revocation, cleared context and direct 403 denial.
+
+### Remaining
+
+- T09 is `REVIEW_REQUIRED` pending orchestrator review; no integration, push or next slice was started.
+- Tenant-owner/platform authorization, additional permissions, full M1, PHP 8.5 validation and production readiness remain incomplete.
 
 ## 2026-09-10 T08 local integration
 
