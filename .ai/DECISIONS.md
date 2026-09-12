@@ -72,3 +72,7 @@ The following initial decisions are approved for the MVP baseline:
 **Authority:** User authorized execution of the proposed three-worker owner-read wave; coordinator selected the narrow representation recommended as an option by T12.
 **Decision:** Use explicit `tenant_owners(tenant_id,user_id)` with a composite primary key and tenant-aware user FK. No inference/backfill from branch roles. Initially authorize only own-tenant profile and staff-list reads via a native policy with fresh user, tenant and ownership state. Do not expand branch-owner or platform access. Full draft RBAC/schema remains a future target.
 **Rationale:** Represent the required tenant-level ownership without building a general permission registry for one read operation. Exact route/view and worker contracts are in [the execution ledger](../docs/agent-plan.md).
+
+## 2026-09-12: Owner branch access and bounded staff administration
+
+User authorized the next three-feature wave. Explicit active tenant ownership now grants own-tenant active-branch read/selection without branch assignment. Owner-only management covers existing non-owner staff status and fixed branch-role assignments, not account creation/invitations or ownership transfer. Every mutation requires expected-state checks, a reason code, tenant-serialized transaction and atomic audit. Any owner account is excluded from management to protect ownership. Detailed contracts and file ownership: docs/agent-plan.md T18-T20. Remaining matrix permissions are not implicitly granted.
