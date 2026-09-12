@@ -101,12 +101,12 @@
                                             <form class="space-y-3" method="POST" action="{{ route('staff.status', $member) }}" aria-describedby="staff-status-errors">
                                                 @csrf
                                                 @method('PATCH')
-                                                <input name="expected_status" type="hidden" value="{{ old('expected_status', $member->status) }}">
+                                                <input name="expected_status" type="hidden" value="{{ $member->status }}">
                                                 <div>
                                                     <label class="block text-sm font-semibold" for="status-{{ $member->id }}">{{ __('staff.new_status') }}</label>
                                                     <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="status-{{ $member->id }}" name="status" required>
                                                         @foreach ($mutableStatusLabels as $value => $label)
-                                                            <option value="{{ $value }}" @selected(old('status', $member->status === 'invited' ? 'active' : $member->status) === $value)>{{ $label }}</option>
+                                                            <option value="{{ $value }}" @selected(($member->status === 'invited' ? 'active' : $member->status) === $value)>{{ $label }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -115,7 +115,7 @@
                                                     <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="reason-{{ $member->id }}" name="reason_code" required>
                                                         <option value="">{{ __('staff.choose_reason') }}</option>
                                                         @foreach ($reasonLabels as $value => $label)
-                                                            <option value="{{ $value }}" @selected(old('reason_code') === $value)>{{ $label }}</option>
+                                                            <option value="{{ $value }}">{{ $label }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
