@@ -94,6 +94,11 @@ The following initial decisions are approved for the MVP baseline:
 **Boundary:** Ticket types/issuance/QR remain blocked by OQ-18. Check-in, live sessions, tax-total calculation, extensions, retirement/version cloning, and M3 closure remain later slices.
 **Rationale:** OQ-16 fixes the pricing shape, while OQ-18 still leaves ticket behavior unresolved. An immutable configuration slice advances M3 without inventing ticket or Finance examples.
 
+## 2026-09-12: Replace pricing through immutable versions
+
+**Decision:** A manager change retires the current active rule and creates the next numeric version in one transaction. Tenant, branch, and code are immutable; duration and integer EGP prices are re-entered, while fixed grace/overtime terms and current branch tax settings are snapshotted again. A stale or repeated submission returns conflict and creates neither another version nor another audit event.
+**Boundary:** No edit-in-place, delete, backdating, scheduled activation, calculator, ticket, session, or tax-total claim.
+
 ## 2026-09-12: Narrow tenant-owner read representation
 
 **Authority:** User authorized execution of the proposed three-worker owner-read wave; coordinator selected the narrow representation recommended as an option by T12.

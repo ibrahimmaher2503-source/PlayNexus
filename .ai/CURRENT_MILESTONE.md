@@ -18,6 +18,12 @@ Create and list immutable branch pricing rules using the approved OQ-16 shape: i
 
 T39 pricing data/integrity, T40 scoped backend/audit, and T41 bilingual UI are integrated and centrally reviewed. Automated security and money-conversion checks pass. Browser acceptance is blocked by `User unavailable`; fresh isolated MySQL evidence and later pricing version/retirement/calculation work remain open. Ticket types stay blocked by OQ-18.
 
+## 2026-09-12 M3 second slice — immutable pricing version replacement
+
+Allow an authorized owner/branch manager to replace one active rule by atomically retiring it and creating version +1 with the same tenant, branch, and code. The new version takes new package prices/duration and the current locked branch tax snapshot; the old row remains unchanged except status. Stale/replayed forms conflict and no in-place money/duration update is exposed.
+
+Next three actions: T42 version command/security, T43 bilingual replacement UI, and T44 adversarial immutability/concurrency review. Calculator/tax totals, tickets, QR, check-in, sessions, and M3 closure remain excluded.
+
 ## 2026-09-12 M1 closed
 
 M1 access and branch foundation is DONE on `codex/first`. PHP 8.5 compatibility (T31) is closed; its full suite passes on PHP 8.4.21 and 8.5.8, and its migrations plus suite passed on isolated MySQL 8.4.11/InnoDB. M2 is now in progress through the family-registry first slice; this is not M2 closure or production readiness. No main merge or push.

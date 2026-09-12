@@ -1,5 +1,15 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 M3 T42-T44 pricing version wave
+
+Replace an active pricing rule only by atomic immutable versioning. `POST /app/pricing/{pricingRule}/versions` receives name, base duration minutes, base/overtime EGP strings, and `expected_version`. After tenant/branch authorization and row locks, the target must still be active and current; retire it and create version +1 with the same tenant/branch/code, fixed OQ-16 constants, current branch tax snapshot, and actor. Audit stores old/new IDs and versions only.
+
+- **T42 backend:** version command/route, current-rule conflict rules, transaction/audit, and focused tests.
+- **T43 UI:** manager-only native replacement controls per active rule, bilingual explanation, preserved values, validation/conflict/success states, and UI tests.
+- **T44 review:** adversarial tests for stale/replayed request, retired/foreign/view-only rule, rollback, immutable old facts, exact money conversion, and audit payload.
+
+No migration/model expansion, in-place update/delete, activation scheduling, calculator/tax total, ticket/QR/check-in/session work. Coordinator reviews and gates the integrated result.
+
 ## 2026-09-12 M3 T39-T41 immutable pricing-rule wave
 
 Three Luna/xhigh workers implement the first M3 slice. Contract: list current-scope rules and create one immutable active branch rule with code/name/version 1, `base_duration_seconds`, integer `base_price_minor`, fixed `grace_period_seconds=600`, fixed `overtime_unit_seconds=1800`, integer `overtime_price_minor`, EGP currency, selected branch tax snapshot, actor, status, and timestamps. Unique `(tenant_id, branch_id, code, version)` and tenant-aware branch/actor foreign keys are mandatory.
