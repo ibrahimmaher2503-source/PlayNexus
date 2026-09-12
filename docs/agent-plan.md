@@ -1,5 +1,16 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 T14-T17 delivery accepted
+
+| Task | Worker | Delivery / outcome |
+| --- | --- | --- |
+| T14 owner-read contract | Coordinator | DONE: explicit tenant_owners, tenant-global read only; canonical docs synchronized |
+| T15 backend | owner_backend_luna, Luna/xhigh | DONE: bb6df9e reviewed and integrated |
+| T16 UI | owner_ui_luna, Luna/xhigh | DONE: a451bca reviewed and integrated |
+| T17 tests | owner_tests_luna, Luna/xhigh | DONE: 96fbe14 reviewed and integrated |
+
+Workers reported exact base/SHA/owned files, executed static checks and missing runtime verification. Coordinator verified actual diffs, fixed findings through worker feedback, and ran combined tests (52/315), Pint, build and docs/diff checks successfully. This is local code and automated acceptance; browser DEFERRED_BY_USER, new MySQL migration and PHP 8.5 unverified. No main merge or push. Future owner-wide branch scope must get its own fixed contract before another implementation wave; full M1 is not complete.
+
 ## 2026-09-12 user-directed browser deferral and next proposed wave
 
 The user explicitly deferred browser testing for now. T13 local code integration and automated checks are complete; browser acceptance is DEFERRED_BY_USER, not PASS, and does not block planning the next wave. MySQL coverage of this wave remains unverified.

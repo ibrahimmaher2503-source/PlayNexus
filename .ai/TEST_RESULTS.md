@@ -1,5 +1,24 @@
 # Test Results
 
+## 2026-09-12 T14-T17 owner-read integration acceptance
+
+Reviewed and integrated T15 `bb6df9e` (backend), T16 `a451bca` (UI), T17 `96fbe14` (tests) from base `9c4ea91` into `codex/first`. Three workers used requested `gpt-5.6-luna` / `xhigh`; each returned owned-file commits and actual static-check results. Worker application tests were not accepted as evidence: their isolated worktrees lack vendor. Coordinator ran application verification after integration.
+
+Review corrections: policy now queries persisted active tenant state instead of trusting a loaded model; regression updates tenant through the query builder to keep the passed model stale. Replaced default English pagination with localized native paginator links, retained empty-page recovery, and added an unknown-status label. Backend worker independently reviewed security tests after its implementation; no additional findings.
+
+| Check | Actual result |
+| --- | --- |
+| `php artisan test --filter=TenantOwnerReadTest` | PASS: 15 tests / 68 assertions |
+| `php artisan test` | PASS: 52 tests / 315 assertions |
+| Automated environment | Process-local SQLite `:memory:`, empty DB_URL, array sessions; SESSION_CONNECTION unset |
+| `php vendor/bin/pint --test` | PASS |
+| `npm run build` | PASS; optional fontaine notice only |
+| `php artisan route:list --path=app/tenant -v` | tenant.show under web/auth/tenant.access |
+| `python tools/validate_documentation.py` | PASS: 0 errors / 2 existing placeholder warnings |
+| `git diff --check` | PASS |
+
+Checks exercise real migration constraints and policy/HTTP rendering, role spoof rejection, tenant-filtered selected fields and pagination, account/ownership/tenant revocation, Arabic/English and empty-page navigation. Blade rendering is automated HTTP evidence, not browser acceptance. Browser remains DEFERRED_BY_USER; this new migration has not been validated on MySQL or PHP 8.5. No shared services, main merge or push. No production/full-M1 acceptance.
+
 ## 2026-09-12 combined integration checkpoint
 
 Recovered local integration at `6dafe21`: T10 `c3b2065` and T11 `c61f9e8` are merged into `codex/first`; T12 report `4093e8d` is integrated. Reviewed status enforcement, forward migration/backfill, mass-assignment exclusion, policy checks, locale middleware/controller and the failed-login interaction. Retained the pending focused fix that restores the validated locale after failed-login session invalidation; its regression checks guest state and the following Arabic RTL page.

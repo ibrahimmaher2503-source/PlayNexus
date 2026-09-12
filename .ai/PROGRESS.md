@@ -1,5 +1,11 @@
 # Progress
 
+## 2026-09-12 three-worker owner-read wave completed locally
+
+Dispatched three Luna/xhigh workers in isolated worktrees with a fixed shared contract and non-overlapping files. Reviewed their concrete commits and corrected tenant-state freshness, the corresponding stale-model regression and bilingual pagination before acceptance. Integrated backend `bb6df9e`, UI `a451bca`, tests `96fbe14`; combined suite PASS 52/315. No manual owner provisioning, browser runtime or shared data changes occurred. Owner assignment is intentionally not managed by this read-only UI.
+
+Next scope to define is owner branch-wide read access (selector/direct reads/revocation), separately from platform identity and support access. Do not silently extend current BranchPolicy. Browser remains deferred by user; new migration MySQL/PHP 8.5 and full-M1 acceptance remain outstanding.
+
 ## 2026-09-12 combined integration checkpoint
 
 Recovered local integration at `6dafe21`: T10 `c3b2065` and T11 `c61f9e8` are merged into `codex/first`; T12 report `4093e8d` is integrated. Reviewed status enforcement, forward migration/backfill, mass-assignment exclusion, policy checks, locale middleware/controller and the failed-login interaction. Retained the pending focused fix that restores the validated locale after failed-login session invalidation; its regression checks guest state and the following Arabic RTL page.

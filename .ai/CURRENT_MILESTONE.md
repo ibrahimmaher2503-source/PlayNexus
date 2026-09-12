@@ -1,5 +1,11 @@
 # Current Milestone
 
+## 2026-09-12 owner-read slice integrated
+
+T14 contract, T15 backend, T16 bilingual UI and T17 security tests are DONE for local code/automated acceptance on `codex/first`. An explicitly provisioned active tenant owner can read `/app/tenant` without branch assignment; staff see no owner navigation and receive 403. The server resolves tenant scope; no request tenant ID can select another institution. Read-only staff list is paginated, localized and limited to name/email/status plus internal id.
+
+Combined verification PASS: 52 tests / 315 assertions, Pint, build and docs/diff checks. Evidence is in TEST_RESULTS.md. Browser is DEFERRED_BY_USER, MySQL for the new migration and PHP 8.5 remain unverified. This supersedes T14 representation-blocked statements for this slice only. Owner-wide branch operations, platform authorization, assignment management UI and full M1 remain incomplete.
+
 ## 2026-09-12 combined integration checkpoint
 
 Recovered local integration at `6dafe21`: T10 `c3b2065` and T11 `c61f9e8` are merged into `codex/first`; T12 report `4093e8d` is integrated. Reviewed status enforcement, forward migration/backfill, mass-assignment exclusion, policy checks, locale middleware/controller and the failed-login interaction. Retained the pending focused fix that restores the validated locale after failed-login session invalidation; its regression checks guest state and the following Arabic RTL page.
