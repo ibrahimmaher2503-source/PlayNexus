@@ -10,7 +10,7 @@ Replace an active pricing rule only by atomic immutable versioning. `POST /app/p
 
 No migration/model expansion, in-place update/delete, activation scheduling, calculator/tax total, ticket/QR/check-in/session work. Coordinator reviews and gates the integrated result.
 
-**Accepted result:** T42-T44 are integrated. Current active rules are replaced only by atomic retirement plus version +1 creation; stale/replayed and out-of-scope attempts fail without partial writes. Manager-only bilingual replacement controls use the existing pricing surface. Focused version tests pass 18 / 181 and full PHP 8.5 regression passes 224 / 1,849; Pint, Vite, documentation, and pricing-route checks pass. Browser and fresh MySQL acceptance remain outstanding.
+**Accepted result:** T42-T44 are integrated. Current active rules are replaced only by atomic retirement plus version +1 creation; stale/replayed and out-of-scope attempts fail without partial writes. Manager-only bilingual replacement controls use the existing pricing surface. Follow-up review isolates failed-form values to the submitted child/pricing form and removes consent copy before its policy is approved. Focused version tests pass 18 / 181 and full PHP 8.5 regression passes 226 / 1,859; Pint, Vite, documentation, and pricing-route checks pass. Browser and fresh MySQL acceptance remain outstanding.
 
 ## 2026-09-12 M3 T39-T41 immutable pricing-rule wave
 

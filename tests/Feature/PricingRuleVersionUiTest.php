@@ -144,6 +144,41 @@ class PricingRuleVersionUiTest extends TestCase
         $this->assertStringNotContainsString(__('pricing.replacement_history_notice'), $html);
     }
 
+    public function test_failed_replacement_does_not_fill_other_replacement_or_create_forms(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant, 'Managed pricing', 'MANAGED-PRICE');
+        $first = PricingRule::factory()->create([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $branch->id,
+            'code' => 'FIRST',
+            'name' => 'First rule',
+        ]);
+        PricingRule::factory()->create([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $branch->id,
+            'code' => 'SECOND',
+            'name' => 'Second rule',
+        ]);
+
+        $html = $this->actingAs($owner)
+            ->withSession(['_old_input' => [
+                'form_context' => 'pricing-version-'.$first->id,
+                'name' => 'Only this replacement',
+                'base_duration_minutes' => '77',
+                'base_price_egp' => '12.34',
+                'overtime_price_egp' => '5.67',
+            ]])
+            ->get(route('pricing.index'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertNotFalse($html);
+        $this->assertSame(1, substr_count($html, 'value="Only this replacement"'));
+        $this->assertStringContainsString('value="Second rule"', $html);
+        $this->assertStringContainsString('name="form_context" value="pricing-create"', $html);
+    }
+
     /** @return array{Tenant, User} */
     private function owner(): array
     {

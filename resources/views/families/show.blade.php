@@ -6,6 +6,7 @@
     @php
         $relationshipTypes = __('families.relationship_types');
         $familyChildren = collect($children ?? []);
+        $oldFormContext = old('form_context');
     @endphp
 
     <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
@@ -151,6 +152,8 @@
                                     $childNameError = 'child_name';
                                     $childDateError = 'date_of_birth';
                                     $relationship = data_get($child->pivot, 'relationship_type');
+                                    $childFormContext = 'child-update-'.$child->id;
+                                    $isChildFormContext = $oldFormContext === $childFormContext;
                                 @endphp
                                 <article class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" aria-labelledby="child-heading-{{ $child->id }}">
                                     <div class="flex flex-wrap items-start justify-between gap-3">
@@ -164,22 +167,27 @@
                                     <form class="mt-5 space-y-5 border-t border-[var(--pn-border)] pt-5" method="POST" action="{{ route('families.children.update', [$guardian, $child]) }}" aria-describedby="{{ $errors->any() ? 'family-profile-errors child-edit-help-'.$child->id : 'child-edit-help-'.$child->id }}">
                                         @csrf
                                         @method('PATCH')
+                                        <input type="hidden" name="form_context" value="{{ $childFormContext }}">
                                         <input type="hidden" name="expected_version" value="{{ $child->lock_version }}">
                                         <p class="text-sm text-[var(--pn-ink-muted)]" id="child-edit-help-{{ $child->id }}">{{ __('families.edit_child_description') }}</p>
                                         <div class="grid gap-5 sm:grid-cols-2">
                                             <div>
                                                 <label class="block text-sm font-semibold" for="child-{{ $child->id }}-name">{{ __('families.child_name_label') }}</label>
-                                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="child-{{ $child->id }}-name" name="child_name" type="text" value="{{ old($childNameError, $child->full_name) }}" autocomplete="off" maxlength="190" required @error($childNameError) aria-invalid="true" aria-describedby="child-{{ $child->id }}-name-error" @enderror>
-                                                @error($childNameError)
-                                                    <p class="mt-1 text-sm text-[var(--pn-danger)]" id="child-{{ $child->id }}-name-error">{{ $message }}</p>
-                                                @enderror
+                                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="child-{{ $child->id }}-name" name="child_name" type="text" value="{{ $isChildFormContext ? old($childNameError, $child->full_name) : $child->full_name }}" autocomplete="off" maxlength="190" required @if ($isChildFormContext && $errors->has($childNameError)) aria-invalid="true" aria-describedby="child-{{ $child->id }}-name-error" @endif>
+                                                @if ($isChildFormContext)
+                                                    @error($childNameError)
+                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="child-{{ $child->id }}-name-error">{{ $message }}</p>
+                                                    @enderror
+                                                @endif
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-semibold" for="child-{{ $child->id }}-dob">{{ __('families.date_of_birth_label') }}</label>
-                                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="child-{{ $child->id }}-dob" name="date_of_birth" type="date" value="{{ old($childDateError, optional($child->date_of_birth)->format('Y-m-d')) }}" autocomplete="bday" @error($childDateError) aria-invalid="true" aria-describedby="child-{{ $child->id }}-dob-error" @enderror>
-                                                @error($childDateError)
-                                                    <p class="mt-1 text-sm text-[var(--pn-danger)]" id="child-{{ $child->id }}-dob-error">{{ $message }}</p>
-                                                @enderror
+                                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="child-{{ $child->id }}-dob" name="date_of_birth" type="date" value="{{ $isChildFormContext ? old($childDateError, optional($child->date_of_birth)->format('Y-m-d')) : optional($child->date_of_birth)->format('Y-m-d') }}" autocomplete="bday" @if ($isChildFormContext && $errors->has($childDateError)) aria-invalid="true" aria-describedby="child-{{ $child->id }}-dob-error" @endif>
+                                                @if ($isChildFormContext)
+                                                    @error($childDateError)
+                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="child-{{ $child->id }}-dob-error">{{ $message }}</p>
+                                                    @enderror
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="flex justify-end">
@@ -200,27 +208,32 @@
 
                     <form class="mt-6 space-y-5" method="POST" action="{{ route('families.children.store', $guardian) }}" aria-describedby="{{ $errors->any() ? 'family-profile-errors add-child-help' : 'add-child-help' }}">
                         @csrf
+                        <input type="hidden" name="form_context" value="child-create">
                         <input type="hidden" name="expected_version" value="{{ $guardian->lock_version }}">
                         <div>
                             <label class="block text-sm font-semibold" for="new-child-name">{{ __('families.child_name_label') }}</label>
-                            <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-name" name="child_name" type="text" value="{{ old('child_name') }}" autocomplete="off" maxlength="190" required @error('child_name') aria-invalid="true" aria-describedby="new-child-name-error" @enderror>
-                            @error('child_name')
-                                <p class="mt-1 text-sm text-[var(--pn-danger)]" id="new-child-name-error">{{ $message }}</p>
-                            @enderror
+                            <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-name" name="child_name" type="text" value="{{ $oldFormContext === 'child-create' ? old('child_name') : '' }}" autocomplete="off" maxlength="190" required @if ($oldFormContext === 'child-create' && $errors->has('child_name')) aria-invalid="true" aria-describedby="new-child-name-error" @endif>
+                            @if ($oldFormContext === 'child-create')
+                                @error('child_name')
+                                    <p class="mt-1 text-sm text-[var(--pn-danger)]" id="new-child-name-error">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
                         <div>
                             <label class="block text-sm font-semibold" for="new-child-dob">{{ __('families.date_of_birth_label') }}</label>
-                            <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-dob" name="date_of_birth" type="date" value="{{ old('date_of_birth') }}" autocomplete="bday" @error('date_of_birth') aria-invalid="true" aria-describedby="new-child-dob-error" @enderror>
-                            @error('date_of_birth')
-                                <p class="mt-1 text-sm text-[var(--pn-danger)]" id="new-child-dob-error">{{ $message }}</p>
-                            @enderror
+                            <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-dob" name="date_of_birth" type="date" value="{{ $oldFormContext === 'child-create' ? old('date_of_birth') : '' }}" autocomplete="bday" @if ($oldFormContext === 'child-create' && $errors->has('date_of_birth')) aria-invalid="true" aria-describedby="new-child-dob-error" @endif>
+                            @if ($oldFormContext === 'child-create')
+                                @error('date_of_birth')
+                                    <p class="mt-1 text-sm text-[var(--pn-danger)]" id="new-child-dob-error">{{ $message }}</p>
+                                @enderror
+                            @endif
                         </div>
                         <div>
                             <label class="block text-sm font-semibold" for="new-child-relationship">{{ __('families.relationship_type_label') }}</label>
                             <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-relationship" name="relationship_type" required aria-describedby="new-child-relationship-help{{ $errors->has('relationship_type') ? ' new-child-relationship-error' : '' }}" @error('relationship_type') aria-invalid="true" @enderror>
                                 <option value="">{{ __('families.relationship_type_placeholder') }}</option>
                                 @foreach ($relationshipTypes as $value => $label)
-                                    <option value="{{ $value }}" @selected(old('relationship_type') === $value)>{{ $label }}</option>
+                                    <option value="{{ $value }}" @selected($oldFormContext === 'child-create' && old('relationship_type') === $value)>{{ $label }}</option>
                                 @endforeach
                             </select>
                             <p class="mt-1 text-sm text-[var(--pn-ink-muted)]" id="new-child-relationship-help">{{ __('families.relationship_type_help') }}</p>

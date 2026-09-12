@@ -43,7 +43,7 @@ return [
     ],
     'locale_ar' => 'Arabic',
     'locale_en' => 'English',
-    'operational_notice' => 'Before a visit, staff must review and document the required operational consent with the guardian.',
+    'operational_notice' => 'Add only the contact and child details needed to identify this family.',
     'save' => 'Save family',
     'created' => 'Family added successfully.',
     'duplicate' => 'A family with this phone already exists. Search for the existing family before creating another.',

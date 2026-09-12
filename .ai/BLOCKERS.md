@@ -2,7 +2,7 @@
 
 ## 2026-09-12 M3 first-slice boundary
 
-No blocker prevents immutable fixed-duration pricing-rule creation/listing because OQ-16 is approved. OQ-18 still blocks ticket-type scope, transferability, date binding, and refund behavior, so ticket issuance/QR is not started. Finance-approved worked tax examples are still required before tax-total calculation/checkout acceptance. The browser bridge is currently unavailable, and the new M2/M3 migrations still need a fresh isolated MySQL 8.4 run.
+No blocker prevents immutable fixed-duration pricing-rule creation/listing/version replacement because OQ-16 is approved. OQ-18 still blocks ticket-type scope, transferability, date binding, and refund behavior, so ticket issuance/QR is not started. Finance-approved worked tax examples are still required before tax-total calculation/checkout acceptance. The browser bridge is currently unavailable. Fresh MySQL 8.4 acceptance is blocked locally: PHP has `pdo_mysql`, but no MySQL 8.4 client/server or Docker is available; the only discovered server is XAMPP MariaDB 10.4.32 and was not substituted.
 
 ## 2026-09-12 M2 start boundary
 

@@ -2,7 +2,7 @@
 
 ## 2026-09-12 M3 pricing-version handoff
 
-`POST /app/pricing/{pricingRule}/versions` now replaces the current active rule by retiring it and creating immutable version +1 with the same tenant, branch, and code. Owners and assigned branch managers receive bilingual native replacement controls; reception/cashier users remain view-only. Expected-version checks block stale/replayed forms, stored EGP stays integer-based, the new rule snapshots the locked branch tax settings, and audit metadata contains identifiers and versions only. Full PHP 8.5 regression passes 224 / 1,849; Pint, Vite, docs, and pricing-route checks pass. Browser and fresh MySQL acceptance remain outstanding; do not add calculation/tickets/QR/check-in/sessions until their contracts are ready.
+`POST /app/pricing/{pricingRule}/versions` now replaces the current active rule by retiring it and creating immutable version +1 with the same tenant, branch, and code. Owners and assigned branch managers receive bilingual native replacement controls; reception/cashier users remain view-only. Expected-version checks block stale/replayed forms, stored EGP stays integer-based, the new rule snapshots the locked branch tax settings, and audit metadata contains identifiers and versions only. Follow-up review isolates validation input to its submitted repeated form and removes premature consent copy. Full PHP 8.5 regression passes 226 / 1,859; Pint, Vite, docs, and pricing-route checks pass. Browser and fresh MySQL acceptance remain outstanding; do not add calculation/tickets/QR/check-in/sessions until their contracts are ready.
 
 ## 2026-09-12 M3 pricing-rule first-slice handoff
 

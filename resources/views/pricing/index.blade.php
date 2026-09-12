@@ -10,6 +10,7 @@
         $selectedBranchId = (int) old('branch_id', request()->query('branch_id', session('branch_id', 0)));
         $selectedBranch = $branchList->firstWhere('id', $selectedBranchId);
         $manageableBranchIds = $manageableBranchList->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
+        $oldFormContext = old('form_context');
         if ($manageableBranchIds === [] && ($canManage ?? false)) {
             $manageableBranchIds = $branchList->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
         }
@@ -161,6 +162,8 @@
                                         <td class="whitespace-nowrap px-4 py-4"><span class="inline-flex min-h-8 items-center rounded-full border border-[var(--pn-success)] bg-[var(--pn-success-soft)] px-3 text-sm font-semibold text-[var(--pn-success)]">{{ __('pricing.active') }}</span></td>
                                         @if ($showReplacementControls)
                                             @php($canReplace = in_array((int) data_get($rule, 'branch_id'), $manageableBranchIds, true))
+                                            @php($replacementFormContext = 'pricing-version-'.data_get($rule, 'id'))
+                                            @php($isReplacementFormContext = $oldFormContext === $replacementFormContext)
                                             <td class="min-w-64 px-4 py-4 align-top">
                                                 @if ($canReplace)
                                                     <details class="group rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)]" id="pricing-replacement-{{ data_get($rule, 'id') }}">
@@ -184,35 +187,44 @@
 
                                                             <form class="mt-4 space-y-4" method="POST" action="{{ route('pricing.versions.store', $rule) }}" aria-describedby="replacement-help-{{ data_get($rule, 'id') }}">
                                                                 @csrf
+                                                                <input type="hidden" name="form_context" value="{{ $replacementFormContext }}">
                                                                 <input type="hidden" name="expected_version" value="{{ data_get($rule, 'version', 1) }}">
                                                                 <p class="sr-only" id="replacement-help-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_history_notice') }}</p>
                                                                 <div>
                                                                     <label class="block text-sm font-semibold" for="replacement-name-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_name_label') }}</label>
-                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-name-{{ data_get($rule, 'id') }}" name="name" type="text" value="{{ old('name', data_get($rule, 'name')) }}" maxlength="190" required @error('name') aria-invalid="true" aria-describedby="replacement-name-error-{{ data_get($rule, 'id') }}" @enderror>
-                                                                    @error('name')
-                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-name-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
-                                                                    @enderror
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-name-{{ data_get($rule, 'id') }}" name="name" type="text" value="{{ $isReplacementFormContext ? old('name', data_get($rule, 'name')) : data_get($rule, 'name') }}" maxlength="190" required @if ($isReplacementFormContext && $errors->has('name')) aria-invalid="true" aria-describedby="replacement-name-error-{{ data_get($rule, 'id') }}" @endif>
+                                                                    @if ($isReplacementFormContext)
+                                                                        @error('name')
+                                                                            <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-name-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                        @enderror
+                                                                    @endif
                                                                 </div>
                                                                 <div>
                                                                     <label class="block text-sm font-semibold" for="replacement-duration-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_duration_label') }}</label>
-                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-duration-{{ data_get($rule, 'id') }}" name="base_duration_minutes" type="number" min="1" max="1440" step="1" value="{{ old('base_duration_minutes', intdiv((int) data_get($rule, 'base_duration_seconds', 0), 60)) }}" required @error('base_duration_minutes') aria-invalid="true" aria-describedby="replacement-duration-error-{{ data_get($rule, 'id') }}" @enderror>
-                                                                    @error('base_duration_minutes')
-                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-duration-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
-                                                                    @enderror
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-duration-{{ data_get($rule, 'id') }}" name="base_duration_minutes" type="number" min="1" max="1440" step="1" value="{{ $isReplacementFormContext ? old('base_duration_minutes', intdiv((int) data_get($rule, 'base_duration_seconds', 0), 60)) : intdiv((int) data_get($rule, 'base_duration_seconds', 0), 60) }}" required>
+                                                                    @if ($isReplacementFormContext)
+                                                                        @error('base_duration_minutes')
+                                                                            <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-duration-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                        @enderror
+                                                                    @endif
                                                                 </div>
                                                                 <div>
                                                                     <label class="block text-sm font-semibold" for="replacement-base-price-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_base_price_label') }}</label>
-                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-base-price-{{ data_get($rule, 'id') }}" name="base_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ old('base_price_egp', $formatEgpInput(data_get($rule, 'base_price_minor', 0))) }}" required @error('base_price_egp') aria-invalid="true" aria-describedby="replacement-base-price-error-{{ data_get($rule, 'id') }}" @enderror>
-                                                                    @error('base_price_egp')
-                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-base-price-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
-                                                                    @enderror
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-base-price-{{ data_get($rule, 'id') }}" name="base_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ $isReplacementFormContext ? old('base_price_egp', $formatEgpInput(data_get($rule, 'base_price_minor', 0))) : $formatEgpInput(data_get($rule, 'base_price_minor', 0)) }}" required>
+                                                                    @if ($isReplacementFormContext)
+                                                                        @error('base_price_egp')
+                                                                            <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-base-price-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                        @enderror
+                                                                    @endif
                                                                 </div>
                                                                 <div>
                                                                     <label class="block text-sm font-semibold" for="replacement-overtime-price-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_overtime_price_label') }}</label>
-                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-overtime-price-{{ data_get($rule, 'id') }}" name="overtime_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ old('overtime_price_egp', $formatEgpInput(data_get($rule, 'overtime_price_minor', 0))) }}" required @error('overtime_price_egp') aria-invalid="true" aria-describedby="replacement-overtime-price-error-{{ data_get($rule, 'id') }}" @enderror>
-                                                                    @error('overtime_price_egp')
-                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-overtime-price-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
-                                                                    @enderror
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-overtime-price-{{ data_get($rule, 'id') }}" name="overtime_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ $isReplacementFormContext ? old('overtime_price_egp', $formatEgpInput(data_get($rule, 'overtime_price_minor', 0))) : $formatEgpInput(data_get($rule, 'overtime_price_minor', 0)) }}" required>
+                                                                    @if ($isReplacementFormContext)
+                                                                        @error('overtime_price_egp')
+                                                                            <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-overtime-price-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                        @enderror
+                                                                    @endif
                                                                 </div>
                                                                 <button class="inline-flex min-h-11 w-full items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('pricing.replacement_submit') }}</button>
                                                             </form>
@@ -240,6 +252,7 @@
 
                         <form class="mt-6 space-y-5" method="POST" action="{{ route('pricing.store') }}" aria-describedby="{{ $errors->any() ? 'pricing-errors create-pricing-help' : 'create-pricing-help' }}">
                             @csrf
+                            <input type="hidden" name="form_context" value="pricing-create">
                             <div>
                                 <label class="block text-sm font-semibold" for="pricing-branch-create">{{ __('pricing.branch_select_label') }}</label>
                                 <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-branch-create" name="branch_id" required @error('branch_id') aria-invalid="true" aria-describedby="pricing-branch-error" @enderror>
@@ -262,14 +275,16 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold" for="pricing-name">{{ __('pricing.name_label') }}</label>
-                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-name" name="name" type="text" value="{{ old('name') }}" maxlength="190" required @error('name') aria-invalid="true" aria-describedby="pricing-name-error" @enderror>
-                                @error('name')
-                                    <p class="mt-1 text-sm text-[var(--pn-danger)]" id="pricing-name-error">{{ $message }}</p>
-                                @enderror
+                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-name" name="name" type="text" value="{{ $oldFormContext === 'pricing-create' ? old('name') : '' }}" maxlength="190" required @if ($oldFormContext === 'pricing-create' && $errors->has('name')) aria-invalid="true" aria-describedby="pricing-name-error" @endif>
+                                @if ($oldFormContext === 'pricing-create')
+                                    @error('name')
+                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="pricing-name-error">{{ $message }}</p>
+                                    @enderror
+                                @endif
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold" for="pricing-duration">{{ __('pricing.duration_label') }}</label>
-                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-duration" name="base_duration_minutes" type="number" min="1" step="1" value="{{ old('base_duration_minutes') }}" required aria-describedby="pricing-duration-help{{ $errors->has('base_duration_minutes') ? ' pricing-duration-error' : '' }}" @error('base_duration_minutes') aria-invalid="true" @enderror>
+                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-duration" name="base_duration_minutes" type="number" min="1" step="1" value="{{ $oldFormContext === 'pricing-create' ? old('base_duration_minutes') : '' }}" required aria-describedby="pricing-duration-help{{ $errors->has('base_duration_minutes') ? ' pricing-duration-error' : '' }}" @error('base_duration_minutes') aria-invalid="true" @enderror>
                                 <p class="mt-1 text-xs text-[var(--pn-ink-muted)]" id="pricing-duration-help">{{ __('pricing.duration_hint') }}</p>
                                 @error('base_duration_minutes')
                                     <p class="mt-1 text-sm text-[var(--pn-danger)]" id="pricing-duration-error">{{ $message }}</p>
@@ -277,7 +292,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold" for="pricing-base-price">{{ __('pricing.base_price_label') }}</label>
-                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-base-price" name="base_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ old('base_price_egp') }}" required aria-describedby="pricing-base-price-help{{ $errors->has('base_price_egp') ? ' pricing-base-price-error' : '' }}" @error('base_price_egp') aria-invalid="true" @enderror>
+                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-base-price" name="base_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ $oldFormContext === 'pricing-create' ? old('base_price_egp') : '' }}" required aria-describedby="pricing-base-price-help{{ $errors->has('base_price_egp') ? ' pricing-base-price-error' : '' }}" @error('base_price_egp') aria-invalid="true" @enderror>
                                 <p class="mt-1 text-xs text-[var(--pn-ink-muted)]" id="pricing-base-price-help">{{ __('pricing.base_price_hint') }}</p>
                                 @error('base_price_egp')
                                     <p class="mt-1 text-sm text-[var(--pn-danger)]" id="pricing-base-price-error">{{ $message }}</p>
@@ -285,7 +300,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold" for="pricing-overtime-price">{{ __('pricing.overtime_price_label') }}</label>
-                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-overtime-price" name="overtime_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ old('overtime_price_egp') }}" required aria-describedby="pricing-overtime-price-help{{ $errors->has('overtime_price_egp') ? ' pricing-overtime-price-error' : '' }}" @error('overtime_price_egp') aria-invalid="true" @enderror>
+                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-overtime-price" name="overtime_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ $oldFormContext === 'pricing-create' ? old('overtime_price_egp') : '' }}" required aria-describedby="pricing-overtime-price-help{{ $errors->has('overtime_price_egp') ? ' pricing-overtime-price-error' : '' }}" @error('overtime_price_egp') aria-invalid="true" @enderror>
                                 <p class="mt-1 text-xs text-[var(--pn-ink-muted)]" id="pricing-overtime-price-help">{{ __('pricing.overtime_price_hint') }}</p>
                                 @error('overtime_price_egp')
                                     <p class="mt-1 text-sm text-[var(--pn-danger)]" id="pricing-overtime-price-error">{{ $message }}</p>

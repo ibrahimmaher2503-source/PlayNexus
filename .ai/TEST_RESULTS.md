@@ -7,13 +7,14 @@
 | Version backend/UI/adversarial | `php artisan test tests/Feature/PricingRuleVersioningTest.php tests/Feature/PricingRuleVersionUiTest.php tests/Feature/PricingRuleVersionAdversarialTest.php` — PASS, 18 tests / 181 assertions |
 | Immutability and conflicts | PASS: only the current active expected version may be replaced; stale, replayed, retired, foreign, unassigned, and view-only attempts are denied without partial writes |
 | Money, tax, and audit | PASS: exact decimal-to-minor conversion, current locked branch tax snapshot, unchanged historical rule facts except retirement, rollback, and ID/version-only audit payload |
-| Full regression on PHP 8.5 | `php artisan test --compact` — PASS, 224 tests / 1,849 assertions |
+| Repeated-form isolation | `php artisan test tests/Feature/FamilyProfileUiTest.php tests/Feature/FamilyRegistrationUiTest.php tests/Feature/PricingRuleVersionUiTest.php` — PASS, 12 tests / 151 assertions; failed child/pricing input stays in its submitted form |
+| Full regression on PHP 8.5 | `php artisan test --compact` — PASS, 226 tests / 1,859 assertions |
 | Formatting | `php vendor/bin/pint --test` — PASS |
 | Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
 | Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 existing review-placeholder warnings |
 | Routes | `php artisan route:list --name=pricing` — PASS; GET list, POST create, and POST immutable version replacement |
 | Browser | **BLOCKED:** the in-app browser bridge reports `User unavailable`; no visual acceptance is claimed. |
-| MySQL | **NOT RUN:** no isolated MySQL process is currently available; SQLite/PHP 8.5 evidence is not MySQL acceptance. |
+| MySQL | **BLOCKED:** PHP has `pdo_mysql`, but no MySQL 8.4 client/server or Docker is available; the only discovered server is XAMPP MariaDB 10.4.32, which is not accepted as MySQL 8.4 evidence. No process or shared configuration was changed. |
 
 Calculator/tax totals, tickets, QR, check-in, sessions, and capacity remain outside this slice. OQ-18 still blocks ticket behavior.
 

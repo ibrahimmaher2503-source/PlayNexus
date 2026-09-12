@@ -107,6 +107,31 @@ class FamilyProfileUiTest extends TestCase
             ->assertSee('aria-live="assertive"', false);
     }
 
+    public function test_failed_child_form_does_not_fill_sibling_or_add_child_forms(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $guardian = Guardian::factory()->create(['tenant_id' => $tenant->id]);
+        $first = Child::factory()->create(['tenant_id' => $tenant->id, 'full_name' => 'First child']);
+        $second = Child::factory()->create(['tenant_id' => $tenant->id, 'full_name' => 'Second child']);
+        $this->link($tenant, $owner, $guardian, $first, 'mother');
+        $this->link($tenant, $owner, $guardian, $second, 'father');
+
+        $html = $this->actingAs($owner)
+            ->withSession(['_old_input' => [
+                'form_context' => 'child-update-'.$first->id,
+                'child_name' => 'Only this child',
+                'date_of_birth' => '2021-02-03',
+            ]])
+            ->get(route('families.show', $guardian))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertNotFalse($html);
+        $this->assertSame(1, substr_count($html, 'value="Only this child"'));
+        $this->assertStringContainsString('value="Second child"', $html);
+        $this->assertStringContainsString('name="form_context" value="child-create"', $html);
+    }
+
     /** @return array{Tenant, User} */
     private function owner(): array
     {
