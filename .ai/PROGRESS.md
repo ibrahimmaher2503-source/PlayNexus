@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-12 custom roles and direct staff administration
+
+- Added owner-only tenant custom roles with a real `branches.view` toggle, audit/conflict protection, and assignment integration; fixed roles remain immutable.
+- Replaced the invitation UI/flow with direct active account creation using name/email and an unknown generated password for the existing recovery flow.
+- Added tenant-scoped staff search by name/email while preserving selection and pagination.
+- Three Luna/xhigh workers supplied the initial slices; coordinator reviewed, corrected and integrated them. Full PHP 8.5 regression passes 150 tests / 1,180 assertions.
+
 ## 2026-09-12 routine administration reason cleanup
 
 - Removed reason selectors and validation from staff status, branch role/access assignment, and branch activation/deactivation.

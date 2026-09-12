@@ -2,7 +2,7 @@
 
 ## T18-T20 bounded implementation amendment
 
-User-authorized wave: explicit active owner has `branches.view` over active own-tenant branches; owner-only existing non-owner staff status and fixed branch role/access assignment are now in implementation scope. Branch-manager staff administration, account invitations, owner transfer and all other draft permissions remain unimplemented. All owner targets are excluded from these mutations. Deny foreign scope404, missing owner403, stale submitted state409; record a server-derived reason code and atomic audit for successful changes. The 2026-09-12 UI amendment removes owner-selected reason fields from staff status, branch assignments, and branch lifecycle actions. Exact original contracts: docs/agent-plan.md T18-T20.
+User-authorized wave: an active owner has `branches.view` over active own-tenant branches; may add active tenant staff directly, search them by name/email, create tenant-specific roles, toggle their currently enforced `branches.view` permission, and assign eligible custom or fixed branch roles. Branch-manager staff administration, owner transfer and all other draft permissions remain unimplemented. All owner targets are excluded from these mutations. Deny foreign scope404, missing owner403, stale submitted state409; record server-derived reasons and atomic audit for successful changes.
 
 ## T14 bounded owner-read implementation
 
@@ -63,19 +63,19 @@ An entry grants at most the listed scope. It does not bypass record state, tenan
 | Action / permission code | Super Admin | Tenant Owner | Branch Manager | Reception | Cashier | Game Operator | Parent |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | View tenant staff `staff.view` | support only | T | B | self | self | — | — |
-| Invite/disable tenant staff `staff.manage` | — | T | B* | — | — | — | — |
+| Add/disable tenant staff `staff.manage` | — | T | B* | — | — | — | — |
 | Assign Tenant Owner `staff.roles.assign_owner` | — | T** | — | — | — | — | — |
 | Assign branch roles `staff.roles.assign_branch` | — | T | B* | — | — | — | — |
 | Assign/remove branch access `staff.branches.assign` | — | T | B* | — | — | — | — |
 | View role definitions `roles.view` | G | T | B | — | — | — | — |
-| Change fixed role-permission map `roles.permissions.manage` | deploy only | — | — | — | — | — | — |
+| Manage tenant custom role permissions `roles.permissions.manage` | — | T | — | — | — | — | — |
 | Revoke API token `tokens.revoke` | own/platform | T | own | own | own | own | — |
 | Request/reset own password | public generic request / valid single-use token | self | self | self | self | — | — |
 
 `*` Branch Managers can manage only Reception and Cashier users in branches they manage. They cannot create/assign Tenant Owners, Branch Managers, or the future Game Operator role.  
 `**` An owner cannot remove the tenant's last active Tenant Owner. Ownership transfer requires re-authentication and audit.
 
-MVP roles are fixed and seeded. “Role management” means assignment, not tenant-authored permission bundles. Custom roles can be introduced only with a separate privilege-escalation review.
+Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is tenant-owned and currently exposes only the already-enforced `branches.view` key; adding any other permission requires its policy enforcement, matrix update, negative tests, and a separate privilege-escalation review.
 
 ## 4. Guardians, children, and sensitive data
 

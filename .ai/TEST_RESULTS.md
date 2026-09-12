@@ -1,5 +1,18 @@
 # Test Results
 
+## 2026-09-12 custom roles, staff search, and direct creation
+
+| Check | Result |
+|---|---|
+| Focused roles/assignment/staff/audit | `php artisan test --compact tests/Feature/CustomRoleManagementTest.php tests/Feature/BranchAssignmentManagementTest.php tests/Feature/StaffCreationTest.php tests/Feature/AuditLogViewTest.php` — PASS, 34 tests / 277 assertions |
+| Full regression on PHP 8.5 | `php artisan test --compact` — PASS, 150 tests / 1,180 assertions |
+| Formatting | `php vendor/bin/pint` — PASS after one import/order correction |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 existing review-placeholder warnings |
+| Browser | PASS on the live PHP 8.5 server: created a custom role with `branches.view`, found `t32-staff@example.test` by email, confirmed the custom role in both branch selectors, and created an active staff account from name/email. The two synthetic records and their audit rows were removed after verification. |
+
+Three requested Luna/xhigh workers produced the initial slices. Coordinator review renamed the legacy invite route/view/test, exposed new audit actions, made `branches.view` genuinely toggleable, and connected eligible same-tenant custom roles to assignment validation and authorization.
+
 ## 2026-09-12 automatic admin reasons
 
 | Check | Result |

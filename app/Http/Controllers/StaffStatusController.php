@@ -42,11 +42,11 @@ class StaffStatusController extends Controller
         return view('staff.index', compact('actor', 'tenant', 'staff'));
     }
 
-    public function invite(Request $request): View
+    public function create(Request $request): View
     {
         [$actor, $tenant] = $this->authorizedContext($request);
 
-        return view('staff.invite', compact('actor', 'tenant'));
+        return view('staff.create', compact('actor', 'tenant'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -83,14 +83,14 @@ class StaffStatusController extends Controller
             $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
             Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
 
-            $invited = new User;
-            $invited->tenant_id = $lockedTenant->getKey();
-            $invited->name = $validated['name'];
-            $invited->email = $validated['email'];
-            $invited->email_verified_at = null;
-            $invited->password = Hash::make(Str::random(64));
-            $invited->status = 'invited';
-            $invited->save();
+            $created = new User;
+            $created->tenant_id = $lockedTenant->getKey();
+            $created->name = $validated['name'];
+            $created->email = $validated['email'];
+            $created->email_verified_at = null;
+            $created->password = Hash::make(Str::random(64));
+            $created->status = 'active';
+            $created->save();
 
             $now = now('UTC');
             DB::table('audit_logs')->insert([
@@ -98,19 +98,19 @@ class StaffStatusController extends Controller
                 'branch_id' => null,
                 'actor_user_id' => $lockedActor->getKey(),
                 'actor_type' => 'user',
-                'action' => 'staff.invited',
+                'action' => 'staff.created',
                 'subject_type' => 'user',
-                'subject_id' => (string) $invited->getKey(),
+                'subject_id' => (string) $created->getKey(),
                 'outcome' => 'success',
                 'reason_code' => 'staffing_change',
                 'before_json' => null,
-                'after_json' => json_encode(['status' => 'invited'], JSON_THROW_ON_ERROR),
+                'after_json' => json_encode(['status' => 'active'], JSON_THROW_ON_ERROR),
                 'request_id' => (string) Str::uuid(),
                 'occurred_at' => $now,
             ]);
         });
 
-        return to_route('staff.index')->with('success', __('staff.invited'));
+        return to_route('staff.index')->with('success', __('staff.created'));
     }
 
     public function update(Request $request, User $user): RedirectResponse

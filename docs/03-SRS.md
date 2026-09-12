@@ -158,13 +158,14 @@ Game Operator is retained in the long-term role model but has no game-management
 
 | ID | Requirement | Priority | Verification / acceptance |
 |---|---|---|---|
-| FR-RBAC-001 | An authorized user shall create/invite a staff user inside the current tenant and assign one or more approved role/branch scopes. | Must | Created staff is tenant-owned; invalid/cross-tenant branch assignment fails; invitation is logged. |
+| FR-RBAC-001 | An authorized user shall create a staff user inside the current tenant and assign one or more approved role/branch scopes. | Must | Created staff is active and tenant-owned, receives a generated unknown password for later reset, invalid/cross-tenant branch assignment fails, and creation is logged. |
 | FR-RBAC-002 | An authorized user shall change role/branch assignments and suspend/reactivate staff within permitted scope. | Must | Changes take effect within the documented authorization-cache interval and are audited with before/after assignments. |
 | FR-RBAC-003 | Every protected UI route, API action, background job, report, and file access shall enforce authenticated tenant scope, branch scope, and required permission server-side. | Must | Positive and negative permission tests cover each protected operation; URL/body identifier tampering cannot widen access. |
 | FR-RBAC-004 | The MVP shall provide named permission keys at least for tenant settings, branch settings, staff management, family records, check-in, pause/resume, session cancellation, time adjustment, checkout, checkout override, ticket issue/cancel/reprint/scan, POS sale, discount, discount approval, payment, refund, reports, and audit view; incident keys apply only if OQ-20 approves that module. | Must | The approved matrix maps every in-scope protected action to a permission key and automated tests demonstrate enforcement. |
 | FR-RBAC-005 | Where policy requires approval, the requesting actor and approving actor shall both be retained; self-approval shall be allowed or denied according to the approved permission matrix. | Must | Threshold/override tests require an approver; the result stores both identities and fails if policy forbids self-approval. |
 | FR-RBAC-006 | Suspension of a staff user shall not delete or anonymize that user's historical operational or audit attribution. | Must | Historical records continue to show a stable user reference/display label after suspension. |
 | FR-RBAC-007 | Super Admin support access to tenant data shall be denied by default except for explicitly approved functions under OQ-14 and shall always be audited. | Must | Unapproved support access returns forbidden; any approved support action emits a privileged-access event. |
+| FR-RBAC-008 | A Tenant Owner may create tenant-specific roles and control only permission keys already enforced by the implemented application. | Must | The current slice exposes `branches.view` only; tenant isolation, stale-write conflict handling, audit, assignment, grant and revocation are covered by automated tests. |
 
 ### 5.4 Guardian and child registration
 

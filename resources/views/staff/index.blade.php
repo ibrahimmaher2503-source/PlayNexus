@@ -38,7 +38,7 @@
                     <h2 class="text-lg font-bold" id="staff-heading">{{ __('staff.staff_heading') }}</h2>
                     <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('staff.staff_description') }}</p>
                 </div>
-                <a class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" href="{{ route('staff.invite') }}">{{ __('staff.invite_link') }}</a>
+                <a class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" href="{{ route('staff.create') }}">{{ __('staff.add_link') }}</a>
             </div>
 
             @if ($staff->isEmpty())

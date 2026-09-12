@@ -17,15 +17,18 @@ class AuditLogController extends Controller
 {
     private const ACTIONS = [
         'staff.invited',
+        'staff.created',
         'staff.status.changed',
         'staff.branch_assignment.changed',
+        'custom_role.created',
+        'custom_role.updated',
         'branch.created',
         'branch.status.changed',
         'branch.settings.updated',
         'tenant.profile.updated',
     ];
 
-    private const SNAPSHOT_KEYS = ['status', 'role', 'is_active', 'branch_id', 'name'];
+    private const SNAPSHOT_KEYS = ['status', 'role', 'is_active', 'branch_id', 'name', 'code'];
 
     public function index(Request $request): View
     {

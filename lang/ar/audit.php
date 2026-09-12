@@ -37,6 +37,7 @@ return [
         'is_active' => 'نشط',
         'branch_id' => 'معرّف الفرع',
         'name' => 'الاسم',
+        'code' => 'الرمز النظامي',
     ],
     'snapshot_boolean' => [
         'true' => 'نعم',
@@ -56,8 +57,11 @@ return [
     ],
     'actions' => [
         'staff.invited' => 'دعوة موظف',
+        'staff.created' => 'إضافة حساب موظف',
         'staff.status.changed' => 'تغيير حالة موظف',
         'staff.branch_assignment.changed' => 'تغيير تعيين موظف لفرع',
+        'custom_role.created' => 'إنشاء دور مخصص',
+        'custom_role.updated' => 'تحديث دور مخصص',
         'branch.created' => 'إنشاء فرع',
         'branch.status.changed' => 'تغيير حالة فرع',
         'branch.settings.updated' => 'تحديث إعدادات الفرع',
@@ -68,6 +72,7 @@ return [
         'staffing_change' => 'تغيير وظيفي',
         'access_review' => 'مراجعة الوصول',
         'correction' => 'تصحيح',
+        'role_management' => 'إدارة الأدوار',
     ],
     'outcomes' => [
         'success' => 'نجاح',

@@ -11,35 +11,38 @@ use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 use Tests\TestCase;
 
-class StaffInvitationTest extends TestCase
+class StaffCreationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_owner_can_open_the_bilingual_invitation_form(): void
+    public function test_owner_can_open_the_bilingual_add_staff_form(): void
     {
         [$tenant, $owner] = $this->owner();
 
         $this->actingAs($owner)
-            ->get(route('staff.invite'))
+            ->get(route('staff.create'))
             ->assertOk()
-            ->assertViewIs('staff.invite')
-            ->assertSee(__('staff.invite_name'))
-            ->assertSee(__('staff.invite_email'))
+            ->assertViewIs('staff.create')
+            ->assertSee(__('staff.add_name'))
+            ->assertSee(__('staff.add_email'))
+            ->assertSee(__('staff.add_note'))
             ->assertSee('name="name"', false)
             ->assertSee('name="email"', false)
             ->assertDontSee('name="password"', false)
             ->assertDontSee('name="role"', false)
             ->assertDontSee('name="branch_id"', false)
+            ->assertDontSee('Invite')
+            ->assertDontSee('دعوة')
             ->assertSee($tenant->name);
     }
 
-    public function test_only_an_active_tenant_owner_can_invite_staff(): void
+    public function test_only_an_active_tenant_owner_can_add_staff(): void
     {
         $tenant = Tenant::factory()->create();
         $staff = User::factory()->create(['tenant_id' => $tenant->id]);
 
         $this->actingAs($staff)
-            ->get(route('staff.invite'))
+            ->get(route('staff.create'))
             ->assertForbidden();
 
         $this->actingAs($staff)
@@ -50,7 +53,7 @@ class StaffInvitationTest extends TestCase
         $this->assertDatabaseCount('audit_logs', 0);
     }
 
-    public function test_invitation_is_tenant_scoped_normalized_unverified_invited_and_audited(): void
+    public function test_staff_account_is_tenant_scoped_normalized_unverified_active_and_audited(): void
     {
         [$tenant, $owner] = $this->owner();
         $foreignTenant = Tenant::factory()->create();
@@ -68,28 +71,28 @@ class StaffInvitationTest extends TestCase
                 'branch_id' => 999999,
             ])
             ->assertRedirect(route('staff.index'))
-            ->assertSessionHas('success', __('staff.invited'));
+            ->assertSessionHas('success', __('staff.created'));
 
-        $invited = User::query()->where('email', 'new.receptionist@example.test')->sole();
+        $created = User::query()->where('email', 'new.receptionist@example.test')->sole();
 
-        $this->assertSame($tenant->id, $invited->tenant_id);
-        $this->assertSame('New Receptionist', $invited->name);
-        $this->assertSame('invited', $invited->status);
-        $this->assertNull($invited->email_verified_at);
-        $this->assertFalse(Hash::check('operator-known-password', $invited->password));
-        $this->assertDatabaseMissing('tenant_owners', ['user_id' => $invited->id]);
-        $this->assertDatabaseMissing('branch_user', ['user_id' => $invited->id]);
+        $this->assertSame($tenant->id, $created->tenant_id);
+        $this->assertSame('New Receptionist', $created->name);
+        $this->assertSame('active', $created->status);
+        $this->assertNull($created->email_verified_at);
+        $this->assertFalse(Hash::check('operator-known-password', $created->password));
+        $this->assertDatabaseMissing('tenant_owners', ['user_id' => $created->id]);
+        $this->assertDatabaseMissing('branch_user', ['user_id' => $created->id]);
 
-        $audit = DB::table('audit_logs')->where('subject_id', (string) $invited->id)->sole();
+        $audit = DB::table('audit_logs')->where('subject_id', (string) $created->id)->sole();
         $this->assertSame($tenant->id, $audit->tenant_id);
         $this->assertSame($owner->id, $audit->actor_user_id);
         $this->assertSame('user', $audit->actor_type);
-        $this->assertSame('staff.invited', $audit->action);
+        $this->assertSame('staff.created', $audit->action);
         $this->assertSame('user', $audit->subject_type);
         $this->assertSame('success', $audit->outcome);
         $this->assertSame('staffing_change', $audit->reason_code);
         $this->assertNull($audit->before_json);
-        $this->assertSame(['status' => 'invited'], json_decode($audit->after_json, true));
+        $this->assertSame(['status' => 'active'], json_decode($audit->after_json, true));
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
             $audit->request_id,
@@ -122,7 +125,7 @@ class StaffInvitationTest extends TestCase
         $this->assertTrue($tenant->is_active);
     }
 
-    public function test_audit_failure_rolls_back_the_invited_user(): void
+    public function test_audit_failure_rolls_back_the_created_user(): void
     {
         [$tenant, $owner] = $this->owner();
 
@@ -151,7 +154,7 @@ class StaffInvitationTest extends TestCase
         ]);
     }
 
-    public function test_invited_user_cannot_log_in_with_submitted_password(): void
+    public function test_created_user_cannot_log_in_with_submitted_password(): void
     {
         [, $owner] = $this->owner();
 

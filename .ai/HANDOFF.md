@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 roles and staff administration follow-up
+
+Owners can manage custom roles at `/app/roles`, toggle the enforced active-branch view permission, assign eligible custom roles at `/app/assignments`, search staff by name/email, and add active accounts at `/app/staff/create`. Passwords are generated and not disclosed; employees use password recovery. Full PHP 8.5 regression passes 150 tests / 1,180 assertions. Browser and remaining quality gates are recorded in `.ai/TEST_RESULTS.md`.
+
 ## 2026-09-12 automatic admin reason follow-up
 
 Reason selectors are removed from staff status, branch assignment, and branch lifecycle UI. These mutations no longer validate client `reason_code`; audit rows derive `staffing_change` for account status and `access_review` for branch access/lifecycle. High-risk reasons outside these routine administration flows remain unchanged. Acceptance: 142 tests / 1,109 assertions, build, Pint, docs, and browser checks pass.

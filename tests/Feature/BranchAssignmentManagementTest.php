@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Branch;
+use App\Models\CustomRole;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
@@ -137,6 +138,99 @@ class BranchAssignmentManagementTest extends TestCase
             ->assertDontSee('Inactive branch');
     }
 
+    public function test_owner_can_search_staff_by_trimmed_name_or_email_with_safe_wildcards(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $nameMatch = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Alice Example',
+            'email' => 'alice@example.test',
+        ]);
+        $emailMatch = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Bob Example',
+            'email' => 'bob@example.test',
+        ]);
+        $other = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Charlie Example',
+            'email' => 'charlie@example.test',
+        ]);
+        $wildcardMatch = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Literal% percent',
+            'email' => 'literal-percent@example.test',
+        ]);
+        $foreignTenant = Tenant::factory()->create();
+        $foreignMatch = User::factory()->create([
+            'tenant_id' => $foreignTenant->id,
+            'name' => 'Alice Foreign',
+            'email' => 'alice-foreign@example.test',
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('assignments.index', ['q' => '  Alice  ']))
+            ->assertOk()
+            ->assertViewHas('search', 'Alice')
+            ->assertSee($nameMatch->name)
+            ->assertDontSee($emailMatch->name)
+            ->assertDontSee($other->name)
+            ->assertDontSee($foreignMatch->name);
+
+        $this->get(route('assignments.index', ['q' => 'bob@example.test']))
+            ->assertOk()
+            ->assertSee($emailMatch->name)
+            ->assertDontSee($nameMatch->name);
+
+        $this->get(route('assignments.index', ['q' => '%']))
+            ->assertOk()
+            ->assertSee($wildcardMatch->name)
+            ->assertDontSee($other->name);
+    }
+
+    public function test_staff_search_is_trimmed_capped_and_preserves_selection_and_pagination_query(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $staff = User::factory()->count(30)->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Searchable staff',
+        ]);
+        $selected = $staff->last();
+        $this->actingAs($owner);
+
+        $response = $this->get(route('assignments.index', [
+            'q' => '  Searchable staff  ',
+            'user_id' => $selected->id,
+        ]));
+
+        $response->assertOk()
+            ->assertViewHas('search', 'Searchable staff')
+            ->assertSee('value="'.$selected->id.'" selected', false)
+            ->assertSee('maxlength="100"', false)
+            ->assertSee('q=Searchable%20staff', false)
+            ->assertSee('user_id='.$selected->id, false);
+
+        $this->get(route('assignments.index', ['q' => str_repeat('A', 120)]))
+            ->assertOk()
+            ->assertViewHas('search', str_repeat('A', 100));
+    }
+
+    public function test_staff_search_empty_state_is_localized_and_keeps_an_accessible_form(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $this->staff($tenant, 'Existing staff');
+
+        foreach ([['en', 'No staff accounts match this search.'], ['ar', 'لا توجد حسابات موظفين تطابق هذا البحث.']] as [$locale, $message]) {
+            $this->actingAs($owner)->withSession(['locale' => $locale])
+                ->get(route('assignments.index', ['q' => 'does-not-exist']))
+                ->assertOk()
+                ->assertSee($message)
+                ->assertSee('role="search"', false)
+                ->assertSee('for="q"', false)
+                ->assertSee('id="q"', false);
+        }
+    }
+
     public function test_non_owner_actor_cannot_read_or_write_assignments(): void
     {
         $tenant = Tenant::factory()->create();
@@ -227,6 +321,41 @@ class BranchAssignmentManagementTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors(['expected_role', 'expected_is_active']);
 
         $this->assertDatabaseMissing('branch_user', ['user_id' => $target->id, 'branch_id' => $branch->id]);
+    }
+
+    public function test_owner_can_assign_only_custom_roles_that_grant_branch_view_in_the_same_tenant(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $target = $this->staff($tenant);
+        $branch = $this->branch($tenant);
+        $role = CustomRole::create(['tenant_id' => $tenant->id, 'name' => 'Floor lead', 'code' => 'floor_lead']);
+        $role->permissions()->create(['permission' => 'branches.view']);
+        $blockedRole = CustomRole::create(['tenant_id' => $tenant->id, 'name' => 'No access', 'code' => 'no_access']);
+        $foreignRole = CustomRole::create(['tenant_id' => Tenant::factory()->create()->id, 'name' => 'Foreign', 'code' => 'foreign_role']);
+
+        $this->actingAs($owner)
+            ->get(route('assignments.index', ['user_id' => $target->id]))
+            ->assertOk()
+            ->assertSee('Floor lead')
+            ->assertDontSee('No access')
+            ->assertDontSee('Foreign');
+
+        $this->putJson(route('assignments.update', [$target, $branch]), [
+            'role' => $role->code,
+            'is_active' => true,
+            'expected_role' => null,
+            'expected_is_active' => null,
+        ])->assertOk();
+        $this->assertDatabaseHas('branch_user', ['tenant_id' => $tenant->id, 'role' => $role->code, 'is_active' => 1]);
+
+        foreach ([$blockedRole->code, $foreignRole->code] as $code) {
+            $this->putJson(route('assignments.update', [$target, $branch]), [
+                'role' => $code,
+                'is_active' => true,
+                'expected_role' => $role->code,
+                'expected_is_active' => true,
+            ])->assertUnprocessable()->assertJsonValidationErrors('role');
+        }
     }
 
     public function test_validation_error_does_not_copy_one_branch_form_state_into_another_row(): void

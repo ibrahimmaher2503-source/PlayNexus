@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\CustomRole;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -13,19 +14,31 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class BranchAssignmentController extends Controller
 {
     private const ROLES = ['branch_manager', 'reception_staff', 'cashier'];
 
+    private const SEARCH_MAX_LENGTH = 100;
+
     public function index(Request $request): View
     {
         [$actor, $tenant] = $this->ownerContext($request);
-        $staff = $this->staffQuery($tenant)->paginate(25)->withQueryString();
+        $search = $this->normalizeSearch($request->query('q'));
+        $staff = $this->staffQuery($tenant, $search)->paginate(25)->withQueryString();
+        if ($request->query('q') !== null) {
+            $staff->appends(['q' => $search]);
+        }
         $selectedUser = $this->selectedUser($request, $tenant);
         $branches = collect();
         $assignments = collect();
+        $customRoles = CustomRole::query()
+            ->where('tenant_id', $tenant->id)
+            ->whereHas('permissions', fn ($query) => $query->where('permission', 'branches.view'))
+            ->orderBy('name')
+            ->pluck('name', 'code');
 
         if ($selectedUser) {
             $branches = Branch::query()
@@ -41,7 +54,7 @@ class BranchAssignmentController extends Controller
                 ->keyBy('branch_id');
         }
 
-        return view('assignments.index', compact('actor', 'tenant', 'staff', 'selectedUser', 'branches', 'assignments'));
+        return view('assignments.index', compact('actor', 'tenant', 'staff', 'selectedUser', 'branches', 'assignments', 'search', 'customRoles'));
     }
 
     public function update(Request $request, User $user, Branch $branch): JsonResponse|RedirectResponse
@@ -56,7 +69,7 @@ class BranchAssignmentController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'role' => ['required', 'string', 'max:50', 'in:'.implode(',', self::ROLES)],
+                'role' => ['required', 'string', 'max:50', Rule::in($this->allowedRoles($tenant))],
                 'is_active' => ['required', 'boolean'],
                 'expected_role' => ['present', 'nullable', 'string', 'max:50'],
                 'expected_is_active' => ['present', 'nullable', 'boolean'],
@@ -222,9 +235,9 @@ class BranchAssignmentController extends Controller
         return [$actor, $tenant];
     }
 
-    private function staffQuery(Tenant $tenant)
+    private function staffQuery(Tenant $tenant, string $search = '')
     {
-        return User::query()
+        $query = User::query()
             ->where('users.tenant_id', $tenant->id)
             ->whereNotExists(function ($query) use ($tenant): void {
                 $query->selectRaw('1')
@@ -234,6 +247,33 @@ class BranchAssignmentController extends Controller
             })
             ->select(['users.id', 'users.name', 'users.email', 'users.status'])
             ->orderBy('users.id');
+
+        if ($search !== '') {
+            $pattern = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
+            $escape = DB::connection()->getDriverName() === 'mysql' ? '\\\\' : '\\';
+
+            $query->where(function ($query) use ($pattern, $escape): void {
+                $query->whereRaw("users.name LIKE ? ESCAPE '{$escape}'", [$pattern])
+                    ->orWhereRaw("users.email LIKE ? ESCAPE '{$escape}'", [$pattern]);
+            });
+        }
+
+        return $query;
+    }
+
+    private function normalizeSearch(mixed $value): string
+    {
+        return is_string($value) ? Str::substr(trim($value), 0, self::SEARCH_MAX_LENGTH) : '';
+    }
+
+    /** @return list<string> */
+    private function allowedRoles(Tenant $tenant): array
+    {
+        return array_merge(self::ROLES, CustomRole::query()
+            ->where('tenant_id', $tenant->id)
+            ->whereHas('permissions', fn ($query) => $query->where('permission', 'branches.view'))
+            ->pluck('code')
+            ->all());
     }
 
     private function selectedUser(Request $request, Tenant $tenant): ?User

@@ -436,12 +436,12 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 ### WF-10 Staff and permissions
 
-**Goal:** Invite and manage staff, assign branch scope and a role, and inspect effective access before saving.
+**Goal:** Add and manage staff, search by name/email, assign branch scope and a fixed or custom role, and control implemented custom-role permissions.
 
 ```text
 +------------------------------------------------------------------------------------------------+
-| Team > Staff                                                        [Invite staff member]      |
-| Search [________________] Role [All v] Branch [Downtown v] Status [Active v]                    |
+| Team > Staff                                                    [Add staff account]            |
+| Search by name or email [________________________] [Search] [Clear]                             |
 |------------------------------------------------------------------------------------------------|
 | Name          Role              Branch scope        Status       Last active       Actions      |
 | Sara Hassan   Reception Staff   Downtown            Active       14:31             [Manage]     |
@@ -455,7 +455,9 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 +------------------------------------------------------------------------------------------------+
 ```
 
-**Guardrails:** Do not allow the last tenant owner to remove their own owner access. Role changes invalidate or refresh active sessions according to security policy. Custom permission editing can be deferred until a pilot proves predefined roles insufficient.
+**Guardrails:** Do not allow the last tenant owner to remove their own owner access. Role changes invalidate or refresh active sessions according to security policy. Never show a custom permission until the corresponding server policy is enforced and negatively tested.
+
+**Implemented amendment (2026-09-12):** The owner adds an active account with name/email; the system generates an unknown password and the employee sets one through password recovery. Custom roles expose only permission keys already enforced end-to-end; the current UI offers `branches.view`, supports grant/revoke, and lists eligible custom roles in branch assignment. Built-in role maps remain immutable.
 
 ### WF-11 Branch settings
 

@@ -21,6 +21,7 @@
                 ['tenant.settings.edit', ['tenant.settings.*'], __('tenant_settings.title'), 'settings'],
                 ['staff.index', ['staff.*'], __('tenant.manage_staff'), 'staff'],
                 ['assignments.index', ['assignments.*'], __('tenant.manage_assignments'), 'permissions'],
+                ['roles.index', ['roles.*'], __('roles.navigation_label'), 'roles'],
                 ['branches.manage', ['branches.manage', 'branches.store', 'branches.status', 'branches.settings*'], __('tenant.manage_branches'), 'manage-branches'],
                 ['audit.index', ['audit.*'], __('tenant.view_audit'), 'audit'],
             ],

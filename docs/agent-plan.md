@@ -1,5 +1,9 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 custom roles and staff administration accepted
+
+Three requested Luna/xhigh workers split custom roles, staff search, and direct staff creation. Coordinator reviewed and tightened the result: `/app/roles` creates tenant roles and toggles the enforced `branches.view` permission; eligible roles are assignable at `/app/assignments`; staff search is tenant-scoped by name/email; `/app/staff/create` creates an active account with a generated unknown password for password recovery. Built-in role maps, owner transfer, email delivery, and speculative permission keys remain out of scope.
+
 ## 2026-09-12 M1 closed
 
 T31 PHP 8.5 compatibility is DONE: the full suite passes on PHP 8.5.8. Final coordinator review added the shared authenticated shell, polished tenant settings, semantic state tokens, audit labels/filters for branch and tenant settings, and a missing branch-settings translation fix. Final acceptance: 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and PHP 8.5.8; 142 / 1,096 after fresh migrations on isolated MySQL 8.4.11/InnoDB; focused UI/audit 33 / 217; Pint, Vite, Composer audit, npm audit, documentation validation, whitespace, real Arabic RTL/English LTR browser, and console checks PASS. M1 DONE; M2 not started; no main merge or push.

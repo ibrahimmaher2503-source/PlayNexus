@@ -32,25 +32,46 @@
                 <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('assignments.staff_description') }}</p>
             </div>
 
-            @if ($staff->isEmpty())
+            @php $statuses = __('assignments.statuses'); @endphp
+            @if ($staff->isEmpty() && $search === '')
                 <p class="mt-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-6 text-[var(--pn-ink-muted)]" role="status">{{ __('assignments.staff_empty') }}</p>
             @else
-                @php $statuses = __('assignments.statuses'); @endphp
-                <form class="mt-4 flex flex-wrap items-end gap-3" method="GET" action="{{ route('assignments.index') }}">
+                <form class="mt-4 flex flex-wrap items-end gap-3" method="GET" action="{{ route('assignments.index') }}" role="search" aria-labelledby="staff-search-label">
+                    @if ($selectedUser)
+                        <input type="hidden" name="user_id" value="{{ $selectedUser->id }}">
+                    @endif
                     <div class="min-w-64 flex-1">
-                        <label class="block text-sm font-semibold" for="user_id">{{ __('assignments.picker_label') }}</label>
-                        <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="user_id" name="user_id">
-                            <option value="">{{ __('assignments.choose_staff') }}</option>
-                            @if ($selectedUser && ! $staff->contains(fn ($member): bool => $member->is($selectedUser)))
-                                <option value="{{ $selectedUser->id }}" selected>{{ $selectedUser->name }} · <bdi dir="ltr">{{ $selectedUser->email }}</bdi> · {{ is_array($statuses) && isset($statuses[$selectedUser->status]) ? $statuses[$selectedUser->status] : $selectedUser->status }}</option>
-                            @endif
-                            @foreach ($staff as $member)
-                                <option value="{{ $member->id }}" @selected($selectedUser?->is($member))>{{ $member->name }} · <bdi dir="ltr">{{ $member->email }}</bdi> · {{ is_array($statuses) && isset($statuses[$member->status]) ? $statuses[$member->status] : $member->status }}</option>
-                            @endforeach
-                        </select>
+                        <label class="block text-sm font-semibold" id="staff-search-label" for="q">{{ __('assignments.staff_search_label') }}</label>
+                        <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="q" name="q" type="search" value="{{ $search }}" maxlength="100" placeholder="{{ __('assignments.staff_search_placeholder') }}" autocomplete="off" dir="auto">
                     </div>
-                    <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('assignments.choose_staff') }}</button>
+                    <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('assignments.staff_search_submit') }}</button>
+                    @if ($search !== '')
+                        <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('assignments.index', $selectedUser ? ['user_id' => $selectedUser->id] : []) }}">{{ __('assignments.staff_search_clear') }}</a>
+                    @endif
                 </form>
+
+                @if ($staff->isEmpty() && ! $selectedUser)
+                    <p class="mt-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-6 text-[var(--pn-ink-muted)]" role="status">{{ __('assignments.staff_search_empty') }}</p>
+                @endif
+
+                @if ($staff->isNotEmpty() || $selectedUser)
+                    <form class="mt-4 flex flex-wrap items-end gap-3" method="GET" action="{{ route('assignments.index') }}">
+                        <input type="hidden" name="q" value="{{ $search }}">
+                        <div class="min-w-64 flex-1">
+                            <label class="block text-sm font-semibold" for="user_id">{{ __('assignments.picker_label') }}</label>
+                            <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="user_id" name="user_id">
+                                <option value="">{{ __('assignments.choose_staff') }}</option>
+                                @if ($selectedUser && ! $staff->contains(fn ($member): bool => $member->is($selectedUser)))
+                                    <option value="{{ $selectedUser->id }}" selected>{{ $selectedUser->name }} · <bdi dir="ltr">{{ $selectedUser->email }}</bdi> · {{ is_array($statuses) && isset($statuses[$selectedUser->status]) ? $statuses[$selectedUser->status] : $selectedUser->status }}</option>
+                                @endif
+                                @foreach ($staff as $member)
+                                    <option value="{{ $member->id }}" @selected($selectedUser?->is($member))>{{ $member->name }} · <bdi dir="ltr">{{ $member->email }}</bdi> · {{ is_array($statuses) && isset($statuses[$member->status]) ? $statuses[$member->status] : $member->status }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('assignments.choose_staff') }}</button>
+                    </form>
+                @endif
             @endif
 
             @if ($staff->hasPages() || $staff->currentPage() > 1)
@@ -74,7 +95,11 @@
 
         @if ($selectedUser)
             @php
-                $roles = __('assignments.roles');
+                $roles = array_merge(__('assignments.roles'), $customRoles->all());
+                $assignableRoles = array_merge(
+                    array_intersect_key(__('assignments.roles'), array_flip(['branch_manager', 'reception_staff', 'cashier'])),
+                    $customRoles->all(),
+                );
             @endphp
             <section class="mt-8" aria-labelledby="branches-heading">
                 <div>
@@ -123,8 +148,8 @@
                                         <td class="px-4 py-4">
                                                 <label class="sr-only" for="{{ $row }}-role">{{ __('assignments.new_role') }}: {{ $branch->name }}</label>
                                                 <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $row }}-role" name="role" form="{{ $row }}-form">
-                                                    @foreach (['branch_manager', 'reception_staff', 'cashier'] as $role)
-                                                        <option value="{{ $role }}" @selected(($currentRole && in_array($currentRole, ['branch_manager', 'reception_staff', 'cashier'], true) ? $currentRole : 'reception_staff') === $role)>{{ is_array($roles) ? $roles[$role] : $role }}</option>
+                                                    @foreach ($assignableRoles as $role => $roleLabel)
+                                                        <option value="{{ $role }}" @selected(($currentRole && array_key_exists($currentRole, $assignableRoles) ? $currentRole : 'reception_staff') === $role)>{{ $roleLabel }}</option>
                                                     @endforeach
                                                 </select>
                                         </td>

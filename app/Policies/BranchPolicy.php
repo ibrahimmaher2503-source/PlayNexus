@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Branch;
+use App\Models\CustomRole;
 use App\Models\User;
 use App\Services\TenantContext;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,14 @@ class BranchPolicy
             return false;
         }
 
-        return in_array($assignment->pivot->role, self::VIEW_ROLES, true);
+        if (in_array($assignment->pivot->role, self::VIEW_ROLES, true)) {
+            return true;
+        }
+
+        return CustomRole::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('code', $assignment->pivot->role)
+            ->whereHas('permissions', fn ($query) => $query->where('permission', 'branches.view'))
+            ->exists();
     }
 }

@@ -37,6 +37,7 @@ return [
         'is_active' => 'Active',
         'branch_id' => 'Branch ID',
         'name' => 'Name',
+        'code' => 'System code',
     ],
     'snapshot_boolean' => [
         'true' => 'Yes',
@@ -56,8 +57,11 @@ return [
     ],
     'actions' => [
         'staff.invited' => 'Staff invited',
+        'staff.created' => 'Staff account added',
         'staff.status.changed' => 'Staff status changed',
         'staff.branch_assignment.changed' => 'Staff branch assignment changed',
+        'custom_role.created' => 'Custom role created',
+        'custom_role.updated' => 'Custom role updated',
         'branch.created' => 'Branch created',
         'branch.status.changed' => 'Branch status changed',
         'branch.settings.updated' => 'Branch settings updated',
@@ -68,6 +72,7 @@ return [
         'staffing_change' => 'Staffing change',
         'access_review' => 'Access review',
         'correction' => 'Correction',
+        'role_management' => 'Role management',
     ],
     'outcomes' => [
         'success' => 'Success',
