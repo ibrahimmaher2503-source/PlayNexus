@@ -1,5 +1,9 @@
 # PlayNexus Database ERD and Schema Specification
 
+## T14 bounded owner-read implementation
+
+The initial owner-read slice uses `tenant_owners`: non-null bigint `tenant_id` and `user_id`, timestamps, primary key `(tenant_id,user_id)`, and composite FK to `users(tenant_id,id)` with cascade deletion. Ownership is explicitly provisioned; no existing branch role is promoted. The generic RBAC schema below remains the broader target, not a claim of implemented tables. See the 2026-09-12 decision in `.ai/DECISIONS.md`.
+
 **Document ID:** PN-DATA-001  
 **Status:** Draft proposed schema; migration freeze is blocked by the named open decisions  
 **Database:** MySQL, current supported release at implementation start  

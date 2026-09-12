@@ -1,5 +1,9 @@
 # PlayNexus Architecture Document
 
+## T14 bounded owner-read implementation
+
+For `/app/tenant` only, explicit tenant_owners membership grants a tenant-global read boundary without a branch assignment. Branch operational routes continue to require active assignments and BranchPolicy; the tenant-global read exception does not grant branch operations or resolve future owner-wide branch selection. Generic RBAC and platform identity remain later work.
+
 **Document ID:** PN-ARC-001  
 **Status:** Draft implementation baseline pending product, safety, finance, and technical approval  
 **Scope:** Phase 1 MVP  

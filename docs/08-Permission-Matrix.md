@@ -1,5 +1,9 @@
 # PlayNexus Permission Matrix
 
+## T14 bounded owner-read implementation
+
+The coordinator-approved initial owner permission is `TenantPolicy::view` for own-tenant profile and staff-list reads at `/app/tenant`. It requires fresh active user/tenant state and explicit tenant_owners membership. Foreign/inactive tenant policy scope returns 404; in-scope missing ownership returns 403. Existing middleware revokes inactive accounts. Owner branch-wide access, mutation and platform access are not granted by this slice; the remaining matrix stays draft.
+
 **Document ID:** PN-IAM-001  
 **Status:** Draft MVP authorization baseline pending stakeholder approval  
 **Source:** PRD roles, FR-003, BR-004–BR-008  
