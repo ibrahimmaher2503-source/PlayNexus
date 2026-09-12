@@ -4,10 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 use Tests\TestCase;
 
 class StaffInvitationTest extends TestCase
@@ -124,14 +125,25 @@ class StaffInvitationTest extends TestCase
     public function test_audit_failure_rolls_back_the_invited_user(): void
     {
         [$tenant, $owner] = $this->owner();
-        Schema::drop('audit_logs');
 
-        $this->actingAs($owner)
-            ->post(route('staff.store'), [
-                'name' => 'Rollback Invite',
-                'email' => 'rollback@example.test',
-            ])
-            ->assertServerError();
+        $dispatcher = DB::connection()->getEventDispatcher();
+        DB::listen(function (QueryExecuted $query): void {
+            $sql = strtolower(trim($query->sql));
+            if (str_starts_with($sql, 'insert') && str_contains($sql, 'audit_logs')) {
+                throw new RuntimeException('staff audit failure');
+            }
+        });
+
+        try {
+            $this->actingAs($owner)
+                ->post(route('staff.store'), [
+                    'name' => 'Rollback Invite',
+                    'email' => 'rollback@example.test',
+                ])
+                ->assertServerError();
+        } finally {
+            DB::connection()->setEventDispatcher($dispatcher);
+        }
 
         $this->assertDatabaseMissing('users', [
             'tenant_id' => $tenant->id,

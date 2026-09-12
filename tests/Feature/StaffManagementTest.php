@@ -5,10 +5,11 @@ namespace Tests\Feature;
 use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 use Tests\TestCase;
 
 class StaffManagementTest extends TestCase
@@ -212,15 +213,26 @@ class StaffManagementTest extends TestCase
     {
         [$tenant, $owner] = $this->owner();
         $target = User::factory()->create(['tenant_id' => $tenant->id, 'status' => 'active']);
-        Schema::drop('audit_logs');
 
-        $this->actingAs($owner)
-            ->patch(route('staff.status', $target), [
-                'status' => 'disabled',
-                'expected_status' => 'active',
-                'reason_code' => 'correction',
-            ])
-            ->assertStatus(500);
+        $dispatcher = DB::connection()->getEventDispatcher();
+        DB::listen(function (QueryExecuted $query): void {
+            $sql = strtolower(trim($query->sql));
+            if (str_starts_with($sql, 'insert') && str_contains($sql, 'audit_logs')) {
+                throw new RuntimeException('staff audit failure');
+            }
+        });
+
+        try {
+            $this->actingAs($owner)
+                ->patch(route('staff.status', $target), [
+                    'status' => 'disabled',
+                    'expected_status' => 'active',
+                    'reason_code' => 'correction',
+                ])
+                ->assertStatus(500);
+        } finally {
+            DB::connection()->setEventDispatcher($dispatcher);
+        }
 
         $this->assertDatabaseHas('users', ['id' => $target->id, 'status' => 'active']);
     }
