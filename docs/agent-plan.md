@@ -1,5 +1,9 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 T30 and T32 final acceptance integrated
+
+Three requested Luna/xhigh workers completed MySQL execution, browser execution, and independent review. T30 `3c2d6fd` is merged by `385b58d`; isolated MySQL 8.4.11/InnoDB passed migrations, 46 tests / 389 assertions focused and 138 / 1,059 full. T32 `108ca47` is merged after it fixed safe same-page locale switching and browser-verified `/app/branches/1/settings` in Arabic RTL and English LTR. Post-merge SQLite verification passed 54 / 444 focused and 141 / 1,077 full; Pint and diff checks pass. T31 PHP 8.5 remains outstanding. No main merge or push.
+
 ## 2026-09-12 T21-T23 delivery accepted
 
 Three Luna/xhigh feature workers delivered complete vertical slices: T21 staff invitation `4c7df3b`, T22 branch lifecycle `29aa88e`, and T23 tenant audit viewer `77745f0`. Coordinator reviewed actual diffs/tests, wired the feature route files and owner navigation, corrected invitation test assertions/session setup, and accepted the combined result after 23/188 focused and 103/691 full tests plus Pint/build/docs/diff checks. Browser remains deferred; MySQL/PHP 8.5 and broader platform/owner-transfer scope remain incomplete. No main merge or push.

@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 current handoff
+
+Continue from `codex/first` after merge commits `385b58d` (T30) and `59fbd4c` (T32). MySQL 8.4.11/InnoDB and the T32 browser journeys are accepted; integrated regression is 141 tests / 1,077 assertions. The next bounded runtime task is T31 PHP 8.5 compatibility. Preserve dirty `main`, do not push, and do not commit T32's local SQLite/seed artifacts.
+
 ## Current state
 
 The repository contains the audited PlayNexus product context, the canonical `DESIGN.md`, and one canonical documentation set directly under `docs/` in Markdown/YAML/HTML. The re-attached PRD matches the verified source hash. No Laravel application has been scaffolded and no application tests have run.

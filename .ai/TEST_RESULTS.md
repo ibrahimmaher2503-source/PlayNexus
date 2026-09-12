@@ -1,5 +1,14 @@
 # Test Results
 
+## 2026-09-12 T30 and T32 final acceptance
+
+- T30 isolated MySQL 8.4.11/InnoDB: migrations PASS; focused 46 tests / 389 assertions; full 138 / 1,059.
+- T30 SQLite focused: 46 tests / 389 assertions; Pint and diff checks PASS.
+- T32 focused: 25 tests / 233 assertions PASS.
+- T32 real browser: platform provisioning and status lifecycle exercised; Arabic/English branch-settings locale switch remained at `/app/branches/1/settings` with correct RTL/LTR.
+- Integrated `codex/first`: focused 54 tests / 444 assertions; full 141 / 1,077; Pint and `git diff --check` PASS.
+- Temporary T32 SQLite/seed artifacts were not committed. Task-owned runtime was stopped. PHP 8.5 remains unverified.
+
 ## 2026-09-12 T21-T23 integration acceptance
 
 - Focused: `php artisan test --filter='StaffInvitationTest|BranchAdministrationTest|AuditLogViewTest'` — PASS, 23 tests / 188 assertions.

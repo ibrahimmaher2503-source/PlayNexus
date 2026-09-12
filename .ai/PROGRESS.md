@@ -1,5 +1,9 @@
 # Progress
 
+## 2026-09-12 T30 and T32 completed
+
+Integrated T30 `3c2d6fd` and T32 `108ca47` into `codex/first`. T30 made rollback tests portable to MySQL without dropping transactional tables. T32 corrected localized platform feedback, retained Arabic after invalid platform login, and safely preserves the current local `/app` or `/platform` page during locale changes. Three Luna/xhigh workers supplied implementation and independent review. T31 PHP 8.5 remains pending.
+
 ## 2026-09-12 T27-T29 completed locally
 
 Three Luna/xhigh workers delivered Platform backend `44773e3`, bilingual UI `02bbc7a`, and independent security tests `0167bb8`. Coordinator integrated and reviewed all three, wired platform routes, and corrected private owner eager loading, missing idempotency-key generation, login translation mismatch, tenant-user platform denial, status reason UI validation, redundant nullable-column alteration, multi-field uniqueness feedback, and two false-positive Query Builder test fixtures. Focused Platform tests pass 17/178; full regression passes 138/1,059. No browser, shared database, main merge or push.

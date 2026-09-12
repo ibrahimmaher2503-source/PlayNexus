@@ -1,5 +1,9 @@
 # Current Milestone
 
+## 2026-09-12 T30 and T32 runtime acceptance
+
+T30 MySQL and T32 browser acceptance are DONE and integrated on `codex/first`. MySQL 8.4.11/InnoDB passed the current migrations and full suite; real browser checks covered platform provisioning/lifecycle, bilingual platform pages, and branch-settings locale switching that remains on the same safe local page. Post-merge regression passed 141 tests / 1,077 assertions. PHP 8.5 (T31) remains the next runtime gap. No main merge or push.
+
 ## 2026-09-12 T27-T29 platform administration wave
 
 Platform Super Admin tenant administration is locally integrated on `codex/first`: isolated platform login/session enforcement, tenant provisioning with an invited initial owner and idempotent replay, tenant lifecycle activation/suspension, a separate bilingual platform shell, and platform audit records. Tenant users are forbidden from platform management and suspended tenants cannot continue protected operations.
