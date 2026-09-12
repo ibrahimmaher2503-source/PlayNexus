@@ -162,7 +162,7 @@ class PlatformTenantController extends Controller
             return response()->json(['data' => $this->tenantData($tenant)], 201);
         }
 
-        return to_route('platform.tenants.index')->with('success', __('platform.tenants.created'));
+        return to_route('platform.tenants.index')->with('success', __('platform.tenants.provision_success'));
     }
 
     public function updateStatus(Request $request, Tenant $tenant): JsonResponse|RedirectResponse
@@ -228,7 +228,7 @@ class PlatformTenantController extends Controller
 
         return to_route('platform.tenants.index')->with(
             $changed ? 'success' : 'status_message',
-            __($changed ? 'platform.tenants.status_updated' : 'platform.tenants.no_change'),
+            __($changed ? 'platform.tenants.status_success' : 'platform.tenants.no_change'),
         );
     }
 

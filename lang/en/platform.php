@@ -53,6 +53,7 @@ return [
         'reasons' => ['setup_change' => 'Setup change', 'access_review' => 'Access review', 'correction' => 'Correction'],
         'save_status' => 'Save status',
         'status_success' => 'Tenant status updated successfully.',
+        'no_change' => 'No status change was needed; the tenant is already at that status.',
         'status_conflict' => 'This tenant changed before your update. Refresh the page and review the current status.',
         'status_validation_failed' => 'Review the status change details before saving.',
         'status_unknown' => 'Unknown status',
