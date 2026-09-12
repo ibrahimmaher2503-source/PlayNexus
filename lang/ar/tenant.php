@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'back_to_dashboard' => 'العودة إلى لوحة التشغيل',
+    'navigation_label' => 'ملف المنشأة',
+    'page_description' => 'راجع بيانات منشأتك وحسابات الموظفين.',
+    'page_title' => 'ملف المنشأة',
+    'profile_heading' => 'بيانات المنشأة',
+    'name_label' => 'اسم المنشأة',
+    'staff_description' => 'حسابات الموظفين ضمن هذه المنشأة.',
+    'staff_empty' => 'لا توجد حسابات موظفين في هذه الصفحة.',
+    'staff_heading' => 'حسابات الموظفين',
+    'staff_table_caption' => 'حسابات موظفي المنشأة',
+    'staff_name' => 'الاسم',
+    'staff_email' => 'البريد الإلكتروني',
+    'staff_status' => 'الحالة',
+    'pagination_label' => 'صفحات الموظفين',
+    'page_position' => 'الصفحة :current من :last',
+    'previous' => 'السابق',
+    'previous_page' => 'الصفحة السابقة',
+    'next' => 'التالي',
+    'next_page' => 'الصفحة التالية',
+    'status_unknown' => 'غير معروف',
+    'statuses' => [
+        'active' => 'نشط',
+        'invited' => 'مدعو',
+        'suspended' => 'موقوف',
+        'disabled' => 'معطّل',
+    ],
+];

@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'back_to_dashboard' => 'Back to dashboard',
+    'navigation_label' => 'Tenant profile',
+    'page_description' => 'Review your tenant details and staff accounts.',
+    'page_title' => 'Tenant profile',
+    'profile_heading' => 'Tenant details',
+    'name_label' => 'Tenant name',
+    'staff_description' => 'Staff accounts in this tenant.',
+    'staff_empty' => 'No staff accounts are on this page.',
+    'staff_heading' => 'Staff accounts',
+    'staff_table_caption' => 'Tenant staff accounts',
+    'staff_name' => 'Name',
+    'staff_email' => 'Email',
+    'staff_status' => 'Status',
+    'pagination_label' => 'Staff pages',
+    'page_position' => 'Page :current of :last',
+    'previous' => 'Previous',
+    'previous_page' => 'Previous page',
+    'next' => 'Next',
+    'next_page' => 'Next page',
+    'status_unknown' => 'Unknown',
+    'statuses' => [
+        'active' => 'Active',
+        'invited' => 'Invited',
+        'suspended' => 'Suspended',
+        'disabled' => 'Disabled',
+    ],
+];
