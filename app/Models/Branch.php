@@ -11,11 +11,31 @@ class Branch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['tenant_id', 'name', 'is_active'];
+    protected $fillable = [
+        'tenant_id',
+        'code',
+        'name',
+        'address_text',
+        'timezone',
+        'capacity',
+        'currency',
+        'tax_rate_bps',
+        'tax_mode',
+        'receipt_prefix',
+        'payment_methods',
+        'lock_version',
+        'is_active',
+    ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'is_active' => 'boolean',
+            'capacity' => 'integer',
+            'tax_rate_bps' => 'integer',
+            'payment_methods' => 'array',
+            'lock_version' => 'integer',
+        ];
     }
 
     public function tenant(): BelongsTo
