@@ -40,6 +40,16 @@ class Tenant extends Model
         return $this->hasMany(User::class);
     }
 
+    public function guardians(): HasMany
+    {
+        return $this->hasMany(Guardian::class);
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Child::class);
+    }
+
     public function owners(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'tenant_owners')->withTimestamps();

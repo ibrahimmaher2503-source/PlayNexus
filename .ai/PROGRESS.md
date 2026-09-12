@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-12 M2 family registry first slice
+
+- Three Luna/xhigh workers delivered the data, security/backend, and bilingual UI slices; coordinator review corrected cross-file contracts and added regression coverage.
+- Added current-tenant family search by normalized guardian phone or child name, masked phone display, and atomic creation of one guardian, one child, one active relationship, and a compact audit event.
+- Same-tenant phone duplicates create nothing and return an existing-family path; foreign-tenant records stay undisclosed. Consent capture, editing, history, safety data, and check-in remain outside this bounded slice.
+- PHP 8.5 regression passes 169 tests / 1,328 assertions; build, formatting, routes, focused browser creation/search, and synthetic-data cleanup pass.
+
 ## 2026-09-12 custom roles and direct staff administration
 
 - Added owner-only tenant custom roles with a real `branches.view` toggle, audit/conflict protection, and assignment integration; fixed roles remain immutable.
@@ -27,7 +34,7 @@ Replaced the ambiguous status selector with one state-aware action per branch: d
 
 ## 2026-09-12 M1 completed
 
-Closed T31 with PHP 8.5.8, reran the whole suite on PHP 8.4.21 and 8.5.8, and reran migrations/full tests on isolated MySQL 8.4.11/InnoDB. Final code review fixed unsupported settings audit labels/reason text and a missing branch-settings translation. UI polish adds one shared owner navigation, a skip link, semantic state tokens, reduced-motion support, and a clearer responsive tenant-settings form. All checks and browser acceptance pass; M2 remains untouched.
+Closed T31 with PHP 8.5.8, reran the whole suite on PHP 8.4.21 and 8.5.8, and reran migrations/full tests on isolated MySQL 8.4.11/InnoDB. Final code review fixed unsupported settings audit labels/reason text and a missing branch-settings translation. UI polish adds one shared owner navigation, a skip link, semantic state tokens, reduced-motion support, and a clearer responsive tenant-settings form. All M1 checks and browser acceptance passed; M2 subsequently started in the bounded slice recorded above.
 
 ## 2026-09-12 T30 and T32 completed
 

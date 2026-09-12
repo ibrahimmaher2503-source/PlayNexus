@@ -14,6 +14,8 @@ Tenant context, branches, staff authentication, role policies, locale/timezone/c
 
 Fast search, duplicate handling, create/edit, guardian-child links, consent, emergency contact, visit history, and authorization tests.
 
+**Status: IN PROGRESS — 2026-09-12.** Delivered first slice: current-tenant phone/child-name search, masked results, duplicate-safe atomic creation of one guardian, one child, and one active link, audit evidence, authorization tests, and bilingual UI. Editing/merge, consent, emergency/safety data, visit history, and full M2 acceptance remain open.
+
 ## M3: Pricing, tickets, and check-in
 
 Pricing rules, ticket types, QR/barcode token, check-in workflow, live session board, branch capacity, and idempotent session creation.

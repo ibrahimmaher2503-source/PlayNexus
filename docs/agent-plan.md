@@ -8,7 +8,7 @@ The user authorized M2 start with three Luna/xhigh workers. Fixed contract: one 
 - **T34 backend:** family authorization for active owner or fixed eligible branch roles, E.164 normalization, controller/routes, transaction/audit, duplicate guard, and backend security tests only.
 - **T35 UI:** bilingual accessible search/create/results/empty/error/success views, navigation entry and UI feature tests only.
 
-The coordinator owns shared status documentation, integration corrections, full regression, build/format/docs checks and real-browser acceptance. Any worker must stop at its file boundary and report missing peer dependencies rather than widening scope.
+**Accepted result:** T33-T35 are integrated after coordinator corrections for pivot naming, actor evidence, phone formats, query/view contracts, child-name search, allowed relationship values, duplicate recovery, and transaction rollback. Focused tests pass 19 / 148; full PHP 8.5 regression passes 169 / 1,328; Pint and Vite pass. Browser creation/search passed and synthetic data was removed; duplicate visual verification was interrupted by browser unavailability and remains covered automatically. The new migration still needs isolated MySQL acceptance. M2 remains in progress, not complete.
 
 ## 2026-09-12 custom roles and staff administration accepted
 
@@ -16,7 +16,7 @@ Three requested Luna/xhigh workers split custom roles, staff search, and direct 
 
 ## 2026-09-12 M1 closed
 
-T31 PHP 8.5 compatibility is DONE: the full suite passes on PHP 8.5.8. Final coordinator review added the shared authenticated shell, polished tenant settings, semantic state tokens, audit labels/filters for branch and tenant settings, and a missing branch-settings translation fix. Final acceptance: 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and PHP 8.5.8; 142 / 1,096 after fresh migrations on isolated MySQL 8.4.11/InnoDB; focused UI/audit 33 / 217; Pint, Vite, Composer audit, npm audit, documentation validation, whitespace, real Arabic RTL/English LTR browser, and console checks PASS. M1 DONE; M2 not started; no main merge or push.
+T31 PHP 8.5 compatibility is DONE: the full suite passes on PHP 8.5.8. Final coordinator review added the shared authenticated shell, polished tenant settings, semantic state tokens, audit labels/filters for branch and tenant settings, and a missing branch-settings translation fix. Final M1 acceptance: 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and PHP 8.5.8; 142 / 1,096 after fresh migrations on isolated MySQL 8.4.11/InnoDB; focused UI/audit 33 / 217; Pint, Vite, Composer audit, npm audit, documentation validation, whitespace, real Arabic RTL/English LTR browser, and console checks PASS. M1 DONE; M2 subsequently started above; no main merge or push.
 
 ## 2026-09-12 T30 and T32 final acceptance integrated
 

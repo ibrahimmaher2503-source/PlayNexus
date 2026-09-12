@@ -79,6 +79,8 @@ Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is
 
 ## 4. Guardians, children, and sensitive data
 
+**M2 first-slice enforcement — 2026-09-12:** search and initial family creation are available to an active Tenant Owner or an active `branch_manager`, `reception_staff`/legacy `reception`, or `cashier` assignment on an active branch. A custom role carrying only `branches.view` does not grant family access. Results and writes are current-tenant only; consent, edit, merge, export, photo, notes, and anonymization permissions remain unimplemented.
+
 | Action / permission code | Super Admin | Tenant Owner | Branch Manager | Reception | Cashier | Game Operator | Parent |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Search guardian/child `customers.search` | support only | T | B | B | B/M | — | O/future |

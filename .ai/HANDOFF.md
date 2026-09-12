@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 M2 family registry first-slice handoff
+
+Continue from `codex/first`. `/app/families` searches only the current tenant by normalized guardian phone or child name; `/app/families/create` atomically creates one guardian, one child, one active link, and `family.created` audit evidence. Same-tenant phone duplicates create nothing and point back to the existing family; foreign-tenant matches remain hidden. PHP 8.5 full regression is 169 tests / 1,328 assertions; build and Pint pass. Browser creation/search passed and its synthetic data was removed, but duplicate visual verification was interrupted by browser unavailability. Do not mark M2 complete or add consent/merge/edit/history/check-in behavior until OQ-17 and approved legal consent wording/version/retention are closed.
+
 ## 2026-09-12 roles and staff administration follow-up
 
 Owners can manage custom roles at `/app/roles`, toggle the enforced active-branch view permission, assign eligible custom roles at `/app/assignments`, search staff by name/email, and add active accounts at `/app/staff/create`. Passwords are generated and not disclosed; employees use password recovery. Full PHP 8.5 regression passes 150 tests / 1,180 assertions. Browser and remaining quality gates are recorded in `.ai/TEST_RESULTS.md`.
@@ -18,7 +22,7 @@ The branch management table now presents one explicit state-aware action with co
 
 ## 2026-09-12 M1 closure handoff
 
-Continue from `codex/first` with M1 DONE. Final verification is 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and 8.5.8, plus 142 / 1,096 on isolated MySQL 8.4.11/InnoDB after fresh migrations. Browser, build, format, dependency audits, and docs pass. M2 is not started: next work must use the canonical guardian/child, duplicate, consent, and privacy contracts. Preserve dirty `main`; no push was made.
+Continue from `codex/first` with M1 DONE. Final M1 verification is 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and 8.5.8, plus 142 / 1,096 on isolated MySQL 8.4.11/InnoDB after fresh migrations. Browser, build, format, dependency audits, and docs passed. M2 later started with the bounded family-registry slice above. Preserve dirty `main`; no push was made.
 
 ## 2026-09-12 current handoff
 

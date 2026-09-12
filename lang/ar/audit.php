@@ -38,6 +38,8 @@ return [
         'branch_id' => 'معرّف الفرع',
         'name' => 'الاسم',
         'code' => 'الرمز النظامي',
+        'guardian_id' => 'معرّف ولي الأمر',
+        'child_id' => 'معرّف الطفل',
     ],
     'snapshot_boolean' => [
         'true' => 'نعم',
@@ -66,6 +68,7 @@ return [
         'branch.status.changed' => 'تغيير حالة فرع',
         'branch.settings.updated' => 'تحديث إعدادات الفرع',
         'tenant.profile.updated' => 'تحديث ملف المنشأة',
+        'family.created' => 'تسجيل أسرة',
     ],
     'reasons' => [
         'setup_change' => 'تغيير الإعداد',
@@ -73,6 +76,7 @@ return [
         'access_review' => 'مراجعة الوصول',
         'correction' => 'تصحيح',
         'role_management' => 'إدارة الأدوار',
+        'family_registration' => 'تسجيل أسرة',
     ],
     'outcomes' => [
         'success' => 'نجاح',

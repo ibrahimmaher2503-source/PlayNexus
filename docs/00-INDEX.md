@@ -4,11 +4,11 @@
 **Source baseline:** PlayNexus PRD v1.0, June 2026  
 **Verified source:** 27,198 bytes; SHA-256 `D9119C1A3325DD8DBF318296EB52DDFF95B064A0C0061EAD96CAAD68D9FEF5D2`  
 **Implementation target:** Laravel web MVP  
-**Status:** M1 implemented and locally accepted; later milestones remain working specifications
+**Status:** M1 locally accepted; M2 family-registry first slice implemented, remainder still a working specification
 
 ## Implementation status — 2026-09-12
 
-M1 access and branch foundation is DONE on `codex/first`. Acceptance covers PHP 8.4/8.5, SQLite and isolated MySQL 8.4.11/InnoDB, bilingual browser journeys, formatting, frontend build, dependency audits, and documentation validation. M2 has not started and production readiness is not claimed.
+M1 access and branch foundation is DONE on `codex/first`. M2 has started with tenant-scoped family search and atomic guardian + child + active-link creation; consent, duplicate merge/review, editing, history, safety data, and check-in are not implemented. The M2 slice passes PHP 8.5 regression, build, formatting, and focused browser creation/search; its new migration does not yet have isolated MySQL acceptance. Production readiness is not claimed.
 
 `docs/` is the single source of truth for product, technical, delivery, and implementation documentation. Do not create parallel summary copies.
 

@@ -38,6 +38,8 @@ return [
         'branch_id' => 'Branch ID',
         'name' => 'Name',
         'code' => 'System code',
+        'guardian_id' => 'Guardian ID',
+        'child_id' => 'Child ID',
     ],
     'snapshot_boolean' => [
         'true' => 'Yes',
@@ -66,6 +68,7 @@ return [
         'branch.status.changed' => 'Branch status changed',
         'branch.settings.updated' => 'Branch settings updated',
         'tenant.profile.updated' => 'Business profile updated',
+        'family.created' => 'Family registered',
     ],
     'reasons' => [
         'setup_change' => 'Setup change',
@@ -73,6 +76,7 @@ return [
         'access_review' => 'Access review',
         'correction' => 'Correction',
         'role_management' => 'Role management',
+        'family_registration' => 'Family registration',
     ],
     'outcomes' => [
         'success' => 'Success',

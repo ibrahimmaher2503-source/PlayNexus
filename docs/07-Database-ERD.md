@@ -212,6 +212,8 @@ Framework auth tables: Laravel password-reset tokens, web sessions, and Sanctum 
 
 ## 4. Customer registry
 
+**M2 implementation amendment — 2026-09-12:** the first migration implements a strict subset as `guardians`, `children`, and `guardian_child`: explicit `tenant_id`, required actor IDs, status, lock version, optional child DOB, `relationship_type`, and `is_active`, with tenant-aware composite foreign keys. Phone is indexed but intentionally not unique. Consent, secondary phone, photos, emergency/safety data, archive fields, checkout capability, relationship verification, and merge behavior remain specification-only until their contracts are approved.
+
 ### 4.1 `guardians`
 
 Tenant-owned.
@@ -239,7 +241,7 @@ Indexes proposed pending **OQ-17**: `INDEX(tenant_id,phone_e164)`, `INDEX(tenant
 
 Tenant-owned. Proposed columns pending **OQ-15**: `full_name VARCHAR(190)`, `date_of_birth DATE NULL`, `gender ENUM('female','male','unspecified') DEFAULT 'unspecified'`, `photo_object_key VARCHAR(500) NULL`, `emergency_contact_name VARCHAR(190) NULL`, `emergency_contact_phone_e164 VARCHAR(20) NULL`, `safety_notes_encrypted LONGTEXT NULL`, `status ENUM('active','restricted','anonymized')`, `created_by_user_id`, `updated_by_user_id`, `lock_version`, `archived_at`, timestamps. Definite indexes are `(tenant_id,full_name)` and `(tenant_id,status)`; the DOB/age representation and related index are not migration-ready until OQ-15 chooses full DOB, declared age, year/month, or a jurisdiction-dependent combination. If DOB is approved, age is derived for the requested local date and never redundantly stored.
 
-### 4.3 `guardian_children`
+### 4.3 `guardian_children` (planned full model; first slice uses `guardian_child`)
 
 Tenant-owned. Columns: `guardian_id`, `child_id`, `relationship ENUM('mother','father','legal_guardian','authorized_pickup','other')`, `can_check_out BOOLEAN DEFAULT TRUE`, `is_primary BOOLEAN DEFAULT FALSE`, `relationship_verified_at DATETIME(6) NULL`, `relationship_verified_by_user_id NULL`, `status ENUM('active','revoked')`, timestamps. PK/unique `(tenant_id,guardian_id,child_id)` and tenant-aware FKs. A child must have at least one active relationship with `can_check_out=TRUE`; registration and relationship-revocation actions enforce this invariant in one transaction. Relationship verification does not select the checkout evidence method; that remains open under **OQ-12**.
 

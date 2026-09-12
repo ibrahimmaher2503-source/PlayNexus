@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Branch;
+use App\Models\Guardian;
 use App\Models\Tenant;
 use App\Policies\BranchPolicy;
+use App\Policies\GuardianPolicy;
 use App\Policies\TenantPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -29,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Branch::class, BranchPolicy::class);
+        Gate::policy(Guardian::class, GuardianPolicy::class);
         Gate::policy(Tenant::class, TenantPolicy::class);
 
         RateLimiter::for('login', function (Request $request) {

@@ -1,5 +1,18 @@
 # Test Results
 
+## 2026-09-12 M2 family registry first slice
+
+| Check | Result |
+|---|---|
+| Focused family registry | `php artisan test tests/Feature/FamilyRegistryDataTest.php tests/Feature/FamilyRegistrySecurityTest.php tests/Feature/FamilyRegistrationUiTest.php` — PASS, 19 tests / 148 assertions |
+| Full regression on PHP 8.5 | `php artisan test --compact` — PASS, 169 tests / 1,328 assertions |
+| Formatting | `php vendor/bin/pint --test` — PASS |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Routes | `php artisan route:list --name=families` — PASS; index, create, and store only |
+| Browser | PARTIAL: Arabic RTL creation, redirect, normalized-phone search, masked phone, and child result passed on the live PHP 8.5 server. The browser bridge became unavailable before duplicate-form visual verification; the automated duplicate request/rollback checks pass. Synthetic family, child, relationship, and audit data were removed afterward. |
+
+This is not M2 closure. The implemented boundary excludes consent records, family editing/merge, emergency/safety data, history, and check-in; the new migration has not yet received isolated MySQL acceptance.
+
 ## 2026-09-12 custom roles, staff search, and direct creation
 
 | Check | Result |

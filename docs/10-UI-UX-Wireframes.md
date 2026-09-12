@@ -278,6 +278,8 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 ### WF-04 Parent and child quick registration
 
+**Implemented first slice — 2026-09-12:** `/app/families` provides bilingual phone/child-name search, empty/no-match/result states, masked phone output, and a clear add action. `/app/families/create` captures one guardian, one child, optional guardian email/child DOB, preferred language, and an allowlisted relationship. A same-tenant phone duplicate preserves entered data and links to the existing family; consent, emergency/safety data, multiple children, edit/merge, and save-and-check-in remain deferred.
+
 **Goal:** Find an existing family first, or register a guardian and at least one child in one short flow.
 
 **Flow:** Search by phone or child name, select match, otherwise create guardian, add child, confirm consent and emergency details, then check in or save.
