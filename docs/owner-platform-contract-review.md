@@ -1,6 +1,6 @@
 # Owner and Platform Authorization Contract Review
 
-**Status:** REVIEW_REQUIRED — this is an investigation, not approval or implementation.
+**Status:** Investigation accepted by coordinator. The 2026-09-12 decision in `.ai/DECISIONS.md` selects the narrow explicit `tenant_owners` representation for tenant profile/staff-list reads. The T14 contract in `docs/agent-plan.md` supersedes the representation blocker below for that slice only. Owner-wide branch access and platform authorization remain deferred. The original findings below describe the pre-T14 baseline.
 
 ## Actual representation
 
