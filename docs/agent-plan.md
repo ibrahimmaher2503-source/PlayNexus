@@ -1,5 +1,13 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 user-directed browser deferral and next proposed wave
+
+The user explicitly deferred browser testing for now. T13 local code integration and automated checks are complete; browser acceptance is DEFERRED_BY_USER, not PASS, and does not block planning the next wave. MySQL coverage of this wave remains unverified.
+
+Proposed sequence (not dispatched): T14 coordinator defines and records the tenant-owner representation and the read-only route/data contract, reconciling the ERD/architecture conflict. Recommended initial scope is own-tenant profile and staff list, with explicit tenant-level ownership; a branch role must never imply ownership. Owner access to all branches and platform access stay separate.
+
+After T14, three workers can run concurrently: T15 backend owns the approved migration, owner relation, policy, read controller and route; T16 UI owns the tenant profile/staff-list Blade view and its English/Arabic strings against the fixed view contract; T17 security tests owns one focused feature test file for owner allow, staff deny, foreign scope, inactive states and revocation against the same contract. Each uses a separate worktree; coordinator owns shared status files and integration. T17's executable verification depends on integrating T15/T16, so interim test failures are not acceptance failures. One final integration/review/check round follows. These are proposed tasks, not started work or full M1 completion.
+
 ## 2026-09-12 combined integration checkpoint
 
 Recovered local integration at `6dafe21`: T10 `c3b2065` and T11 `c61f9e8` are merged into `codex/first`; T12 report `4093e8d` is integrated. Reviewed status enforcement, forward migration/backfill, mass-assignment exclusion, policy checks, locale middleware/controller and the failed-login interaction. Retained the pending focused fix that restores the validated locale after failed-login session invalidation; its regression checks guest state and the following Arabic RTL page.
