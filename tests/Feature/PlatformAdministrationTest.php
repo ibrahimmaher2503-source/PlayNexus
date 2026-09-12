@@ -5,12 +5,13 @@ namespace Tests\Feature;
 use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Tests\TestCase;
 
 class PlatformAdministrationTest extends TestCase
@@ -307,10 +308,24 @@ class PlatformAdministrationTest extends TestCase
         $payload = $this->provisionPayload('rollback-provision');
         $this->loginAsPlatform($admin);
         $counts = $this->platformCounts();
-        Schema::drop('platform_audit_logs');
 
-        $this->post(route('platform.tenants.store'), $payload)
-            ->assertStatus(500);
+        $dispatcher = DB::connection()->getEventDispatcher();
+        DB::listen(function (QueryExecuted $query): void {
+            $sql = strtolower(trim($query->sql));
+            if (str_starts_with($sql, 'insert') && str_contains($sql, 'platform_audit_logs')) {
+                throw new RuntimeException('platform audit failure');
+            }
+        });
+
+        try {
+            $this->withoutExceptionHandling()
+                ->post(route('platform.tenants.store'), $payload);
+            $this->fail('The platform audit failure should have escaped the request.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('platform audit failure', $exception->getMessage());
+        } finally {
+            DB::connection()->setEventDispatcher($dispatcher);
+        }
 
         $this->assertSame($counts['tenants'], Tenant::query()->count());
         $this->assertSame($counts['users'], User::query()->count());

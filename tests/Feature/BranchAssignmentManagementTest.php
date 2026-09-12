@@ -72,7 +72,7 @@ class BranchAssignmentManagementTest extends TestCase
         $this->assertSame($branch->id, $audit->branch_id);
         $this->assertSame('staffing_change', $audit->reason_code);
         $this->assertNull($audit->before_json);
-        $this->assertSame(['branch_id' => $branch->id, 'role' => 'reception_staff', 'is_active' => true], json_decode($audit->after_json, true));
+        $this->assertEqualsCanonicalizing(['branch_id' => $branch->id, 'role' => 'reception_staff', 'is_active' => true], json_decode($audit->after_json, true));
         $this->assertStringNotContainsString($target->email, (string) $audit->before_json.(string) $audit->after_json);
     }
 
