@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-12 M2 family profile maintenance
+
+- Added tenant-scoped family detail, guardian contact correction, child detail correction, and atomic addition of another child with an active relationship.
+- Added optimistic guardian/child versions, retry protection for child addition, same-tenant duplicate-phone recovery, transaction rollback, and PII-minimal audit events.
+- Three Luna/xhigh workers delivered backend, bilingual UI, and adversarial tests. Coordinator review made add-child versioning mandatory/incrementing and localized the new audit actions.
+- Focused profile tests pass 18 / 143; full PHP 8.5 regression passes 187 / 1,471; Pint, Vite, and route checks pass. Browser acceptance is blocked because the browser bridge reports `User unavailable`.
+
 ## 2026-09-12 M2 family registry first slice
 
 - Three Luna/xhigh workers delivered the data, security/backend, and bilingual UI slices; coordinator review corrected cross-file contracts and added regression coverage.

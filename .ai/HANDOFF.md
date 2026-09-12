@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 M2 family profile handoff
+
+`/app/families/{guardian}` now shows an authorized current-tenant family profile and supports basic guardian/child corrections plus adding one child. Updates use expected versions, locks, transactions, duplicate-phone recovery, and safe audit metadata; child addition increments the guardian version so a repeated form submission cannot create another child. Full PHP 8.5 regression is 187 / 1,471 and build/Pint pass. Browser acceptance is blocked by `User unavailable`, and the current M2 migration still needs isolated MySQL evidence. Do not add consent, merge, safety/emergency, relationship revocation, visit history, or check-in without the matching approved contract.
+
 ## 2026-09-12 M2 family registry first-slice handoff
 
 Continue from `codex/first`. `/app/families` searches only the current tenant by normalized guardian phone or child name; `/app/families/create` atomically creates one guardian, one child, one active link, and `family.created` audit evidence. Same-tenant phone duplicates create nothing and point back to the existing family; foreign-tenant matches remain hidden. PHP 8.5 full regression is 169 tests / 1,328 assertions; build and Pint pass. Browser creation/search passed and its synthetic data was removed, but duplicate visual verification was interrupted by browser unavailability. Do not mark M2 complete or add consent/merge/edit/history/check-in behavior until OQ-17 and approved legal consent wording/version/retention are closed.

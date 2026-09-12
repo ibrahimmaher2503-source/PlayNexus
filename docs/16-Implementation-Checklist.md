@@ -18,7 +18,8 @@
 - [x] M1 access and branch foundation.
 - [ ] M2 guardian and child registration.
   - [x] First slice: tenant-scoped search and atomic guardian + child + active relationship creation.
-  - [ ] Remaining: approved duplicate merge/review, editing, consent, emergency/safety data, visit history, and M2 acceptance.
+  - [x] Maintenance slice: family detail, basic guardian/child correction, and adding another child with conflict/audit protection.
+  - [ ] Remaining: approved duplicate merge/review, consent, emergency/safety data, relationship revocation, visit history, browser/MySQL acceptance, and M2 closure.
 - [ ] M3 pricing, tickets, and check-in.
 - [ ] M4 time engine and checkout.
 - [ ] M5 POS, payment, refund, and receipt.

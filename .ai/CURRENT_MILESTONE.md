@@ -10,7 +10,7 @@ T33 schema/models, T34 authorization/controller/routes, and T35 bilingual UI are
 
 Implement a tenant-scoped family detail page, basic guardian/child edits with optimistic conflict checks, and adding one new child plus active relationship to an existing guardian. Audit successful changes without copying phone, email, DOB, or names into audit JSON. Consent, safety/emergency data, relationship revocation, guardian merge, visit history, tickets, and check-in remain outside this slice.
 
-Next three actions: T36 backend authorization and commands, T37 bilingual family-profile UI, and T38 adversarial/contract review. Three Luna/xhigh workers own disjoint files; the coordinator owns integration, documentation, browser acceptance, and full gates.
+T36 backend authorization/commands, T37 bilingual family-profile UI, and T38 adversarial review are integrated and centrally corrected. Automated, build, format, and route gates pass. Browser acceptance remains blocked by `User unavailable`; isolated MySQL evidence and the OQ-17/legal-consent decisions remain open.
 
 ## 2026-09-12 M1 closed
 

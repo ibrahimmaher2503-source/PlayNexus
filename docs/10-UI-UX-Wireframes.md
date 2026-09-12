@@ -280,6 +280,8 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 **Implemented first slice — 2026-09-12:** `/app/families` provides bilingual phone/child-name search, empty/no-match/result states, masked phone output, and a clear add action. `/app/families/create` captures one guardian, one child, optional guardian email/child DOB, preferred language, and an allowlisted relationship. A same-tenant phone duplicate preserves entered data and links to the existing family; consent, emergency/safety data, multiple children, edit/merge, and save-and-check-in remain deferred.
 
+**Implemented maintenance slice — 2026-09-12:** search results link to a responsive family profile with masked summary, basic guardian and child correction, and adding another child through an allowlisted relationship. Stale forms show a conflict instead of overwriting newer data, and repeated add-child submissions are blocked by guardian version changes. Consent, safety/emergency fields, relationship revocation, merge, history, and check-in remain absent.
+
 **Goal:** Find an existing family first, or register a guardian and at least one child in one short flow.
 
 **Flow:** Search by phone or child name, select match, otherwise create guardian, add child, confirm consent and emergency details, then check in or save.

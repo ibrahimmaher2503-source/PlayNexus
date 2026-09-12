@@ -10,6 +10,8 @@ The user authorized another three-agent Luna/xhigh wave. Fixed boundary: current
 
 Consent, safety/emergency data, relationship revocation, guardian merge, visit history, tickets, and check-in remain excluded. The coordinator integrates shared contracts, updates canonical docs, and runs full/browser/MySQL-proportional gates.
 
+**Accepted result:** T36-T38 are integrated. Coordinator review fixed a retry hole by requiring and incrementing the guardian version on child addition, and exposed localized audit action labels. Focused profile tests pass 18 / 143; full PHP 8.5 regression passes 187 / 1,471; Pint, Vite, and route checks pass. Browser acceptance is blocked by `User unavailable`; fresh isolated MySQL evidence remains outstanding. No excluded feature was added.
+
 ## 2026-09-12 M2 T33-T35 first family-registry wave
 
 The user authorized M2 start with three Luna/xhigh workers. Fixed contract: one visible flow at `/app/families` and `/app/families/create`; search by trimmed/capped child name or normalized guardian phone; only current-tenant safe results; create one guardian, one child and one active guardian-child link in one transaction. Same-tenant normalized phone match creates nothing and returns the existing-family path; cross-tenant matches stay undisclosed. No phone uniqueness constraint, consent event, safety note/photo, editing, visit history, check-in or speculative permission key in this wave.

@@ -68,7 +68,9 @@
                         <tbody class="divide-y divide-[var(--pn-border)]">
                             @foreach ($families as $guardian)
                                 <tr class="align-top">
-                                    <th class="px-4 py-4 text-start font-semibold" scope="row">{{ $guardian->full_name }}</th>
+                                    <th class="px-4 py-4 text-start font-semibold" scope="row">
+                                        <a class="rounded-[6px] text-[var(--pn-primary)] underline decoration-[var(--pn-border-strong)] underline-offset-4 hover:text-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('families.show', $guardian) }}">{{ $guardian->full_name }}</a>
+                                    </th>
                                     <td class="px-4 py-4"><bdi dir="ltr">{{ $guardian->maskedPhone() }}</bdi></td>
                                     <td class="px-4 py-4">
                                         @if ($guardian->children->isEmpty())

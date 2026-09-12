@@ -1,5 +1,19 @@
 # Test Results
 
+## 2026-09-12 M2 family profile maintenance
+
+| Check | Result |
+|---|---|
+| Focused profile/backend/UI/adversarial | `php artisan test tests/Feature/FamilyProfileManagementTest.php tests/Feature/FamilyProfileUiTest.php tests/Feature/FamilyProfileAdversarialTest.php --compact` — PASS, 18 tests / 143 assertions |
+| Profile plus audit viewer | PASS, 26 tests / 215 assertions |
+| Full regression on PHP 8.5 | `php artisan test --compact` — PASS, 187 tests / 1,471 assertions |
+| Formatting | `php vendor/bin/pint --test` — PASS |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Routes | `php artisan route:list --name=families` — PASS; seven family routes |
+| Browser | **BLOCKED:** the in-app browser bridge returned `User unavailable`; no visual acceptance is claimed for the new family-profile page. |
+
+The M2 migration still lacks fresh isolated MySQL evidence. Consent, merge/review, safety/emergency data, relationship revocation, visit history, and check-in remain excluded.
+
 ## 2026-09-12 M2 family registry first slice
 
 | Check | Result |

@@ -69,6 +69,9 @@ return [
         'branch.settings.updated' => 'Branch settings updated',
         'tenant.profile.updated' => 'Business profile updated',
         'family.created' => 'Family registered',
+        'family.guardian.updated' => 'Guardian details updated',
+        'family.child.updated' => 'Child details updated',
+        'family.child.added' => 'Child added to family',
     ],
     'reasons' => [
         'setup_change' => 'Setup change',

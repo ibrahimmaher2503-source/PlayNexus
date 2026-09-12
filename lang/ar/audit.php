@@ -69,6 +69,9 @@ return [
         'branch.settings.updated' => 'تحديث إعدادات الفرع',
         'tenant.profile.updated' => 'تحديث ملف المنشأة',
         'family.created' => 'تسجيل أسرة',
+        'family.guardian.updated' => 'تحديث بيانات ولي الأمر',
+        'family.child.updated' => 'تحديث بيانات الطفل',
+        'family.child.added' => 'إضافة طفل إلى الأسرة',
     ],
     'reasons' => [
         'setup_change' => 'تغيير الإعداد',

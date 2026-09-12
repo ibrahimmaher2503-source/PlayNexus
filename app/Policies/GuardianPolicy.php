@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Guardian;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,22 @@ class GuardianPolicy
         return $this->canAccess($user);
     }
 
-    private function canAccess(User $user): bool
+    public function view(User $user, Guardian $guardian): bool
+    {
+        return $this->canAccess($user, $guardian);
+    }
+
+    public function update(User $user, Guardian $guardian): bool
+    {
+        return $this->canAccess($user, $guardian);
+    }
+
+    public function manageChildren(User $user, Guardian $guardian): bool
+    {
+        return $this->canAccess($user, $guardian);
+    }
+
+    private function canAccess(User $user, ?Guardian $guardian = null): bool
     {
         $freshUser = User::query()
             ->whereKey($user->getAuthIdentifier())
@@ -42,6 +58,10 @@ class GuardianPolicy
             ->first();
 
         if (! $tenant) {
+            return false;
+        }
+
+        if ($guardian !== null && ((int) $guardian->tenant_id !== (int) $tenant->getKey() || $guardian->status !== 'active')) {
             return false;
         }
 
