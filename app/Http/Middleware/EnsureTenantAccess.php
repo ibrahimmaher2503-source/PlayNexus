@@ -16,7 +16,12 @@ class EnsureTenantAccess
     {
         $user = User::query()->find($request->user()->getAuthIdentifier());
 
-        if (! $user || $user->status !== 'active') {
+        if (
+            ! $user
+            || $user->status !== 'active'
+            || $request->session()->missing('auth_version')
+            || (int) $request->session()->get('auth_version') !== (int) $user->auth_version
+        ) {
             $request->session()->forget('branch_id');
             Auth::logout();
             $request->session()->invalidate();

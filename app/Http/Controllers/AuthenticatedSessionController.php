@@ -36,6 +36,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         $request->session()->regenerate();
+        $request->session()->put('auth_version', (int) $request->user()->auth_version);
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

@@ -36,6 +36,7 @@
                         <p class="mt-2 text-sm text-[var(--pn-danger)]" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
+                <p class="text-end text-sm"><a class="font-semibold text-[var(--pn-primary)] underline focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('password.request') }}">{{ __('passwords.forgot_link') }}</a></p>
                 <button class="min-h-11 w-full rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('Sign in') }}</button>
             </form>
         </section>
