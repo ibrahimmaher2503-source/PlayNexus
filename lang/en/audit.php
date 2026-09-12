@@ -40,6 +40,7 @@ return [
         'code' => 'System code',
         'guardian_id' => 'Guardian ID',
         'child_id' => 'Child ID',
+        'pricing_rule_id' => 'Pricing rule ID',
     ],
     'snapshot_boolean' => [
         'true' => 'Yes',
@@ -72,6 +73,7 @@ return [
         'family.guardian.updated' => 'Guardian details updated',
         'family.child.updated' => 'Child details updated',
         'family.child.added' => 'Child added to family',
+        'pricing.rule.created' => 'Pricing rule created',
     ],
     'reasons' => [
         'setup_change' => 'Setup change',

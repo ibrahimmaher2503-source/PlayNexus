@@ -4,11 +4,11 @@
 **Source baseline:** PlayNexus PRD v1.0, June 2026  
 **Verified source:** 27,198 bytes; SHA-256 `D9119C1A3325DD8DBF318296EB52DDFF95B064A0C0061EAD96CAAD68D9FEF5D2`  
 **Implementation target:** Laravel web MVP  
-**Status:** M1 locally accepted; M2 family-registry first slice implemented, remainder still a working specification
+**Status:** M1 locally accepted; M2 family registry in progress; M3 immutable pricing-rule first slice implemented
 
 ## Implementation status — 2026-09-12
 
-M1 access and branch foundation is DONE on `codex/first`. M2 has started with tenant-scoped family search and atomic guardian + child + active-link creation; consent, duplicate merge/review, editing, history, safety data, and check-in are not implemented. The M2 slice passes PHP 8.5 regression, build, formatting, and focused browser creation/search; its new migration does not yet have isolated MySQL acceptance. Production readiness is not claimed.
+M1 access and branch foundation is DONE on `codex/first`. M2 now includes tenant-scoped search, registration, family detail, basic correction, and adding children; consent, duplicate merge/review, safety/emergency data, relationship revocation, and history remain open. M3 has started with scoped immutable fixed-duration pricing-rule creation/listing only. Ticket types/QR/check-in are not implemented. New M2/M3 migrations still need fresh isolated MySQL acceptance, the current browser bridge is unavailable, and production readiness is not claimed.
 
 `docs/` is the single source of truth for product, technical, delivery, and implementation documentation. Do not create parallel summary copies.
 

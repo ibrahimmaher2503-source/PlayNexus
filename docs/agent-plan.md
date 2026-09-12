@@ -10,6 +10,8 @@ Three Luna/xhigh workers implement the first M3 slice. Contract: list current-sc
 
 No seeded price, in-place edits, calculator/tax total, ticket type, issuance, QR, check-in, session, extension, or retirement/version cloning. OQ-18 blocks ticket behavior. Coordinator owns integration corrections, canonical status, full tests, build, and available browser/MySQL evidence.
 
+**Accepted result:** T39-T41 are integrated. Coordinator review separated viewable from manageable branches for mixed-role staff and added regression coverage. Focused pricing tests pass 19 / 197, including exact decimal-to-minor conversion, tenant/branch denial, custom-role denial, duplicate conflict, audit rollback, and bilingual view-only UI. Full gates are recorded in `.ai/TEST_RESULTS.md`; browser and fresh MySQL acceptance remain outstanding.
+
 ## 2026-09-12 M2 T36-T38 family-profile wave
 
 The user authorized another three-agent Luna/xhigh wave. Fixed boundary: current-tenant family detail; edit guardian name/phone/email/preferred locale and child name/optional DOB with expected `lock_version`; add one child and active allowlisted relationship to an existing guardian atomically. Same-tenant phone conflict must point to the existing family and create no write. Audit JSON stores IDs and changed field names, never raw PII.

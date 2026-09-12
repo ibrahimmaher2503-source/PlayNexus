@@ -16,6 +16,9 @@
     if (app('router')->has('families.index') && $navigationUser->can('viewAny', \App\Models\Guardian::class)) {
         $navigationSections[0]['links'][] = ['families.index', ['families.*'], __('families.page_title'), 'families'];
     }
+    if (app('router')->has('pricing.index') && $navigationUser->can('viewAny', \App\Models\PricingRule::class)) {
+        $navigationSections[0]['links'][] = ['pricing.index', ['pricing.*'], __('pricing.page_title'), 'pricing'];
+    }
     if ($isOwner) {
         $navigationSections[] = [
             'label' => __('navigation.management'),

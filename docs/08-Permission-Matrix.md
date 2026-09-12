@@ -110,6 +110,8 @@ Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is
 | Create/retire pricing rule `pricing.manage` | — | T | B | — | — | — | — |
 | View ticket types `ticket_types.view` | support only | T | B | B | B | — | future |
 | Manage ticket types `ticket_types.manage` | — | T | B | — | — | — | — |
+
+**Implemented pricing slice — 2026-09-12:** an active Tenant Owner views/manages active branches in the tenant; an active Branch Manager views/manages only active manager assignments; Reception and Cashier fixed roles view only their active assigned branches. A user with manager rights in one branch and view-only rights in another sees both but the creation selector contains only the manageable branch. Custom `branches.view` alone grants no pricing access.
 | Issue/sell ticket `tickets.issue` | — | T | B | B | B | — | future |
 | Validate/scan ticket `tickets.scan` | — | T | B | B | B | — | — |
 | Reprint ticket `tickets.reprint` | — | T | B | B | B | — | future |

@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 M3 pricing-rule first-slice handoff
+
+`/app/pricing` lists active immutable pricing rules for the actor's allowed active branches. Owners and branch managers can create version-1 fixed-duration rules for manageable branches using EGP inputs; reception/cashier roles are view-only. Stored facts use integer minor units, 600-second grace, 1,800-second overtime units, no pause, and the locked branch tax snapshot. Full PHP 8.5 regression passes 206 / 1,668; Pint, Vite, docs, and route checks pass. No update/delete/retire/calculator/ticket/QR/check-in/session feature exists. Browser and fresh MySQL acceptance remain outstanding; OQ-18 blocks ticket behavior.
+
 ## 2026-09-12 M2 family profile handoff
 
 `/app/families/{guardian}` now shows an authorized current-tenant family profile and supports basic guardian/child corrections plus adding one child. Updates use expected versions, locks, transactions, duplicate-phone recovery, and safe audit metadata; child addition increments the guardian version so a repeated form submission cannot create another child. Full PHP 8.5 regression is 187 / 1,471 and build/Pint pass. Browser acceptance is blocked by `User unavailable`, and the current M2 migration still needs isolated MySQL evidence. Do not add consent, merge, safety/emergency, relationship revocation, visit history, or check-in without the matching approved contract.

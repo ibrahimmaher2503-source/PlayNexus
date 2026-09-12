@@ -40,6 +40,7 @@ return [
         'code' => 'الرمز النظامي',
         'guardian_id' => 'معرّف ولي الأمر',
         'child_id' => 'معرّف الطفل',
+        'pricing_rule_id' => 'معرّف قاعدة التسعير',
     ],
     'snapshot_boolean' => [
         'true' => 'نعم',
@@ -72,6 +73,7 @@ return [
         'family.guardian.updated' => 'تحديث بيانات ولي الأمر',
         'family.child.updated' => 'تحديث بيانات الطفل',
         'family.child.added' => 'إضافة طفل إلى الأسرة',
+        'pricing.rule.created' => 'إنشاء قاعدة تسعير',
     ],
     'reasons' => [
         'setup_change' => 'تغيير الإعداد',

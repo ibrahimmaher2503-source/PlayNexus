@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-12 M3 immutable pricing rules
+
+- Added tenant/branch-scoped immutable fixed-duration pricing-rule storage, active-rule listing, and manager creation with integer EGP amounts and branch tax snapshots.
+- Enforced fixed 10-minute grace, 30-minute overtime unit, no pause, version 1, current active branch scope, and PII-free creation audit.
+- Three Luna/xhigh workstreams delivered data, backend/security, and bilingual UI. Coordinator review separated viewable branches from manageable branches for mixed-role staff.
+- Focused pricing tests pass 19 / 197; full PHP 8.5 regression passes 206 / 1,668. Pint, Vite, documentation, and routes pass; browser remains unavailable.
+
 ## 2026-09-12 M2 family profile maintenance
 
 - Added tenant-scoped family detail, guardian contact correction, child detail correction, and atomic addition of another child with an active relationship.

@@ -249,6 +249,8 @@ Tenant-owned. Columns: `guardian_id`, `child_id`, `relationship ENUM('mother','f
 
 ### 5.1 `pricing_rules`
 
+**Implemented first slice — 2026-09-12:** migration `000011` creates immutable branch rules with explicit tenant/branch/actor scope, composite tenant-aware foreign keys, unique `(tenant_id,branch_id,code,version)`, integer minor-unit prices, fixed-duration mode, 600-second grace, 1,800-second overtime unit, EGP, branch tax snapshot, active status, and version 1. Effective dates, retirement/cloning, per-unit modes, sessions, and calculation snapshots remain later work.
+
 Tenant-owned. Columns:
 
 - `branch_id CHAR(26) NULL`: null is a tenant default; non-null is branch-specific.

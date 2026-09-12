@@ -1,5 +1,9 @@
 # Blockers
 
+## 2026-09-12 M3 first-slice boundary
+
+No blocker prevents immutable fixed-duration pricing-rule creation/listing because OQ-16 is approved. OQ-18 still blocks ticket-type scope, transferability, date binding, and refund behavior, so ticket issuance/QR is not started. Finance-approved worked tax examples are still required before tax-total calculation/checkout acceptance. The browser bridge is currently unavailable, and the new M2/M3 migrations still need a fresh isolated MySQL 8.4 run.
+
 ## 2026-09-12 M2 start boundary
 
 No blocker prevents the first family-registry slice. Full M2 schema/API freeze remains blocked by OQ-17 duplicate resolution after a match and approved consent/privacy notice wording/version/retention. The first slice therefore has no phone uniqueness constraint, never creates a same-tenant duplicate, and does not claim consent capture or M2 completion.

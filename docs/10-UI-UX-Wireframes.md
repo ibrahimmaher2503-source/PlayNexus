@@ -489,6 +489,8 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 **Subscreens:** Opening hours, approved branch-capacity policy, versioned pricing rules with worked-example preview, tax/receipt fields, and operational alert settings use the same save/error/audit conventions. Exact pricing, tax, receipt, capacity, and alert behavior remains blocked on the named decisions in Section 12.
 
+**Implemented pricing configuration — 2026-09-12:** `/app/pricing` provides bilingual branch filtering, active immutable rule cards/table, exact fixed-term explanation, integer-derived EGP display, empty/success/validation states, and a manager-only creation form. Reception/cashier users receive a view-only state. Editing, retirement, calculator/quote, ticket, QR, and check-in controls are intentionally absent.
+
 ### WF-12 Tenant administration
 
 **Goal:** Let a Super Admin provision, activate, suspend, or reactivate one tenant without entering unrelated tenant data or deleting history.

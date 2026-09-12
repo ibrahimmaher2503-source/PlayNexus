@@ -1,5 +1,22 @@
 # Test Results
 
+## 2026-09-12 M3 immutable pricing rules
+
+| Check | Result |
+|---|---|
+| Pricing data/security/UI | `php artisan test tests/Feature/PricingRuleDataTest.php tests/Feature/PricingRuleSecurityTest.php tests/Feature/PricingRuleUiTest.php --compact` — PASS, 19 tests / 197 assertions |
+| Decimal conversion | PASS: `123.4 EGP` stored as `12,340` minor units and `0.05 EGP` as `5`, without float arithmetic |
+| Scope | PASS: owner all own active branches; branch manager manages assigned manager branches; reception/cashier view only; mixed-role create selector excludes view-only branches; foreign/inactive/custom-only scope denied |
+| Full regression on PHP 8.5 | `php artisan test --compact` — PASS, 206 tests / 1,668 assertions |
+| Formatting | `php vendor/bin/pint --test` — PASS |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 existing review-placeholder warnings |
+| Routes | `php artisan route:list --name=pricing` — PASS; GET list and POST create only |
+| Browser | **BLOCKED:** the in-app browser bridge still returns `User unavailable`; no visual acceptance is claimed. |
+| MySQL | **NOT RUN:** the previous isolated MySQL 8.4 process was intentionally stopped; current evidence is SQLite/PHP 8.5 only for migration `000011`. |
+
+Ticket types/QR remain blocked by OQ-18 and are not implemented.
+
 ## 2026-09-12 M2 family profile maintenance
 
 | Check | Result |

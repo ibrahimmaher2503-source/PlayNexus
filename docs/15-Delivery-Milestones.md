@@ -20,6 +20,8 @@ Fast search, duplicate handling, create/edit, guardian-child links, consent, eme
 
 Pricing rules, ticket types, QR/barcode token, check-in workflow, live session board, branch capacity, and idempotent session creation.
 
+**Status: IN PROGRESS — 2026-09-12.** Delivered current-scope immutable fixed-duration pricing-rule creation/listing with integer EGP storage, branch tax snapshots, fixed grace/overtime terms, audit, authorization tests, and bilingual UI. Pricing version/retirement/calculation, ticket types/QR, check-in, live sessions, capacity, browser/MySQL acceptance, and M3 closure remain open; OQ-18 blocks ticket behavior.
+
 ## M4: Time engine and checkout
 
 Pause/resume/extend/cancel, alerts, guardian verification, final calculation, manager adjustment, concurrency protection, and explainable billing breakdown.

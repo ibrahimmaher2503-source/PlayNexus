@@ -50,6 +50,11 @@ class Tenant extends Model
         return $this->hasMany(Child::class);
     }
 
+    public function pricingRules(): HasMany
+    {
+        return $this->hasMany(PricingRule::class);
+    }
+
     public function owners(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'tenant_owners')->withTimestamps();

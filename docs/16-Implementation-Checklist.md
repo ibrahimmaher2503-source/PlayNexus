@@ -21,6 +21,8 @@
   - [x] Maintenance slice: family detail, basic guardian/child correction, and adding another child with conflict/audit protection.
   - [ ] Remaining: approved duplicate merge/review, consent, emergency/safety data, relationship revocation, visit history, browser/MySQL acceptance, and M2 closure.
 - [ ] M3 pricing, tickets, and check-in.
+  - [x] First slice: immutable fixed-duration pricing-rule creation/listing with scope, money, audit, and bilingual UI checks.
+  - [ ] Remaining: version/retirement/calculation, approved ticket behavior, QR, check-in, live sessions, capacity, browser/MySQL acceptance, and M3 closure.
 - [ ] M4 time engine and checkout.
 - [ ] M5 POS, payment, refund, and receipt.
 - [ ] M6 reports, notifications, hardening, and pilot.

@@ -16,7 +16,7 @@ T36 backend authorization/commands, T37 bilingual family-profile UI, and T38 adv
 
 Create and list immutable branch pricing rules using the approved OQ-16 shape: integer EGP amounts, fixed package duration, 600-second grace, 1,800-second rounded-up overtime units, and selected-branch tax snapshot. No default business prices are seeded. Ticket types/QR are excluded pending OQ-18; calculation, check-in, sessions, extensions, retirement, and M3 closure remain later.
 
-Next three actions: T39 pricing data model/integrity, T40 scoped authorization/backend/audit, and T41 bilingual UI/feature acceptance. Three Luna/xhigh workers own disjoint files; the coordinator reviews all shared contracts and gates.
+T39 pricing data/integrity, T40 scoped backend/audit, and T41 bilingual UI are integrated and centrally reviewed. Automated security and money-conversion checks pass. Browser acceptance is blocked by `User unavailable`; fresh isolated MySQL evidence and later pricing version/retirement/calculation work remain open. Ticket types stay blocked by OQ-18.
 
 ## 2026-09-12 M1 closed
 
