@@ -1,5 +1,13 @@
 # Current Milestone
 
+## 2026-09-12 T24-T26 integrated feature wave
+
+Password recovery, tenant business-profile settings, and full branch operational settings are locally integrated on `codex/first`. Password resets are generic, time-limited and single-use, and increment `auth_version` to revoke older authenticated sessions. Tenant owners can update their own bilingual profile and configure own-tenant branches, including inactive branches, with optimistic conflict checks, transactions and atomic audit records. Branch configuration covers code, address, timezone, capacity, EGP currency, tax mode/rate, receipt prefix, cash payment and all seven opening-hours rows.
+
+Focused acceptance passed 18 tests / 190 assertions; the full suite passed 121 tests / 881 assertions. Pint, frontend build, documentation validation and diff checks passed. Browser remains deferred by user. The three new migrations and locking behavior remain unverified on MySQL, and PHP 8.5 remains unverified. No main merge or push.
+
+Next bounded M1 work: platform-super-admin provisioning and authorization, followed by an isolated MySQL migration/locking acceptance pass for the post-T07 schema. Email transport delivery and browser journeys remain separate runtime acceptance work.
+
 ## 2026-09-12 T21-T23 integrated feature wave
 
 Staff invitation, owner branch lifecycle, and tenant audit viewing are locally integrated on `codex/first`. Focused verification passed 23 tests / 188 assertions; the full suite passed 103 tests / 691 assertions. Pint, frontend build, documentation validation, and whitespace checks passed. Browser remains deferred by user; MySQL/PHP 8.5 remain unverified. No main merge or push.

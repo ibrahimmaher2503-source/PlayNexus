@@ -68,6 +68,7 @@ class TenantSettingsTest extends TestCase
     private function owner(): array
     {
         $tenant = Tenant::factory()->create();
+        $tenant->refresh();
         $owner = User::factory()->create(['tenant_id' => $tenant->id]);
         DB::table('tenant_owners')->insert(['tenant_id' => $tenant->id, 'user_id' => $owner->id, 'created_at' => now(), 'updated_at' => now()]);
 

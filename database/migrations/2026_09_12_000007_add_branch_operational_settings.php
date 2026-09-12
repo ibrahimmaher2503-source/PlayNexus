@@ -20,10 +20,6 @@ return new class extends Migration
             $table->string('receipt_prefix', 20)->default('PN')->after('tax_mode');
             $table->json('payment_methods')->nullable()->after('receipt_prefix');
             $table->unsignedInteger('lock_version')->default(1)->after('payment_methods');
-            $table->check('capacity >= 1');
-            $table->check('tax_rate_bps <= 10000');
-            $table->check("tax_mode in ('exclusive', 'inclusive')");
-            $table->check('lock_version >= 1');
         });
 
         $branches = DB::table('branches')
@@ -60,8 +56,6 @@ return new class extends Migration
                 ->references(['tenant_id', 'id'])
                 ->on('branches')
                 ->cascadeOnDelete();
-            $table->check('weekday between 1 and 7');
-            $table->check('(is_closed = 1 and opens_at is null and closes_at is null) or (is_closed = 0 and opens_at is not null and closes_at is not null)');
         });
 
         $now = now('UTC');

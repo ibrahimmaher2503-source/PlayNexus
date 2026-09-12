@@ -1,5 +1,9 @@
 # Progress
 
+## 2026-09-12 T24-T26 completed locally
+
+Three parallel slices were integrated: native password recovery (`9ba9556`), tenant profile settings (`eb46395`), and branch operational settings (`3f17d0a`). Coordinator wiring added the route includes and owner navigation. Review corrected unsupported migration check calls, a malformed compiled Blade section, factory defaults for the new tenant profile, and test-session setup for the new credential version. Password reset, profile and branch settings tests pass 18/190; full regression passes 121/881. No browser, shared database, main merge or push was performed.
+
 ## 2026-09-12 T21-T23 completed locally
 
 Three Luna/xhigh workers implemented staff invitation, branch create/status management, and the tenant audit viewer. Coordinator reviewed and integrated commits `4c7df3b`, `29aa88e`, and `77745f0`, wired routes/navigation, and corrected invitation assertions/session setup. New focused tests pass 23/188; full suite passes 103/691. No email delivery, owner transfer, platform access, browser acceptance, or shared service change was added.

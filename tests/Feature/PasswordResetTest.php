@@ -120,7 +120,7 @@ class PasswordResetTest extends TestCase
         $this->assertSame(2, (int) $user->auth_version);
         $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
 
-        $this->actingAs($user)
+        $this->actingAs($user)->withSession(['auth_version' => 1])
             ->get(route('dashboard'))
             ->assertRedirect(route('login'));
         $this->assertGuest();

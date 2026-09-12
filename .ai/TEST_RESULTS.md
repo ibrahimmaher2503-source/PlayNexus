@@ -325,3 +325,16 @@ Base: `835346d8dbfad3b668813b0e93737c5767b6d371` on `codex/t07-runtime-acceptanc
    Then run `php artisan config:show ...`, `php artisan test`, and the browser server with the same overrides. Never edit the tracked `phpunit.xml` or an existing `.env`.
 
 Task-owned MySQL and Laravel server processes were stopped after verification. Private temp data/credentials remain outside the repository for local cleanup; no shared service or database was altered.
+# 2026-09-12 T24-T26 integration acceptance
+
+| Check | Result |
+|---|---|
+| Focused features | `php artisan test --filter="PasswordResetTest|TenantSettingsTest|BranchSettingsTest"` — PASS, 18 tests / 190 assertions |
+| Full regression | `php artisan test` — PASS, 121 tests / 881 assertions |
+| Formatting | `php vendor/bin/pint --test` — PASS after formatting the reviewed branch-settings controller |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 existing review-placeholder warnings |
+| Whitespace | `git diff --check` — PASS |
+| Runtime boundary | SQLite `:memory:` and array sessions from `phpunit.xml`; browser deferred by user; new MySQL migrations/locks and PHP 8.5 unverified |
+
+Review rejected the worker migration's nonexistent `Blueprint::check` calls before acceptance and removed them; request validation, unique tenant branch code and composite tenant/branch foreign keys remain enforced. Blade compilation was exercised through feature tests after correcting the payment-method block. No shared services or databases were changed.

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -194,7 +195,7 @@ class BranchSettingsController extends Controller
                 'reason_code' => 'setup_change',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-                'request_id' => (string) \Illuminate\Support\Str::uuid(),
+                'request_id' => (string) Str::uuid(),
                 'occurred_at' => $now,
             ]);
 

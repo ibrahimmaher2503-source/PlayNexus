@@ -119,7 +119,9 @@
                     </div>
                     <div class="md:col-span-2 lg:col-span-3">
                         <span class="block text-sm font-semibold">{{ __('branch_settings.payment_methods') }}</span>
-                        @php($selectedMethods = old('payment_methods', ['cash']))
+                        @php
+                            $selectedMethods = old('payment_methods', ['cash']);
+                        @endphp
                         <label class="mt-2 inline-flex min-h-11 items-center gap-3 rounded-[10px] border border-[var(--pn-border)] px-3">
                             <input class="h-5 w-5" type="checkbox" name="payment_methods[]" value="cash" @checked(is_array($selectedMethods) && in_array('cash', $selectedMethods, true))>
                             <span>{{ __('branch_settings.cash') }}</span>

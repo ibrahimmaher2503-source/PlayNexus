@@ -12,6 +12,8 @@ class TenantFactory extends Factory
 
     public function definition(): array
     {
-        return ['name' => fake()->company(), 'is_active' => true];
+        $name = fake()->company();
+
+        return ['name' => $name, 'legal_name' => $name, 'is_active' => true];
     }
 }

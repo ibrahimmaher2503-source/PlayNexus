@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/app');
 Route::post('/locale', [LocaleController::class, 'store'])->name('locale.store');
+require __DIR__.'/password.php';
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -22,6 +23,8 @@ Route::middleware(['auth', 'tenant.access'])->group(function (): void {
     require __DIR__.'/assignments.php';
     require __DIR__.'/branches-admin.php';
     require __DIR__.'/audit.php';
+    require __DIR__.'/tenant-settings.php';
+    require __DIR__.'/branch-settings.php';
     Route::get('/app', [BranchContextController::class, 'index'])->name('dashboard');
     Route::get('/app/tenant', [TenantReadController::class, 'show'])->name('tenant.show');
     Route::post('/branch-context/{branch}', [BranchContextController::class, 'store'])->name('branch-context.store');
