@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 branch lifecycle UI follow-up
+
+The branch management table now presents one explicit state-aware action with consequence copy and a required reason instead of a redundant status selector. Current SQLite regression is 142 tests / 1,102 assertions on PHP 8.4.21 and 8.5.8; accepted MySQL evidence remains 142 / 1,096 because the follow-up changes only Blade, translations, and UI assertions.
+
 ## 2026-09-12 M1 closure handoff
 
 Continue from `codex/first` with M1 DONE. Final verification is 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and 8.5.8, plus 142 / 1,096 on isolated MySQL 8.4.11/InnoDB after fresh migrations. Browser, build, format, dependency audits, and docs pass. M2 is not started: next work must use the canonical guardian/child, duplicate, consent, and privacy contracts. Preserve dirty `main`; no push was made.

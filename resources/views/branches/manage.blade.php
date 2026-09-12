@@ -72,28 +72,25 @@
                                         <span class="font-semibold {{ $branch->is_active ? 'text-[var(--pn-primary)]' : 'text-[var(--pn-ink-muted)]' }}">{{ $branch->is_active ? __('branches.active') : __('branches.inactive') }}</span>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <a class="mb-2 inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('branches.settings', $branch) }}">{{ __('branch_settings.page_title') }}</a>
-                                        <form id="{{ $formId }}" class="flex min-w-72 flex-wrap items-end gap-2" method="POST" action="{{ route('branches.status', $branch) }}">
+                                        <div class="min-w-72 max-w-lg">
+                                            <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('branches.settings', $branch) }}">{{ __('branch_settings.page_title') }}</a>
+                                            <p class="mt-3 text-sm leading-6 text-[var(--pn-ink-muted)]" id="{{ $formId }}-consequence">{{ $branch->is_active ? __('branches.deactivate_help') : __('branches.reactivate_help') }}</p>
+                                        </div>
+                                        <form id="{{ $formId }}" class="mt-3 flex min-w-72 flex-wrap items-end gap-2" method="POST" action="{{ route('branches.status', $branch) }}" aria-describedby="{{ $formId }}-consequence">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="expected_is_active" value="{{ $branch->is_active ? '1' : '0' }}">
-                                            <div>
-                                                <label class="block text-xs font-semibold" for="{{ $formId }}-status">{{ __('branches.new_status') }}</label>
-                                                <select class="mt-1 min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $formId }}-status" name="is_active">
-                                                    <option value="1" @selected($branch->is_active)>{{ __('branches.active') }}</option>
-                                                    <option value="0" @selected(! $branch->is_active)>{{ __('branches.inactive') }}</option>
-                                                </select>
-                                            </div>
-                                            <div>
+                                            <input type="hidden" name="is_active" value="{{ $branch->is_active ? '0' : '1' }}">
+                                            <div class="min-w-48 flex-1">
                                                 <label class="block text-xs font-semibold" for="{{ $formId }}-reason">{{ __('branches.reason_code') }}</label>
-                                                <select class="mt-1 min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $formId }}-reason" name="reason_code" required>
+                                                <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $formId }}-reason" name="reason_code" required>
                                                     <option value="">{{ __('branches.choose_reason') }}</option>
                                                     @foreach ($reasons as $reason => $label)
                                                         <option value="{{ $reason }}">{{ $label }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('branches.save_status') }}</button>
+                                            <button class="inline-flex min-h-11 items-center rounded-[10px] px-4 font-semibold text-[var(--pn-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] {{ $branch->is_active ? 'bg-[var(--pn-danger)] hover:brightness-90' : 'bg-[var(--pn-primary)] hover:bg-[var(--pn-primary-hover)]' }}" type="submit">{{ $branch->is_active ? __('branches.deactivate') : __('branches.reactivate') }}</button>
                                         </form>
                                     </td>
                                 </tr>

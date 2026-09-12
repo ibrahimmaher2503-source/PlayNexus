@@ -40,6 +40,10 @@ class BranchAdministrationTest extends TestCase
             ->assertDontSee($foreign->name)
             ->assertSee(__('branch_settings.page_title'))
             ->assertDontSee('branch_settings.title')
+            ->assertSee(__('branches.deactivate'))
+            ->assertSee(__('branches.deactivate_help'))
+            ->assertSee(__('branches.reactivate'))
+            ->assertSee(__('branches.reactivate_help'))
             ->assertSee(__('branches.create'));
     }
 
@@ -213,7 +217,7 @@ class BranchAdministrationTest extends TestCase
             ->assertDontSee($branch->name);
     }
 
-    public function test_validation_rerender_keeps_each_row_on_persisted_status(): void
+    public function test_validation_rerender_keeps_each_row_action_based_on_persisted_status(): void
     {
         [$tenant, $owner] = $this->owner();
         $active = $this->branch($tenant, 'Active row');
@@ -234,8 +238,10 @@ class BranchAdministrationTest extends TestCase
         $inactiveForm = $this->formMarkup($html, $inactive->id);
         $this->assertStringContainsString('name="expected_is_active" value="1"', $activeForm);
         $this->assertStringContainsString('name="expected_is_active" value="0"', $inactiveForm);
-        $this->assertStringContainsString('value="1" selected', $activeForm);
-        $this->assertStringContainsString('value="0" selected', $inactiveForm);
+        $this->assertStringContainsString('name="is_active" value="0"', $activeForm);
+        $this->assertStringContainsString(__('branches.deactivate'), $activeForm);
+        $this->assertStringContainsString('name="is_active" value="1"', $inactiveForm);
+        $this->assertStringContainsString(__('branches.reactivate'), $inactiveForm);
         $this->assertStringNotContainsString('value="invalid"', $activeForm.$inactiveForm);
     }
 

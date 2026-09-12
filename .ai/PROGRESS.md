@@ -1,5 +1,9 @@
 # Progress
 
+## 2026-09-12 branch lifecycle UI clarification
+
+Replaced the ambiguous status selector with one state-aware action per branch: deactivate or reactivate. Each row now explains the operational consequence required by FR-TEN-006 before the reason-required action, keeps branch settings separate, and renders complete Arabic/English copy. Real Arabic RTL tablet verification passed without page overflow, untranslated keys, or console warnings/errors.
+
 ## 2026-09-12 M1 completed
 
 Closed T31 with PHP 8.5.8, reran the whole suite on PHP 8.4.21 and 8.5.8, and reran migrations/full tests on isolated MySQL 8.4.11/InnoDB. Final code review fixed unsupported settings audit labels/reason text and a missing branch-settings translation. UI polish adds one shared owner navigation, a skip link, semantic state tokens, reduced-motion support, and a clearer responsive tenant-settings form. All checks and browser acceptance pass; M2 remains untouched.

@@ -2,7 +2,7 @@
 
 ## M1 executed baseline — 2026-09-12
 
-The accepted M1 regression contains 142 tests and 1,096 assertions on SQLite with both PHP 8.4.21 and PHP 8.5.8, and the same totals after fresh migrations on isolated MySQL 8.4.11/InnoDB. Focused UI/audit regression passed 33 tests and 217 assertions. Vite build, Pint, Composer audit, npm audit, documentation validation, and real Arabic RTL/English LTR browser checks passed. These results are an M1 baseline, not evidence for unimplemented M2–M6 or production operations.
+The current M1 regression contains 142 tests and 1,102 assertions on SQLite with both PHP 8.4.21 and PHP 8.5.8. The preceding database-affecting baseline passed 142 tests and 1,096 assertions after fresh migrations on isolated MySQL 8.4.11/InnoDB; the later difference is six UI assertions for explicit branch lifecycle actions and copy. Focused UI/audit regression passed 33 tests and 217 assertions. Vite build, Pint, Composer audit, npm audit, documentation validation, and real Arabic RTL/English LTR browser checks passed. These results are an M1 baseline, not evidence for unimplemented M2–M6 or production operations.
 
 **Document status:** Draft MVP quality baseline pending scope and policy decisions  
 **Audience:** Engineering, QA, product, security, and venue operations  

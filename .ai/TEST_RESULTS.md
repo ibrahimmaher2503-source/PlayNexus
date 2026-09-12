@@ -1,5 +1,13 @@
 # Test Results
 
+## 2026-09-12 branch lifecycle UI follow-up
+
+- `php artisan test --filter=BranchAdministrationTest`: PASS, 10 tests / 83 assertions.
+- Full SQLite suite: PASS, 142 tests / 1,102 assertions on PHP 8.4.21 and PHP 8.5.8.
+- Pint, Vite production build, and `git diff --check`: PASS; Vite emitted only the existing optional `fontaine` notice.
+- Real browser at 910px: Arabic RTL action copy and consequences present, `branch_settings.title` absent, page width 895px within the 910px viewport, and zero console warnings/errors.
+- This UI-only follow-up does not replace the accepted isolated MySQL 8.4.11 evidence recorded below.
+
 ## 2026-09-12 M1 final acceptance
 
 - Focused audit/settings/navigation regression: PASS, 33 tests / 217 assertions. Branch administration regression after the browser-found translation defect: PASS, 10 / 77.
