@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Branch;
+use App\Models\Tenant;
 use App\Policies\BranchPolicy;
+use App\Policies\TenantPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Branch::class, BranchPolicy::class);
+        Gate::policy(Tenant::class, TenantPolicy::class);
 
         RateLimiter::for('login', function (Request $request) {
             $email = $request->input('email');
