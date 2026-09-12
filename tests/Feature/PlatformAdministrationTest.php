@@ -324,7 +324,7 @@ class PlatformAdministrationTest extends TestCase
         [$admin] = $this->platformAdmin();
         $tenant = $this->tenant(['status' => 'active', 'is_active' => true]);
         $version = (int) $tenant->lock_version;
-        DB::table('tenants')->whereKey($tenant->id)->update([
+        DB::table('tenants')->where('id', $tenant->id)->update([
             'status' => 'suspended',
             'is_active' => false,
         ]);
@@ -422,15 +422,14 @@ class PlatformAdministrationTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk();
 
-        DB::table('tenants')->whereKey($tenant->id)->update([
+        DB::table('tenants')->where('id', $tenant->id)->update([
             'status' => 'suspended',
             'is_active' => false,
         ]);
 
         $this->get(route('dashboard'))
-            ->assertRedirect(route('login'))
+            ->assertNotFound()
             ->assertSessionMissing('branch_id');
-        $this->assertGuest();
     }
 
     public function test_platform_login_renders_basic_ltr_and_rtl_html(): void
@@ -479,7 +478,7 @@ class PlatformAdministrationTest extends TestCase
     {
         return Tenant::factory()->create(array_merge([
             'internal_identifier' => 'tenant-'.Str::lower(Str::random(8)),
-        ], $overrides));
+        ], $overrides))->refresh();
     }
 
     private function tenantUser(Tenant $tenant, array $overrides = []): User

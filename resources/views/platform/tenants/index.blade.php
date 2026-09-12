@@ -149,7 +149,11 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-semibold" for="{{ $statusFormId }}-reason">{{ __('platform.tenants.reason_code') }}</label>
-                                                    <input class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-reason" name="reason_code" type="text" value="{{ old('reason_code') }}" placeholder="{{ __('platform.tenants.reason_placeholder') }}" aria-describedby="{{ $statusFormId }}-reason-hint" required>
+                                                    <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-reason" name="reason_code" aria-describedby="{{ $statusFormId }}-reason-hint" required>
+                                                        @foreach (['setup_change', 'access_review', 'correction'] as $reason)
+                                                            <option value="{{ $reason }}">{{ __('platform.tenants.reasons.'.$reason) }}</option>
+                                                        @endforeach
+                                                    </select>
                                                     <span class="mt-1 block text-xs text-[var(--pn-ink-muted)]" id="{{ $statusFormId }}-reason-hint">{{ __('platform.tenants.reason_hint') }}</span>
                                                 </div>
                                             </div>

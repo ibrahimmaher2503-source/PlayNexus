@@ -13,6 +13,11 @@ class EnsurePlatformAccess
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
+
+        if ($user && $user->tenant_id !== null) {
+            abort(403);
+        }
+
         $freshUser = $user
             ? User::query()->whereKey($user->getAuthIdentifier())->whereNull('tenant_id')->where('status', 'active')->first()
             : null;

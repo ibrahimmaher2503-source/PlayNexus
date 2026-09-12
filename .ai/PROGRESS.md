@@ -1,5 +1,9 @@
 # Progress
 
+## 2026-09-12 T27-T29 completed locally
+
+Three Luna/xhigh workers delivered Platform backend `44773e3`, bilingual UI `02bbc7a`, and independent security tests `0167bb8`. Coordinator integrated and reviewed all three, wired platform routes, and corrected private owner eager loading, missing idempotency-key generation, login translation mismatch, tenant-user platform denial, status reason UI validation, redundant nullable-column alteration, multi-field uniqueness feedback, and two false-positive Query Builder test fixtures. Focused Platform tests pass 17/178; full regression passes 138/1,059. No browser, shared database, main merge or push.
+
 ## 2026-09-12 T24-T26 completed locally
 
 Three parallel slices were integrated: native password recovery (`9ba9556`), tenant profile settings (`eb46395`), and branch operational settings (`3f17d0a`). Coordinator wiring added the route includes and owner navigation. Review corrected unsupported migration check calls, a malformed compiled Blade section, factory defaults for the new tenant profile, and test-session setup for the new credential version. Password reset, profile and branch settings tests pass 18/190; full regression passes 121/881. No browser, shared database, main merge or push was performed.

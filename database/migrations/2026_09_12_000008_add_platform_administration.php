@@ -9,10 +9,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
-            $table->foreignId('tenant_id')->nullable()->change();
-        });
-
         Schema::table('tenants', function (Blueprint $table): void {
             $table->string('internal_identifier', 50)->nullable()->after('name');
             $table->string('plan_reference', 190)->nullable()->after('internal_identifier');

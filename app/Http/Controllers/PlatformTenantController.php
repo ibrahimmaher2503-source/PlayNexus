@@ -24,7 +24,6 @@ class PlatformTenantController extends Controller
     public function index(Request $request): View
     {
         $tenants = Tenant::query()
-            ->with(['owners' => fn ($query) => $query->select(['users.id', 'users.name', 'users.email'])])
             ->withCount('branches')
             ->orderBy('name')
             ->orderBy('id')
@@ -34,6 +33,7 @@ class PlatformTenantController extends Controller
         return view('platform.tenants.index', [
             'actor' => $request->user(),
             'tenants' => $tenants,
+            'idempotencyKey' => (string) Str::uuid(),
         ]);
     }
 
@@ -99,16 +99,15 @@ class PlatformTenantController extends Controller
                 return $existing;
             }
 
+            $errors = [];
             if (Tenant::query()->where('internal_identifier', $data['internal_identifier'])->exists()) {
-                throw ValidationException::withMessages([
-                    'internal_identifier' => __('validation.unique', ['attribute' => 'internal identifier']),
-                ]);
+                $errors['internal_identifier'] = __('validation.unique', ['attribute' => 'internal identifier']);
             }
-
             if (User::query()->where('email', $data['initial_owner_email'])->exists()) {
-                throw ValidationException::withMessages([
-                    'initial_owner_email' => __('validation.unique', ['attribute' => 'initial owner email']),
-                ]);
+                $errors['initial_owner_email'] = __('validation.unique', ['attribute' => 'initial owner email']);
+            }
+            if ($errors !== []) {
+                throw ValidationException::withMessages($errors);
             }
 
             $tenant = Tenant::query()->create([

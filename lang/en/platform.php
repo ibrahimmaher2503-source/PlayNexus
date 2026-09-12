@@ -3,6 +3,7 @@
 return [
     'brand' => 'PlayNexus',
     'platform_label' => 'Platform administration',
+    'auth' => ['invalid_credentials' => 'These credentials do not match our records.'],
     'locale' => [
         'label' => 'Language',
         'english' => 'English',
@@ -49,6 +50,7 @@ return [
         'reason_code' => 'Reason code',
         'reason_hint' => 'Required for the platform audit record.',
         'reason_placeholder' => 'For example: onboarding_complete',
+        'reasons' => ['setup_change' => 'Setup change', 'access_review' => 'Access review', 'correction' => 'Correction'],
         'save_status' => 'Save status',
         'status_success' => 'Tenant status updated successfully.',
         'status_conflict' => 'This tenant changed before your update. Refresh the page and review the current status.',

@@ -1,5 +1,13 @@
 # Current Milestone
 
+## 2026-09-12 T27-T29 platform administration wave
+
+Platform Super Admin tenant administration is locally integrated on `codex/first`: isolated platform login/session enforcement, tenant provisioning with an invited initial owner and idempotent replay, tenant lifecycle activation/suspension, a separate bilingual platform shell, and platform audit records. Tenant users are forbidden from platform management and suspended tenants cannot continue protected operations.
+
+Focused security acceptance passed 17 tests / 178 assertions; the full suite passed 138 tests / 1,059 assertions. All Blade views compile; Pint, frontend build, documentation validation and whitespace checks pass. Browser remains deferred by user. MySQL validation for migrations added after T07B and PHP 8.5 remain outstanding. No main merge or push.
+
+Next work should close M1 runtime evidence: isolated MySQL 8.4 migration/full-suite verification for the current schema, PHP 8.5 compatibility, then the deferred browser journeys for platform and account/settings flows.
+
 ## 2026-09-12 T24-T26 integrated feature wave
 
 Password recovery, tenant business-profile settings, and full branch operational settings are locally integrated on `codex/first`. Password resets are generic, time-limited and single-use, and increment `auth_version` to revoke older authenticated sessions. Tenant owners can update their own bilingual profile and configure own-tenant branches, including inactive branches, with optimistic conflict checks, transactions and atomic audit records. Branch configuration covers code, address, timezone, capacity, EGP currency, tax mode/rate, receipt prefix, cash payment and all seven opening-hours rows.

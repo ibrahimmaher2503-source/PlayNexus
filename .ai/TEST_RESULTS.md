@@ -338,3 +338,15 @@ Task-owned MySQL and Laravel server processes were stopped after verification. P
 | Runtime boundary | SQLite `:memory:` and array sessions from `phpunit.xml`; browser deferred by user; new MySQL migrations/locks and PHP 8.5 unverified |
 
 Review rejected the worker migration's nonexistent `Blueprint::check` calls before acceptance and removed them; request validation, unique tenant branch code and composite tenant/branch foreign keys remain enforced. Blade compilation was exercised through feature tests after correcting the payment-method block. No shared services or databases were changed.
+# 2026-09-12 T27-T29 Platform integration acceptance
+
+| Check | Result |
+|---|---|
+| Platform security and lifecycle | `php artisan test --filter=PlatformAdministrationTest` — PASS, 17 tests / 178 assertions |
+| Full regression | `php artisan test` — PASS, 138 tests / 1,059 assertions |
+| Blade compilation | `php artisan view:clear && php artisan view:cache` — PASS |
+| Formatting | `php vendor/bin/pint --test` — PASS |
+| Frontend | `npm run build` — PASS; optional `fontaine` notice only |
+| Runtime boundary | SQLite `:memory:` and array sessions; browser deferred by user; current MySQL migrations and PHP 8.5 unverified |
+
+The independent test slice initially exposed integration mismatches. Coordinator corrected production authorization, data minimization, translation, idempotency form wiring and reason-code UI, then corrected two test fixtures that used Query Builder `whereKey` and stale unhydrated defaults. Platform provisioning proves atomic tenant/invited-owner/ownership/audit creation, normalized idempotent replay, conflicting replay denial, rollback, status locking, audit attribution, and tenant-user isolation.

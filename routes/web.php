@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/app');
 Route::post('/locale', [LocaleController::class, 'store'])->name('locale.store');
 require __DIR__.'/password.php';
+require __DIR__.'/platform.php';
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');

@@ -3,6 +3,7 @@
 return [
     'brand' => 'PlayNexus',
     'platform_label' => 'إدارة المنصة',
+    'auth' => ['invalid_credentials' => 'بيانات الدخول غير صحيحة.'],
     'locale' => [
         'label' => 'اللغة',
         'english' => 'الإنجليزية',
@@ -49,6 +50,7 @@ return [
         'reason_code' => 'رمز السبب',
         'reason_hint' => 'مطلوب لسجل تدقيق المنصة.',
         'reason_placeholder' => 'مثال: onboarding_complete',
+        'reasons' => ['setup_change' => 'تغيير الإعداد', 'access_review' => 'مراجعة الوصول', 'correction' => 'تصحيح'],
         'save_status' => 'حفظ الحالة',
         'status_success' => 'تم تحديث حالة المنشأة بنجاح.',
         'status_conflict' => 'تغيرت هذه المنشأة قبل تحديثك. حدّث الصفحة وراجع الحالة الحالية.',
