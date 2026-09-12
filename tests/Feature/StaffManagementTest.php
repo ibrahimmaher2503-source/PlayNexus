@@ -146,6 +146,31 @@ class StaffManagementTest extends TestCase
             ->assertUnprocessable();
     }
 
+    public function test_validation_rerender_keeps_each_staff_row_on_its_persisted_status(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $activeTarget = User::factory()->create(['tenant_id' => $tenant->id, 'status' => 'active']);
+        $suspendedTarget = User::factory()->create(['tenant_id' => $tenant->id, 'status' => 'suspended']);
+
+        $this->actingAs($owner)
+            ->from(route('staff.index'))
+            ->patch(route('staff.status', $activeTarget), [
+                'status' => 'invited',
+                'expected_status' => 'invalid',
+                'reason_code' => 'invalid',
+            ])
+            ->assertRedirect(route('staff.index'));
+
+        $html = $this->actingAs($owner)->get(route('staff.index'))->getContent();
+        $activeSelect = $this->selectMarkup($html, $activeTarget->id);
+        $suspendedSelect = $this->selectMarkup($html, $suspendedTarget->id);
+
+        $this->assertStringContainsString('value="active" selected', $activeSelect);
+        $this->assertStringNotContainsString('value="suspended" selected', $activeSelect);
+        $this->assertStringContainsString('value="suspended" selected', $suspendedSelect);
+        $this->assertStringNotContainsString('value="active" selected', $suspendedSelect);
+    }
+
     public function test_stale_expected_status_returns_conflict_without_audit(): void
     {
         [$tenant, $owner] = $this->owner();
@@ -272,5 +297,15 @@ class StaffManagementTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ];
+    }
+
+    private function selectMarkup(string $html, int $userId): string
+    {
+        $start = strpos($html, 'id="status-'.$userId.'"');
+        $this->assertNotFalse($start);
+        $end = strpos($html, '</select>', $start);
+        $this->assertNotFalse($end);
+
+        return substr($html, $start, $end - $start);
     }
 }
