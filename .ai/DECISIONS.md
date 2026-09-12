@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-12: Continue M2 with basic family-profile maintenance
+
+**Authority:** The product owner asked to continue remaining milestones with another Luna/xhigh worker wave.
+**Decision:** Deliver family detail, basic guardian/child correction, and adding one child to an existing guardian before consent or downstream visit flows. Use current-tenant route binding/query scope, existing fixed-role policy eligibility, allowlisted relationship types, optimistic `lock_version` checks, transactions, and audit events containing record IDs and changed field names only.
+**Boundary:** No guardian merge/create-anyway path, consent evidence, emergency/safety notes, relationship revocation, visit history, ticket, check-in, or new permission key. Those require their own approved contract or later milestone.
+**Rationale:** This advances BRQ-004 and US-CUS-003/004 without inventing OQ-17 or legal/privacy behavior and reuses the schema and UI vocabulary already accepted in T33-T35.
+
 ## 2026-09-12: Start M2 with a conservative family-registry slice
 
 **Authority:** The product owner asked to begin M2 after confirming current readiness and requested three Luna/xhigh workers with coordinator review.

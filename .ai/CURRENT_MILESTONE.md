@@ -6,6 +6,12 @@ M1 remains closed. M2 starts with a bounded staff-assisted family registry: curr
 
 T33 schema/models, T34 authorization/controller/routes, and T35 bilingual UI are integrated and centrally reviewed. Next: obtain isolated MySQL evidence for the new migration, close OQ-17 and legal consent wording/version/retention, then plan the next bounded M2 slice.
 
+## 2026-09-12 M2 second slice — family profile maintenance
+
+Implement a tenant-scoped family detail page, basic guardian/child edits with optimistic conflict checks, and adding one new child plus active relationship to an existing guardian. Audit successful changes without copying phone, email, DOB, or names into audit JSON. Consent, safety/emergency data, relationship revocation, guardian merge, visit history, tickets, and check-in remain outside this slice.
+
+Next three actions: T36 backend authorization and commands, T37 bilingual family-profile UI, and T38 adversarial/contract review. Three Luna/xhigh workers own disjoint files; the coordinator owns integration, documentation, browser acceptance, and full gates.
+
 ## 2026-09-12 M1 closed
 
 M1 access and branch foundation is DONE on `codex/first`. PHP 8.5 compatibility (T31) is closed; its full suite passes on PHP 8.4.21 and 8.5.8, and its migrations plus suite passed on isolated MySQL 8.4.11/InnoDB. M2 is now in progress through the family-registry first slice; this is not M2 closure or production readiness. No main merge or push.

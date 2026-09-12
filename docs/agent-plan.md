@@ -1,5 +1,15 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 M2 T36-T38 family-profile wave
+
+The user authorized another three-agent Luna/xhigh wave. Fixed boundary: current-tenant family detail; edit guardian name/phone/email/preferred locale and child name/optional DOB with expected `lock_version`; add one child and active allowlisted relationship to an existing guardian atomically. Same-tenant phone conflict must point to the existing family and create no write. Audit JSON stores IDs and changed field names, never raw PII.
+
+- **T36 backend:** family-profile policy/actions/routes, transactional update/add-child commands, conflict/duplicate handling, and focused feature tests.
+- **T37 UI:** bilingual responsive family detail, edit forms, add-child form, validation/success/conflict recovery, and UI tests.
+- **T38 review:** independent adversarial review/tests for tenant leaks, stale versions, duplicate phone, rollback, audit PII, inactive actors/branches, and route binding.
+
+Consent, safety/emergency data, relationship revocation, guardian merge, visit history, tickets, and check-in remain excluded. The coordinator integrates shared contracts, updates canonical docs, and runs full/browser/MySQL-proportional gates.
+
 ## 2026-09-12 M2 T33-T35 first family-registry wave
 
 The user authorized M2 start with three Luna/xhigh workers. Fixed contract: one visible flow at `/app/families` and `/app/families/create`; search by trimmed/capped child name or normalized guardian phone; only current-tenant safe results; create one guardian, one child and one active guardian-child link in one transaction. Same-tenant normalized phone match creates nothing and returns the existing-family path; cross-tenant matches stay undisclosed. No phone uniqueness constraint, consent event, safety note/photo, editing, visit history, check-in or speculative permission key in this wave.
