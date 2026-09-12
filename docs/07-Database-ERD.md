@@ -1,5 +1,9 @@
 # PlayNexus Database ERD and Schema Specification
 
+## T18-T20 audit implementation subset
+
+The first audit_logs migration records successful staff status/branch-assignment mutations: bigint id/tenant_id/actor_user_id, nullable branch_id, actor_type/action/subject_type/subject_id/outcome/reason_code, nullable JSON before_json/after_json, server-generated UUID request_id and UTC occurred_at. Composite actor/branch FKs enforce tenant scope; no updated_at or application update/delete route. Restrict deletion of referenced entities to preserve evidence. Generic denial/security audit, platform audit, network hashes and richer masking are not delivered by this subset. Expected-state checks reuse existing staff/pivot fields; no generic version framework is added.
+
 ## T14 bounded owner-read implementation
 
 The initial owner-read slice uses `tenant_owners`: non-null bigint `tenant_id` and `user_id`, timestamps, primary key `(tenant_id,user_id)`, and composite FK to `users(tenant_id,id)` with cascade deletion. Ownership is explicitly provisioned; no existing branch role is promoted. The generic RBAC schema below remains the broader target, not a claim of implemented tables. See the 2026-09-12 decision in `.ai/DECISIONS.md`.

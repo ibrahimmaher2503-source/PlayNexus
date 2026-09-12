@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'manage_staff' => 'إدارة الموظفين',
+    'manage_assignments' => 'صلاحيات الفروع',
     'back_to_dashboard' => 'العودة إلى لوحة التشغيل',
     'navigation_label' => 'ملف المنشأة',
     'page_description' => 'راجع بيانات منشأتك وحسابات الموظفين.',

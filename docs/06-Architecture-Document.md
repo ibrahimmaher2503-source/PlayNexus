@@ -1,5 +1,9 @@
 # PlayNexus Architecture Document
 
+## T18-T20 owner access and staff administration amendment
+
+The authorized next wave extends explicit tenant ownership to active own-tenant branch listing/selection/reads. Ordinary branch staff still require active assignment and permitted role. Owner-only administration covers existing non-owner account status and fixed branch assignments, using fresh authorization, tenant-scoped row locks, expected-state conflict detection and atomic successful-change audit. This supersedes the prior T14 read-only exception for these named operations only. Platform access and ownership transfer remain excluded.
+
 ## T14 bounded owner-read implementation
 
 For `/app/tenant` only, explicit tenant_owners membership grants a tenant-global read boundary without a branch assignment. Branch operational routes continue to require active assignments and BranchPolicy; the tenant-global read exception does not grant branch operations or resolve future owner-wide branch selection. Generic RBAC and platform identity remain later work.

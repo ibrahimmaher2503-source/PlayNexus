@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'manage_staff' => 'Manage staff',
+    'manage_assignments' => 'Branch assignments',
     'back_to_dashboard' => 'Back to dashboard',
     'navigation_label' => 'Tenant profile',
     'page_description' => 'Review your tenant details and staff accounts.',

@@ -1,5 +1,9 @@
 # PlayNexus Permission Matrix
 
+## T18-T20 bounded implementation amendment
+
+User-authorized wave: explicit active owner has `branches.view` over active own-tenant branches; owner-only existing non-owner staff status and fixed branch role/access assignment are now in implementation scope. Branch-manager staff administration, account invitations, owner transfer and all other draft permissions remain unimplemented. All owner targets are excluded from these mutations. Deny foreign scope404, missing owner403, stale submitted state409; require reason code and atomic audit for successful changes. Exact contracts: docs/agent-plan.md T18-T20.
+
 ## T14 bounded owner-read implementation
 
 The coordinator-approved initial owner permission is `TenantPolicy::view` for own-tenant profile and staff-list reads at `/app/tenant`. It requires fresh active user/tenant state and explicit tenant_owners membership. Foreign/inactive tenant policy scope returns 404; in-scope missing ownership returns 403. Existing middleware revokes inactive accounts. Owner branch-wide access, mutation and platform access are not granted by this slice; the remaining matrix stays draft.
