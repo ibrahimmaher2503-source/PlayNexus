@@ -8,6 +8,8 @@ Approve MVP decisions, choose exact supported versions, scaffold Laravel, config
 
 Tenant context, branches, staff authentication, role policies, locale/timezone/currency configuration, audit skeleton, and responsive app shell.
 
+**Status: DONE — 2026-09-12.** The implemented boundary passed the complete automated suite on PHP 8.4.21 and 8.5.8, current migrations and suite on isolated MySQL 8.4.11/InnoDB, and real Arabic RTL/English LTR browser acceptance. M2 and production operations remain outside this closure.
+
 ## M2: Guardian and child registration
 
 Fast search, duplicate handling, create/edit, guardian-child links, consent, emergency contact, visit history, and authorization tests.

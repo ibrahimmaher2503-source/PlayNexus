@@ -21,6 +21,21 @@
     --pn-primary-hover: oklch(0.4 0.09 205);
     --pn-focus: oklch(0.62 0.11 200);
     --pn-danger: #b42318;
+    --pn-danger-soft: #fde8e6;
+    --pn-success: #18794e;
+    --pn-success-soft: #e5f5ec;
+    --pn-info: #275dad;
+    --pn-info-soft: #e8f0fc;
+}
+
+:where(a, button, input, select, textarea) {
+    transition: color 160ms cubic-bezier(0.25, 1, 0.5, 1), background-color 160ms cubic-bezier(0.25, 1, 0.5, 1), border-color 160ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 160ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :where(a, button, input, select, textarea) {
+        transition: none;
+    }
 }
 
 html[lang='ar'] {

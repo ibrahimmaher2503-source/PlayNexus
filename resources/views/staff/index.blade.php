@@ -29,7 +29,7 @@
         </header>
 
         @if (session('success'))
-            <div class="mt-6 rounded-[14px] border border-[#18794E] bg-[#E5F5EC] p-4 text-[#18794E]" role="status" aria-live="polite">
+            <div class="mt-6 rounded-[14px] border border-[var(--pn-success)] bg-[var(--pn-success-soft)] p-4 text-[var(--pn-success)]" role="status" aria-live="polite">
                 {{ session('success') }}
             </div>
         @elseif (session('status_message'))
@@ -39,7 +39,7 @@
         @endif
 
         @if ($errors->any())
-            <div class="mt-6 rounded-[14px] border border-[var(--pn-danger)] bg-[#FDE8E6] p-4 text-[var(--pn-danger)]" id="staff-status-errors" role="alert" aria-live="assertive">
+            <div class="mt-6 rounded-[14px] border border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] p-4 text-[var(--pn-danger)]" id="staff-status-errors" role="alert" aria-live="assertive">
                 <p class="font-semibold">{{ __('staff.form_error') }}</p>
                 <ul class="mt-2 list-disc space-y-1 ps-5">
                     @foreach ($errors->all() as $error)
@@ -68,9 +68,9 @@
                     $mutableStatusLabels = __('staff.mutable_statuses');
                     $reasonLabels = __('staff.reasons');
                     $statusClasses = [
-                        'active' => 'bg-[#E5F5EC] text-[#18794E]',
+                        'active' => 'bg-[var(--pn-success-soft)] text-[var(--pn-success)]',
                         'invited' => 'bg-[var(--pn-surface-subtle)] text-[var(--pn-primary)]',
-                        'suspended' => 'bg-[#FDE8E6] text-[var(--pn-danger)]',
+                        'suspended' => 'bg-[var(--pn-danger-soft)] text-[var(--pn-danger)]',
                         'disabled' => 'bg-[var(--pn-surface-subtle)] text-[var(--pn-ink-muted)]',
                     ];
                 @endphp

@@ -4,7 +4,11 @@
 **Source baseline:** PlayNexus PRD v1.0, June 2026  
 **Verified source:** 27,198 bytes; SHA-256 `D9119C1A3325DD8DBF318296EB52DDFF95B064A0C0061EAD96CAAD68D9FEF5D2`  
 **Implementation target:** Laravel web MVP  
-**Status:** Working specification pending stakeholder approval
+**Status:** M1 implemented and locally accepted; later milestones remain working specifications
+
+## Implementation status — 2026-09-12
+
+M1 access and branch foundation is DONE on `codex/first`. Acceptance covers PHP 8.4/8.5, SQLite and isolated MySQL 8.4.11/InnoDB, bilingual browser journeys, formatting, frontend build, dependency audits, and documentation validation. M2 has not started and production readiness is not claimed.
 
 `docs/` is the single source of truth for product, technical, delivery, and implementation documentation. Do not create parallel summary copies.
 

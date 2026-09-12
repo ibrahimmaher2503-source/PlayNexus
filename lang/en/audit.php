@@ -60,8 +60,11 @@ return [
         'staff.branch_assignment.changed' => 'Staff branch assignment changed',
         'branch.created' => 'Branch created',
         'branch.status.changed' => 'Branch status changed',
+        'branch.settings.updated' => 'Branch settings updated',
+        'tenant.profile.updated' => 'Business profile updated',
     ],
     'reasons' => [
+        'setup_change' => 'Setup change',
         'staffing_change' => 'Staffing change',
         'access_review' => 'Access review',
         'correction' => 'Correction',

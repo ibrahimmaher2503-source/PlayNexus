@@ -125,6 +125,25 @@ class AuditLogViewTest extends TestCase
             ->assertJsonValidationErrors(['outcome']);
     }
 
+    public function test_settings_events_are_named_and_filterable(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $this->audit($tenant, $owner, null, action: 'tenant.profile.updated', reasonCode: 'setup_change');
+        $this->audit($tenant, $owner, $branch, action: 'branch.settings.updated', reasonCode: 'setup_change');
+
+        foreach (['tenant.profile.updated', 'branch.settings.updated'] as $action) {
+            $this->actingAs($owner)
+                ->get(route('audit.index', ['action' => $action]))
+                ->assertOk()
+                ->assertSee(trans('audit.actions')[$action])
+                ->assertSee(trans('audit.reasons.setup_change'))
+                ->assertDontSee(trans('audit.unknown_action'))
+                ->assertDontSee(trans('audit.unknown_reason'))
+                ->assertViewHas('logs', fn (LengthAwarePaginator $logs): bool => $logs->total() === 1 && $logs->first()->action === $action);
+        }
+    }
+
     public function test_foreign_and_nonexistent_actor_filters_have_the_same_validation_error(): void
     {
         [$tenant, $owner] = $this->owner();

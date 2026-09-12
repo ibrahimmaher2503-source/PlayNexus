@@ -1,5 +1,9 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 M1 closed
+
+T31 PHP 8.5 compatibility is DONE: the full suite passes on PHP 8.5.8. Final coordinator review added the shared authenticated shell, polished tenant settings, semantic state tokens, audit labels/filters for branch and tenant settings, and a missing branch-settings translation fix. Final acceptance: 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and PHP 8.5.8; 142 / 1,096 after fresh migrations on isolated MySQL 8.4.11/InnoDB; focused UI/audit 33 / 217; Pint, Vite, Composer audit, npm audit, documentation validation, whitespace, real Arabic RTL/English LTR browser, and console checks PASS. M1 DONE; M2 not started; no main merge or push.
+
 ## 2026-09-12 T30 and T32 final acceptance integrated
 
 Three requested Luna/xhigh workers completed MySQL execution, browser execution, and independent review. T30 `3c2d6fd` is merged by `385b58d`; isolated MySQL 8.4.11/InnoDB passed migrations, 46 tests / 389 assertions focused and 138 / 1,059 full. T32 `108ca47` is merged after it fixed safe same-page locale switching and browser-verified `/app/branches/1/settings` in Arabic RTL and English LTR. Post-merge SQLite verification passed 54 / 444 focused and 141 / 1,077 full; Pint and diff checks pass. T31 PHP 8.5 remains outstanding. No main merge or push.

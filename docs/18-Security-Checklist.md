@@ -1,5 +1,9 @@
 # Security Checklist
 
+## M1 review record — 2026-09-12
+
+M1 locally verifies generic/throttled authentication, session rotation and revocation, CSRF-protected mutations, deny-by-default tenant/branch/platform policies, expected-state conflicts, tenant-scoped transactions, and atomic audit records. Composer and npm report zero known vulnerabilities. TLS, managed secrets, centralized monitoring, backup/restore, and production host controls remain release gates and are not marked complete here.
+
 ## Identity and access
 
 - [ ] Secure password hashing, login throttling, session rotation, logout invalidation, and secure cookies.
@@ -28,4 +32,3 @@
 - [ ] Centralized error monitoring without sensitive payloads.
 - [ ] Automated backups, access controls, retention, restore test, disaster recovery owners, and incident playbook.
 - [ ] Dependency and container/host security updates included in release operations.
-

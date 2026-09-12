@@ -1,5 +1,9 @@
 # Blockers
 
+## 2026-09-12 M1 closure
+
+No blocker remains for M1 local acceptance. T30 MySQL, T31 PHP 8.5, and T32 browser acceptance are closed. Production readiness remains blocked on deployment-specific TLS, managed secrets, monitoring, backup/restore, and operational approval. M2 and later schema/API freeze still depend on their documented product/legal decisions; they do not reopen M1.
+
 ## 2026-09-12 current runtime blocker
 
 T30 MySQL 8.4 and T32 browser acceptance are closed. PHP 8.5 compatibility (T31) remains unverified; full milestone and production readiness must not be claimed from the completed local slice.

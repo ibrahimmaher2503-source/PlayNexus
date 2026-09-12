@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-09-12: Close M1 at the access-and-branch boundary
+
+**Decision:** Mark M1 DONE after PHP 8.4/8.5, SQLite/MySQL 8.4.11, focused security, build/format/audit, documentation, and real bilingual browser gates pass.
+**Rationale:** The milestone definition is fully represented by tenant/branch context, authentication, fixed policies, owner/platform administration, locale/timezone/currency settings, audit history, and the responsive shell. Guardian/child and later operational modules belong to M2–M6 and are not pulled into this closure.
+**Boundary:** This is local milestone acceptance, not production readiness or authorization to start M2 without its approved contracts.
+
 ## 2026-08-24: Documentation-first Laravel baseline
 
 **Decision:** Use an implementation-ready documentation pack and UI-first milestones before scaffolding application code.  

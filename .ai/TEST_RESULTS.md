@@ -1,5 +1,16 @@
 # Test Results
 
+## 2026-09-12 M1 final acceptance
+
+- Focused audit/settings/navigation regression: PASS, 33 tests / 217 assertions. Branch administration regression after the browser-found translation defect: PASS, 10 / 77.
+- SQLite full suite: PASS, 142 tests / 1,096 assertions on PHP 8.4.21; PASS, 142 / 1,096 on PHP 8.5.8.
+- Isolated MySQL: MySQL 8.4.11, InnoDB, fresh migrations PASS; full suite PASS, 142 / 1,096. The task-owned server was stopped afterward and no shared database was changed.
+- `npm run build`, Pint, `composer audit`, `npm audit`, route listing, documentation validation, and `git diff --check`: PASS. Dependency audits found zero known vulnerabilities. Vite emitted only the optional `fontaine` optimization notice.
+- Real browser at 910px tablet width: Arabic `lang=ar`, `dir=rtl`, no page-level horizontal overflow, active navigation and skip target present, no unknown settings action/reason labels, no untranslated branch-settings key, and zero console warnings/errors. Earlier T32 English/LTR and same-page locale switching remain accepted.
+- Final documentation validator checked 31 Markdown files with 0 errors and two historical placeholder-marker warnings in the execution ledger/evidence archive.
+
+Boundary: M1 local acceptance only. M2–M6 and production TLS, monitoring, backup/restore, deployment, and operational readiness are not claimed.
+
 ## 2026-09-12 T30 and T32 final acceptance
 
 - T30 isolated MySQL 8.4.11/InnoDB: migrations PASS; focused 46 tests / 389 assertions; full 138 / 1,059.

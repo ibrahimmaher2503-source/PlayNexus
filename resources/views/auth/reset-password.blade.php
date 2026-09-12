@@ -10,7 +10,7 @@
             <p class="mt-2 text-sm text-[var(--pn-ink-muted)]" id="password-reset-description">{{ __('passwords.reset_description') }}</p>
 
             @if ($errors->any())
-                <div class="mt-5 rounded-[10px] border border-[var(--pn-danger)] bg-[#FDE8E6] px-4 py-3 text-sm text-[var(--pn-danger)]" id="password-reset-errors" role="alert" aria-live="assertive">
+                <div class="mt-5 rounded-[10px] border border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] px-4 py-3 text-sm text-[var(--pn-danger)]" id="password-reset-errors" role="alert" aria-live="assertive">
                     <ul class="list-inside list-disc">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>

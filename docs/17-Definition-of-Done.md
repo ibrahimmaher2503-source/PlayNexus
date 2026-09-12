@@ -12,3 +12,6 @@ A backlog item is done only when:
 - accessibility, responsive LTR/RTL behavior, logs/metrics, and operational support are considered for the changed surface;
 - `.ai/PROGRESS.md`, `.ai/TEST_RESULTS.md`, `.ai/DECISIONS.md`, and `.ai/HANDOFF.md` reflect reality.
 
+## M1 exit record — 2026-09-12
+
+M1 meets this gate for its implemented access-and-branch boundary: scoped authorization and audit behavior have focused regressions; the full suite passes on PHP 8.4.21, PHP 8.5.8, SQLite, and isolated MySQL 8.4.11/InnoDB; the production build, formatter, dependency audits, and documentation validator pass; and Arabic RTL/English LTR browser checks cover the responsive shell and settings/audit surfaces. Release operations, backup/restore, and later business workflows are not part of this milestone exit.

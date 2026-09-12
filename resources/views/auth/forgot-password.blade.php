@@ -21,10 +21,10 @@
             <p class="mt-2 text-sm text-[var(--pn-ink-muted)]" id="password-forgot-description">{{ __('passwords.forgot_description') }}</p>
 
             @if (session('status'))
-                <p class="mt-5 rounded-[10px] border border-[#275DAD] bg-[#E8F0FC] px-4 py-3 text-sm text-[#275DAD]" role="status" aria-live="polite">{{ session('status') }}</p>
+                <p class="mt-5 rounded-[10px] border border-[var(--pn-info)] bg-[var(--pn-info-soft)] px-4 py-3 text-sm text-[var(--pn-info)]" role="status" aria-live="polite">{{ session('status') }}</p>
             @endif
             @if ($errors->any())
-                <div class="mt-5 rounded-[10px] border border-[var(--pn-danger)] bg-[#FDE8E6] px-4 py-3 text-sm text-[var(--pn-danger)]" id="password-forgot-errors" role="alert" aria-live="assertive">
+                <div class="mt-5 rounded-[10px] border border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] px-4 py-3 text-sm text-[var(--pn-danger)]" id="password-forgot-errors" role="alert" aria-live="assertive">
                     <ul class="list-inside list-disc">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>

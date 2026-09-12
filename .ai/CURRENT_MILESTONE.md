@@ -1,5 +1,9 @@
 # Current Milestone
 
+## 2026-09-12 M1 closed
+
+M1 access and branch foundation is DONE on `codex/first`. PHP 8.5 compatibility (T31) is closed; the final full suite passes on PHP 8.4.21 and 8.5.8, and current migrations plus the full suite pass on isolated MySQL 8.4.11/InnoDB. Real-browser Arabic RTL/English LTR acceptance covers the shared responsive shell, tenant/branch settings, audit labels, active navigation, skip link, and zero console warnings/errors. M2 is ready for planning but not started. This is not production readiness; no main merge or push.
+
 ## 2026-09-12 T30 and T32 runtime acceptance
 
 T30 MySQL and T32 browser acceptance are DONE and integrated on `codex/first`. MySQL 8.4.11/InnoDB passed the current migrations and full suite; real browser checks covered platform provisioning/lifecycle, bilingual platform pages, and branch-settings locale switching that remains on the same safe local page. Post-merge regression passed 141 tests / 1,077 assertions. PHP 8.5 (T31) remains the next runtime gap. No main merge or push.

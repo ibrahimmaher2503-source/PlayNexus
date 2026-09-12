@@ -8,14 +8,14 @@
 
 ## Foundation
 
-- [ ] Scaffold the selected Laravel release and record exact setup commands.
+- [x] Scaffold the selected Laravel release and record exact setup commands.
 - [ ] Configure environment validation, CI, formatting, error tracking, backups, and secrets.
-- [ ] Implement tenant context, branch scope, authentication, policies, and audit correlation.
+- [x] Implement tenant context, branch scope, authentication, policies, and audit correlation.
 - [ ] Seed deterministic demo tenants/branches/users without real child or payment data.
 
 ## MVP delivery
 
-- [ ] M1 access and branch foundation.
+- [x] M1 access and branch foundation.
 - [ ] M2 guardian and child registration.
 - [ ] M3 pricing, tickets, and check-in.
 - [ ] M4 time engine and checkout.

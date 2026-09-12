@@ -38,6 +38,8 @@ class BranchAdministrationTest extends TestCase
             ->assertViewIs('branches.manage')
             ->assertSee([$active->name, $inactive->name])
             ->assertDontSee($foreign->name)
+            ->assertSee(__('branch_settings.page_title'))
+            ->assertDontSee('branch_settings.title')
             ->assertSee(__('branches.create'));
     }
 

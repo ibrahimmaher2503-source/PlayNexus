@@ -9,6 +9,14 @@
         @endif
     </head>
     <body class="bg-[var(--pn-canvas)] text-[var(--pn-ink)] antialiased">
-        @yield('content')
+        <a class="sr-only z-50 rounded-[10px] bg-[var(--pn-surface)] px-4 py-3 font-semibold focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:ring-2 focus:ring-[var(--pn-focus)]" href="#main-content">{{ __('navigation.skip') }}</a>
+        @auth
+            @unless (request()->routeIs('platform.*'))
+                @include('partials.navigation')
+            @endunless
+        @endauth
+        <div id="main-content" tabindex="-1">
+            @yield('content')
+        </div>
     </body>
 </html>

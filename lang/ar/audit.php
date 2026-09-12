@@ -60,8 +60,11 @@ return [
         'staff.branch_assignment.changed' => 'تغيير تعيين موظف لفرع',
         'branch.created' => 'إنشاء فرع',
         'branch.status.changed' => 'تغيير حالة فرع',
+        'branch.settings.updated' => 'تحديث إعدادات الفرع',
+        'tenant.profile.updated' => 'تحديث ملف المنشأة',
     ],
     'reasons' => [
+        'setup_change' => 'تغيير الإعداد',
         'staffing_change' => 'تغيير وظيفي',
         'access_review' => 'مراجعة الوصول',
         'correction' => 'تصحيح',

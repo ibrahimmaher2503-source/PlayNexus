@@ -12,7 +12,7 @@
         </header>
 
         @if ($errors->any())
-            <div class="mt-6 rounded-[14px] border border-[var(--pn-danger)] bg-[#FDE8E6] p-4 text-[var(--pn-danger)]" id="staff-invite-errors" role="alert" aria-live="assertive">
+            <div class="mt-6 rounded-[14px] border border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] p-4 text-[var(--pn-danger)]" id="staff-invite-errors" role="alert" aria-live="assertive">
                 <p class="font-semibold">{{ __('staff.invite_form_error') }}</p>
                 <ul class="mt-2 list-disc space-y-1 ps-5">
                     @foreach ($errors->all() as $error)

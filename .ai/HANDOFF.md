@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 M1 closure handoff
+
+Continue from `codex/first` with M1 DONE. Final verification is 142 tests / 1,096 assertions on SQLite under PHP 8.4.21 and 8.5.8, plus 142 / 1,096 on isolated MySQL 8.4.11/InnoDB after fresh migrations. Browser, build, format, dependency audits, and docs pass. M2 is not started: next work must use the canonical guardian/child, duplicate, consent, and privacy contracts. Preserve dirty `main`; no push was made.
+
 ## 2026-09-12 current handoff
 
 Continue from `codex/first` after merge commits `385b58d` (T30) and `59fbd4c` (T32). MySQL 8.4.11/InnoDB and the T32 browser journeys are accepted; integrated regression is 141 tests / 1,077 assertions. The next bounded runtime task is T31 PHP 8.5 compatibility. Preserve dirty `main`, do not push, and do not commit T32's local SQLite/seed artifacts.

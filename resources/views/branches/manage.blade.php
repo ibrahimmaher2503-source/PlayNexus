@@ -72,7 +72,7 @@
                                         <span class="font-semibold {{ $branch->is_active ? 'text-[var(--pn-primary)]' : 'text-[var(--pn-ink-muted)]' }}">{{ $branch->is_active ? __('branches.active') : __('branches.inactive') }}</span>
                                     </td>
                                     <td class="px-4 py-4">
-                                        <a class="mb-2 inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('branches.settings', $branch) }}">{{ __('branch_settings.title') }}</a>
+                                        <a class="mb-2 inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('branches.settings', $branch) }}">{{ __('branch_settings.page_title') }}</a>
                                         <form id="{{ $formId }}" class="flex min-w-72 flex-wrap items-end gap-2" method="POST" action="{{ route('branches.status', $branch) }}">
                                             @csrf
                                             @method('PATCH')

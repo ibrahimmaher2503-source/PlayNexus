@@ -1,9 +1,11 @@
 # PlayNexus Design System
 
-**Status:** Draft implementation baseline pending brand approval  
+**Status:** M1 interface baseline implemented; brand approval still pending
 **Register:** Product interface  
 **Primary surfaces:** Reception, cashier, branch operations, management  
 **Implementation target:** Laravel Blade, Livewire, Tailwind CSS 4
+
+**M1 acceptance — 2026-09-12:** The shared authenticated navigation, tenant settings, semantic state tokens, skip link, 44px controls, Arabic RTL/English LTR behavior, tablet overflow behavior, and reduced-motion fallback were checked in the real browser. No console warnings or errors were present in the accepted journey.
 
 ## 1. Design direction
 

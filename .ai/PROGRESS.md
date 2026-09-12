@@ -1,5 +1,9 @@
 # Progress
 
+## 2026-09-12 M1 completed
+
+Closed T31 with PHP 8.5.8, reran the whole suite on PHP 8.4.21 and 8.5.8, and reran migrations/full tests on isolated MySQL 8.4.11/InnoDB. Final code review fixed unsupported settings audit labels/reason text and a missing branch-settings translation. UI polish adds one shared owner navigation, a skip link, semantic state tokens, reduced-motion support, and a clearer responsive tenant-settings form. All checks and browser acceptance pass; M2 remains untouched.
+
 ## 2026-09-12 T30 and T32 completed
 
 Integrated T30 `3c2d6fd` and T32 `108ca47` into `codex/first`. T30 made rollback tests portable to MySQL without dropping transactional tables. T32 corrected localized platform feedback, retained Arabic after invalid platform login, and safely preserves the current local `/app` or `/platform` page during locale changes. Three Luna/xhigh workers supplied implementation and independent review. T31 PHP 8.5 remains pending.

@@ -12,10 +12,6 @@
                 <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ $selectedBranch ? __('Current branch: :branch', ['branch' => $selectedBranch->name]) : __('Select an assigned branch to continue.') }}</p>
             </div>
             <div class="flex flex-wrap items-end gap-3">
-                @if ($tenant !== null && auth()->user()?->can('view', $tenant))
-                    <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('tenant.show') }}">{{ __('tenant.navigation_label') }}</a>
-                    <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('tenant.settings.edit') }}">{{ __('tenant_settings.title') }}</a>
-                @endif
                 <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
                     @csrf
                     <label class="text-sm font-semibold" for="locale">{{ __('Language') }}</label>

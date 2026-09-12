@@ -21,6 +21,8 @@ class AuditLogController extends Controller
         'staff.branch_assignment.changed',
         'branch.created',
         'branch.status.changed',
+        'branch.settings.updated',
+        'tenant.profile.updated',
     ];
 
     private const SNAPSHOT_KEYS = ['status', 'role', 'is_active', 'branch_id', 'name'];
