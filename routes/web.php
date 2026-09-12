@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\BranchContextController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\TenantReadController;
 use App\Models\Branch;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,7 @@ Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::clas
 
 Route::middleware(['auth', 'tenant.access'])->group(function (): void {
     Route::get('/app', [BranchContextController::class, 'index'])->name('dashboard');
+    Route::get('/app/tenant', [TenantReadController::class, 'show'])->name('tenant.show');
     Route::post('/branch-context/{branch}', [BranchContextController::class, 'store'])->name('branch-context.store');
 
     Route::middleware('branch.access')->get('/branches/{branch}', fn (Branch $branch) => response()->json([
