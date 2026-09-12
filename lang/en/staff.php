@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'conflict_title' => 'Review the latest state',
     'back_to_dashboard' => 'Back to dashboard',
     'page_title' => 'Staff accounts',
     'page_description' => 'Review existing staff accounts and update access status when needed.',

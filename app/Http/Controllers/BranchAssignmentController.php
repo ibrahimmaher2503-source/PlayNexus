@@ -288,5 +288,4 @@ class BranchAssignmentController extends Controller
 
         return back()->withErrors($validator)->withInput();
     }
-
 }

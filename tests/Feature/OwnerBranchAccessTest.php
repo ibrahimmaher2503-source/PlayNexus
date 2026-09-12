@@ -64,8 +64,9 @@ class OwnerBranchAccessTest extends TestCase
         $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
         $branch->refresh();
 
-        DB::table('branches')->whereKey($branch->id)->update(['is_active' => false]);
+        DB::table('branches')->where('id', $branch->id)->update(['is_active' => false]);
 
+        $this->assertTrue($branch->is_active);
         $this->assertFalse(Gate::forUser($owner)->allows('view', $branch));
     }
 

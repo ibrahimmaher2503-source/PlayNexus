@@ -31,7 +31,7 @@ class StaffManagementTest extends TestCase
             ->assertViewIs('staff.index')
             ->assertSee($target->name)
             ->assertDontSee($foreign->name)
-            ->assertSee(__('staff.self_locked'))
+            ->assertSee(__('staff.owner_locked'))
             ->assertSee(__('staff.save'));
 
         $this->actingAs($owner)
