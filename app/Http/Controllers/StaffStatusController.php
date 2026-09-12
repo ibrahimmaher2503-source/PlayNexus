@@ -20,8 +20,6 @@ class StaffStatusController extends Controller
 
     private const MUTABLE_STATUS_VALUES = ['active', 'suspended', 'disabled'];
 
-    private const REASON_CODES = ['staffing_change', 'access_review', 'correction'];
-
     public function index(Request $request): View
     {
         [$actor, $tenant] = $this->authorizedContext($request);
@@ -129,14 +127,11 @@ class StaffStatusController extends Controller
         $validated = $request->validate([
             'status' => ['required', 'string', 'in:'.implode(',', self::MUTABLE_STATUS_VALUES)],
             'expected_status' => ['required', 'string', 'in:'.implode(',', self::STATUS_VALUES)],
-            'reason_code' => ['required', 'string', 'in:'.implode(',', self::REASON_CODES)],
         ], [
             'status.required' => __('staff.validation.status_required'),
             'status.in' => __('staff.validation.status_invalid'),
             'expected_status.required' => __('staff.validation.expected_status_required'),
             'expected_status.in' => __('staff.validation.expected_status_invalid'),
-            'reason_code.required' => __('staff.validation.reason_required'),
-            'reason_code.in' => __('staff.validation.reason_invalid'),
         ]);
 
         $changed = DB::transaction(function () use ($actor, $tenant, $target, $validated): bool {
@@ -180,7 +175,7 @@ class StaffStatusController extends Controller
                 'subject_type' => 'user',
                 'subject_id' => (string) $lockedTarget->getKey(),
                 'outcome' => 'success',
-                'reason_code' => $validated['reason_code'],
+                'reason_code' => 'staffing_change',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
                 'request_id' => (string) Str::uuid(),

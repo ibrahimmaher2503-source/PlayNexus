@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-12 routine administration reason cleanup
+
+- Removed reason selectors and validation from staff status, branch role/access assignment, and branch activation/deactivation.
+- Preserved atomic audit evidence with server-derived `staffing_change` and `access_review` codes; client-supplied reason values cannot alter them.
+- Updated the approved decision record, SRS interpretation, permission amendment, Arabic/English copy, and focused tests.
+- Verified the selected Arabic assignments page in the real browser and passed the full regression/build/format/docs gates.
+
 ## 2026-09-12 application shell
 
 - Replaced the horizontal authenticated link strip with the PRD-aligned 248px desktop sidebar, 64px top bar, and responsive navigation drawer.

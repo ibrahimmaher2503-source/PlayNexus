@@ -17,8 +17,6 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class BranchAdminController extends Controller
 {
-    private const REASON_CODES = ['setup_change', 'access_review', 'correction'];
-
     public function index(Request $request): View
     {
         [, $tenant] = $this->authorizedContext($request);
@@ -110,16 +108,12 @@ class BranchAdminController extends Controller
             [
                 'is_active' => ['required', 'boolean'],
                 'expected_is_active' => ['required', 'boolean'],
-                'reason_code' => ['required', 'string', 'in:'.implode(',', self::REASON_CODES)],
             ],
             [
                 'is_active.required' => __('branches.validation.status_required'),
                 'is_active.boolean' => __('branches.validation.status_invalid'),
                 'expected_is_active.required' => __('branches.validation.expected_status_required'),
                 'expected_is_active.boolean' => __('branches.validation.expected_status_invalid'),
-                'reason_code.required' => __('branches.validation.reason_required'),
-                'reason_code.in' => __('branches.validation.reason_invalid'),
-                'reason_code.string' => __('branches.validation.reason_invalid'),
             ],
         );
 
@@ -131,7 +125,7 @@ class BranchAdminController extends Controller
         $desiredActive = filter_var($data['is_active'], FILTER_VALIDATE_BOOLEAN);
         $expectedActive = filter_var($data['expected_is_active'], FILTER_VALIDATE_BOOLEAN);
 
-        $changed = DB::transaction(function () use ($actor, $tenant, $target, $desiredActive, $expectedActive, $data): bool {
+        $changed = DB::transaction(function () use ($actor, $tenant, $target, $desiredActive, $expectedActive): bool {
             $lockedTenant = Tenant::query()
                 ->whereKey($tenant->getKey())
                 ->where('is_active', true)
@@ -173,7 +167,7 @@ class BranchAdminController extends Controller
                 'subject_type' => 'branch',
                 'subject_id' => (string) $lockedTarget->getKey(),
                 'outcome' => 'success',
-                'reason_code' => $data['reason_code'],
+                'reason_code' => 'access_review',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
                 'request_id' => (string) Str::uuid(),

@@ -44,6 +44,7 @@ class BranchAdministrationTest extends TestCase
             ->assertSee(__('branches.deactivate_help'))
             ->assertSee(__('branches.reactivate'))
             ->assertSee(__('branches.reactivate_help'))
+            ->assertDontSee('name="reason_code"', false)
             ->assertSee(__('branches.create'));
     }
 
@@ -61,7 +62,6 @@ class BranchAdministrationTest extends TestCase
         $this->patch(route('branches.status', $branch), [
             'is_active' => false,
             'expected_is_active' => true,
-            'reason_code' => 'correction',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('branches', ['name' => 'Blocked branch']);
@@ -138,7 +138,7 @@ class BranchAdministrationTest extends TestCase
             ->patch(route('branches.status', $branch), [
                 'is_active' => false,
                 'expected_is_active' => true,
-                'reason_code' => 'access_review',
+                'reason_code' => 'client-value-is-ignored',
             ])
             ->assertRedirect(route('branches.manage'))
             ->assertSessionHas('success', __('branches.status_updated'));
@@ -147,12 +147,12 @@ class BranchAdministrationTest extends TestCase
         $firstAudit = DB::table('audit_logs')->where('action', 'branch.status.changed')->sole();
         $this->assertSame(['is_active' => true], json_decode($firstAudit->before_json, true));
         $this->assertSame(['is_active' => false], json_decode($firstAudit->after_json, true));
+        $this->assertSame('access_review', $firstAudit->reason_code);
         $this->assertStringNotContainsString($branch->name, (string) $firstAudit->before_json.(string) $firstAudit->after_json);
 
         $this->patch(route('branches.status', $branch), [
             'is_active' => true,
             'expected_is_active' => false,
-            'reason_code' => 'correction',
         ])->assertRedirect(route('branches.manage'));
 
         $this->assertDatabaseHas('branches', ['id' => $branch->id, 'is_active' => 1]);
@@ -172,7 +172,6 @@ class BranchAdministrationTest extends TestCase
             ->patch(route('branches.status', $branch), [
                 'is_active' => false,
                 'expected_is_active' => true,
-                'reason_code' => 'correction',
             ])
             ->assertStatus(409)
             ->assertSee(__('branches.conflict'));
@@ -190,7 +189,6 @@ class BranchAdministrationTest extends TestCase
             ->patch(route('branches.status', $branch), [
                 'is_active' => true,
                 'expected_is_active' => true,
-                'reason_code' => 'correction',
             ])
             ->assertRedirect(route('branches.manage'))
             ->assertSessionHas('status_message', __('branches.no_change'));
@@ -208,7 +206,6 @@ class BranchAdministrationTest extends TestCase
         $this->patch(route('branches.status', $branch), [
             'is_active' => false,
             'expected_is_active' => true,
-            'reason_code' => 'access_review',
         ])->assertRedirect(route('branches.manage'));
 
         $this->get(route('dashboard'))
@@ -229,7 +226,6 @@ class BranchAdministrationTest extends TestCase
             ->patch(route('branches.status', $active), [
                 'is_active' => 'invalid',
                 'expected_is_active' => true,
-                'reason_code' => 'correction',
             ])
             ->assertRedirect($url);
 

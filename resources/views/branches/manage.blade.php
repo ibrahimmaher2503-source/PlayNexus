@@ -46,7 +46,6 @@
             @if ($branches->isEmpty())
                 <p class="mt-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-6 text-[var(--pn-ink-muted)]" role="status">{{ __('branches.empty') }}</p>
             @else
-                @php($reasons = __('branches.reasons'))
                 <div class="mt-4 overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)]">
                     <table class="min-w-full text-start">
                         <caption class="sr-only">{{ __('branches.branches_heading') }}</caption>
@@ -70,20 +69,11 @@
                                             <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('branches.settings', $branch) }}">{{ __('branch_settings.page_title') }}</a>
                                             <p class="mt-3 text-sm leading-6 text-[var(--pn-ink-muted)]" id="{{ $formId }}-consequence">{{ $branch->is_active ? __('branches.deactivate_help') : __('branches.reactivate_help') }}</p>
                                         </div>
-                                        <form id="{{ $formId }}" class="mt-3 flex min-w-72 flex-wrap items-end gap-2" method="POST" action="{{ route('branches.status', $branch) }}" aria-describedby="{{ $formId }}-consequence">
+                                        <form id="{{ $formId }}" class="mt-3" method="POST" action="{{ route('branches.status', $branch) }}" aria-describedby="{{ $formId }}-consequence">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="expected_is_active" value="{{ $branch->is_active ? '1' : '0' }}">
                                             <input type="hidden" name="is_active" value="{{ $branch->is_active ? '0' : '1' }}">
-                                            <div class="min-w-48 flex-1">
-                                                <label class="block text-xs font-semibold" for="{{ $formId }}-reason">{{ __('branches.reason_code') }}</label>
-                                                <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $formId }}-reason" name="reason_code" required>
-                                                    <option value="">{{ __('branches.choose_reason') }}</option>
-                                                    @foreach ($reasons as $reason => $label)
-                                                        <option value="{{ $reason }}">{{ $label }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
                                             <button class="inline-flex min-h-11 items-center rounded-[10px] px-4 font-semibold text-[var(--pn-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] {{ $branch->is_active ? 'bg-[var(--pn-danger)] hover:brightness-90' : 'bg-[var(--pn-primary)] hover:bg-[var(--pn-primary-hover)]' }}" type="submit">{{ $branch->is_active ? __('branches.deactivate') : __('branches.reactivate') }}</button>
                                         </form>
                                     </td>

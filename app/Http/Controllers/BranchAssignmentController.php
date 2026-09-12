@@ -19,8 +19,6 @@ class BranchAssignmentController extends Controller
 {
     private const ROLES = ['branch_manager', 'reception_staff', 'cashier'];
 
-    private const REASONS = ['staffing_change', 'access_review', 'correction'];
-
     public function index(Request $request): View
     {
         [$actor, $tenant] = $this->ownerContext($request);
@@ -60,7 +58,6 @@ class BranchAssignmentController extends Controller
             [
                 'role' => ['required', 'string', 'max:50', 'in:'.implode(',', self::ROLES)],
                 'is_active' => ['required', 'boolean'],
-                'reason_code' => ['required', 'string', 'in:'.implode(',', self::REASONS)],
                 'expected_role' => ['present', 'nullable', 'string', 'max:50'],
                 'expected_is_active' => ['present', 'nullable', 'boolean'],
             ],
@@ -71,9 +68,6 @@ class BranchAssignmentController extends Controller
                 'role.in' => __('assignments.errors.role_invalid'),
                 'is_active.required' => __('assignments.errors.active_required'),
                 'is_active.boolean' => __('assignments.errors.active_invalid'),
-                'reason_code.required' => __('assignments.errors.reason_required'),
-                'reason_code.string' => __('assignments.errors.reason_invalid'),
-                'reason_code.in' => __('assignments.errors.reason_invalid'),
                 'expected_role.present' => __('assignments.errors.expected_role_required'),
                 'expected_role.string' => __('assignments.errors.expected_role_invalid'),
                 'expected_role.max' => __('assignments.errors.expected_role_invalid'),
@@ -94,7 +88,7 @@ class BranchAssignmentController extends Controller
             ? null
             : filter_var($data['expected_is_active'], FILTER_VALIDATE_BOOLEAN);
 
-        $result = DB::transaction(function () use ($actor, $tenant, $target, $scopedBranch, $desiredRole, $desiredActive, $expectedRole, $expectedActive, $data): array {
+        $result = DB::transaction(function () use ($actor, $tenant, $target, $scopedBranch, $desiredRole, $desiredActive, $expectedRole, $expectedActive): array {
             $lockedTenant = Tenant::query()
                 ->whereKey($tenant->id)
                 ->where('is_active', true)
@@ -195,7 +189,7 @@ class BranchAssignmentController extends Controller
                 'subject_type' => 'user',
                 'subject_id' => (string) $lockedTarget->id,
                 'outcome' => 'success',
-                'reason_code' => $data['reason_code'],
+                'reason_code' => 'access_review',
                 'before_json' => $before === null ? null : json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
                 'request_id' => (string) Str::uuid(),

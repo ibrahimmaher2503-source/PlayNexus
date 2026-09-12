@@ -13,8 +13,6 @@ return [
     'branch_status' => 'الحالة الحالية',
     'branch_action' => 'إدارة الفرع',
     'new_status' => 'الحالة الجديدة',
-    'reason_code' => 'السبب',
-    'choose_reason' => 'اختر سببًا',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
     'save_status' => 'حفظ الحالة',
@@ -35,12 +33,5 @@ return [
         'status_invalid' => 'اختر حالة مسموحة للفرع.',
         'expected_status_required' => 'حدّث الصفحة وأكّد حالة الفرع الحالية.',
         'expected_status_invalid' => 'تأكيد حالة الفرع الحالية غير صالح.',
-        'reason_required' => 'اختر سببًا لهذا التغيير.',
-        'reason_invalid' => 'اختر سببًا مسموحًا لهذا التغيير.',
-    ],
-    'reasons' => [
-        'setup_change' => 'تغيير إعداد',
-        'access_review' => 'مراجعة الوصول',
-        'correction' => 'تصحيح',
     ],
 ];

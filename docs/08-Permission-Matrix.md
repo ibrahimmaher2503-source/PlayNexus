@@ -2,7 +2,7 @@
 
 ## T18-T20 bounded implementation amendment
 
-User-authorized wave: explicit active owner has `branches.view` over active own-tenant branches; owner-only existing non-owner staff status and fixed branch role/access assignment are now in implementation scope. Branch-manager staff administration, account invitations, owner transfer and all other draft permissions remain unimplemented. All owner targets are excluded from these mutations. Deny foreign scope404, missing owner403, stale submitted state409; require reason code and atomic audit for successful changes. Exact contracts: docs/agent-plan.md T18-T20.
+User-authorized wave: explicit active owner has `branches.view` over active own-tenant branches; owner-only existing non-owner staff status and fixed branch role/access assignment are now in implementation scope. Branch-manager staff administration, account invitations, owner transfer and all other draft permissions remain unimplemented. All owner targets are excluded from these mutations. Deny foreign scope404, missing owner403, stale submitted state409; record a server-derived reason code and atomic audit for successful changes. The 2026-09-12 UI amendment removes owner-selected reason fields from staff status, branch assignments, and branch lifecycle actions. Exact original contracts: docs/agent-plan.md T18-T20.
 
 ## T14 bounded owner-read implementation
 

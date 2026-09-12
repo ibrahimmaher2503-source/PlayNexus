@@ -70,7 +70,7 @@ class BranchAssignmentManagementTest extends TestCase
         $this->assertSame('user', $audit->actor_type);
         $this->assertSame((string) $target->id, $audit->subject_id);
         $this->assertSame($branch->id, $audit->branch_id);
-        $this->assertSame('staffing_change', $audit->reason_code);
+        $this->assertSame('access_review', $audit->reason_code);
         $this->assertNull($audit->before_json);
         $this->assertEqualsCanonicalizing(['branch_id' => $branch->id, 'role' => 'reception_staff', 'is_active' => true], json_decode($audit->after_json, true));
         $this->assertStringNotContainsString($target->email, (string) $audit->before_json.(string) $audit->after_json);
@@ -133,6 +133,7 @@ class BranchAssignmentManagementTest extends TestCase
             ->assertViewHas('branches', fn ($branches): bool => $branches->pluck('id')->all() === [$branch->id])
             ->assertSee($selected->name)
             ->assertSee('Active branch')
+            ->assertDontSee('name="reason_code"', false)
             ->assertDontSee('Inactive branch');
     }
 

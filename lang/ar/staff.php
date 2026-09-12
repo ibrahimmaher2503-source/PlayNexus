@@ -26,8 +26,6 @@ return [
     'staff_action' => 'تحديث الحالة',
     'new_status' => 'الحالة الجديدة',
     'expected_status' => 'تأكيد الحالة الحالية',
-    'reason_code' => 'السبب',
-    'choose_reason' => 'اختر سببًا',
     'save' => 'حفظ الحالة',
     'owner_locked' => 'لا يمكن تغيير حسابات المالك من هنا.',
     'self_locked' => 'لا يمكن تغيير حسابك من هنا.',
@@ -48,11 +46,6 @@ return [
         'suspended' => 'موقوف',
         'disabled' => 'معطّل',
     ],
-    'reasons' => [
-        'staffing_change' => 'تغيير وظيفي',
-        'access_review' => 'مراجعة الوصول',
-        'correction' => 'تصحيح',
-    ],
     'pagination_label' => 'صفحات الموظفين',
     'page_position' => 'الصفحة :current من :last',
     'previous' => 'السابق',
@@ -69,7 +62,5 @@ return [
         'status_invalid' => 'اختر حالة جديدة مسموحة.',
         'expected_status_required' => 'حدّث الصفحة وأكّد الحالة الحالية.',
         'expected_status_invalid' => 'تأكيد الحالة الحالية غير صالح.',
-        'reason_required' => 'اختر سببًا لهذا التغيير.',
-        'reason_invalid' => 'اختر سببًا مسموحًا لهذا التغيير.',
     ],
 ];

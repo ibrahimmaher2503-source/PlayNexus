@@ -36,13 +36,14 @@ class StaffManagementTest extends TestCase
             ->assertSee('name="locale" value="ar"', false)
             ->assertSee(__('Switch to :language', ['language' => __('Arabic')]))
             ->assertDontSee('id="locale"', false)
+            ->assertDontSee('name="reason_code"', false)
             ->assertSee(__('staff.save'));
 
         $this->actingAs($owner)
             ->patch(route('staff.status', $target), [
                 'status' => 'suspended',
                 'expected_status' => 'active',
-                'reason_code' => 'staffing_change',
+                'reason_code' => 'client-value-is-ignored',
             ])
             ->assertRedirect(route('staff.index'))
             ->assertSessionHas('success', __('staff.updated'));
@@ -80,7 +81,6 @@ class StaffManagementTest extends TestCase
             ->patch(route('staff.status', $target), [
                 'status' => 'disabled',
                 'expected_status' => 'active',
-                'reason_code' => 'access_review',
             ])
             ->assertForbidden();
 
@@ -122,7 +122,7 @@ class StaffManagementTest extends TestCase
         $this->assertTrue($tenant->is_active);
     }
 
-    public function test_invalid_status_expected_state_and_reason_are_localized_and_do_not_write(): void
+    public function test_invalid_status_and_expected_state_are_localized_and_do_not_write(): void
     {
         [$tenant, $owner] = $this->owner();
         $target = User::factory()->create(['tenant_id' => $tenant->id]);
@@ -133,13 +133,11 @@ class StaffManagementTest extends TestCase
             ->patch(route('staff.status', $target), [
                 'status' => 'invited',
                 'expected_status' => 'unknown',
-                'reason_code' => 'not-allowed',
             ])
             ->assertRedirect(route('staff.index'))
             ->assertSessionHasErrors([
                 'status' => trans('staff.validation.status_invalid', [], 'ar'),
                 'expected_status' => trans('staff.validation.expected_status_invalid', [], 'ar'),
-                'reason_code' => trans('staff.validation.reason_invalid', [], 'ar'),
             ]);
 
         $this->assertDatabaseHas('users', ['id' => $target->id, 'status' => 'active']);
@@ -161,7 +159,6 @@ class StaffManagementTest extends TestCase
             ->patch(route('staff.status', $activeTarget), [
                 'status' => 'invited',
                 'expected_status' => 'invalid',
-                'reason_code' => 'invalid',
             ])
             ->assertRedirect(route('staff.index'));
 
@@ -185,7 +182,6 @@ class StaffManagementTest extends TestCase
             ->patch(route('staff.status', $target), [
                 'status' => 'disabled',
                 'expected_status' => 'active',
-                'reason_code' => 'access_review',
             ])
             ->assertStatus(409)
             ->assertSee(__('staff.conflict'));
@@ -203,7 +199,6 @@ class StaffManagementTest extends TestCase
             ->patch(route('staff.status', $target), [
                 'status' => 'active',
                 'expected_status' => 'active',
-                'reason_code' => 'correction',
             ])
             ->assertRedirect(route('staff.index'))
             ->assertSessionHas('status_message', __('staff.no_change'));
@@ -230,7 +225,6 @@ class StaffManagementTest extends TestCase
                 ->patch(route('staff.status', $target), [
                     'status' => 'disabled',
                     'expected_status' => 'active',
-                    'reason_code' => 'correction',
                 ])
                 ->assertStatus(500);
         } finally {
@@ -255,7 +249,6 @@ class StaffManagementTest extends TestCase
             ->patch(route('staff.status', $target), [
                 'status' => 'disabled',
                 'expected_status' => 'active',
-                'reason_code' => 'access_review',
             ])
             ->assertRedirect(route('staff.index'));
 

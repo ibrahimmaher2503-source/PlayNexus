@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 automatic admin reason follow-up
+
+Reason selectors are removed from staff status, branch assignment, and branch lifecycle UI. These mutations no longer validate client `reason_code`; audit rows derive `staffing_change` for account status and `access_review` for branch access/lifecycle. High-risk reasons outside these routine administration flows remain unchanged. Acceptance: 142 tests / 1,109 assertions, build, Pint, docs, and browser checks pass.
+
 ## 2026-09-12 application shell follow-up
 
 The authenticated tenant UI now follows `DESIGN.md`: a 248px desktop sidebar, 64px top bar, and responsive RTL/LTR drawer. Tenant/branch context, locale, identity, and logout are centralized; owner-only links remain policy-gated and no unimplemented PRD modules were exposed. Acceptance: 142 tests / 1,106 assertions, frontend build, Pint, documentation validation, and focused browser evidence all pass.

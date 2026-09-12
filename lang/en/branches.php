@@ -13,8 +13,6 @@ return [
     'branch_status' => 'Current status',
     'branch_action' => 'Manage branch',
     'new_status' => 'New status',
-    'reason_code' => 'Reason',
-    'choose_reason' => 'Choose a reason',
     'active' => 'Active',
     'inactive' => 'Inactive',
     'save_status' => 'Save status',
@@ -35,12 +33,5 @@ return [
         'status_invalid' => 'Choose an allowed branch status.',
         'expected_status_required' => 'Refresh and confirm the current branch status.',
         'expected_status_invalid' => 'The current branch status confirmation is invalid.',
-        'reason_required' => 'Choose a reason for this change.',
-        'reason_invalid' => 'Choose an allowed reason for this change.',
-    ],
-    'reasons' => [
-        'setup_change' => 'Setup change',
-        'access_review' => 'Access review',
-        'correction' => 'Correction',
     ],
 ];

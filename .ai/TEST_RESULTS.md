@@ -1,5 +1,18 @@
 # Test Results
 
+## 2026-09-12 automatic admin reasons
+
+| Check | Result |
+|---|---|
+| Staff, branch and assignment slice | `php artisan test --filter="BranchAssignmentManagementTest|BranchAdministrationTest|StaffManagementTest"` — PASS, 33 tests / 247 assertions |
+| Full regression | `php artisan test` — PASS, 142 tests / 1,109 assertions |
+| Formatting | `php vendor/bin/pint --test` — PASS after formatting the assignment controller |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 existing review-placeholder warnings |
+| Browser | PASS at `/app/assignments?user_id=3`: zero `reason_code` inputs, zero reason headers, six-column table, RTL layout, and no page-level horizontal overflow |
+
+Client-selected reasons were removed from routine staff status, branch assignment, and branch lifecycle actions. The server records fixed audit codes and ignores extra client `reason_code` input.
+
 ## 2026-09-12 application shell acceptance
 
 | Check | Result |

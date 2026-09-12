@@ -75,7 +75,6 @@
         @if ($selectedUser)
             @php
                 $roles = __('assignments.roles');
-                $reasons = __('assignments.reasons');
             @endphp
             <section class="mt-8" aria-labelledby="branches-heading">
                 <div>
@@ -96,7 +95,6 @@
                                     <th class="px-4 py-3 text-start" scope="col">{{ __('assignments.current_state') }}</th>
                                     <th class="px-4 py-3 text-start" scope="col">{{ __('assignments.new_role') }}</th>
                                     <th class="px-4 py-3 text-start" scope="col">{{ __('assignments.new_state') }}</th>
-                                    <th class="px-4 py-3 text-start" scope="col">{{ __('assignments.reason_code') }}</th>
                                     <th class="px-4 py-3 text-start" scope="col"><span class="sr-only">{{ __('assignments.save') }}</span></th>
                                 </tr>
                             </thead>
@@ -135,15 +133,6 @@
                                                 <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $row }}-active" name="is_active" form="{{ $row }}-form">
                                                     <option value="1" @selected($currentActive)>{{ __('assignments.active') }}</option>
                                                     <option value="0" @selected(! $currentActive)>{{ __('assignments.inactive') }}</option>
-                                                </select>
-                                        </td>
-                                        <td class="px-4 py-4">
-                                                <label class="sr-only" for="{{ $row }}-reason">{{ __('assignments.reason_code') }}: {{ $branch->name }}</label>
-                                                <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $row }}-reason" name="reason_code" form="{{ $row }}-form">
-                                                    <option value="">{{ __('assignments.choose_reason') }}</option>
-                                                    @foreach ($reasons as $reason => $label)
-                                                        <option value="{{ $reason }}">{{ $label }}</option>
-                                                    @endforeach
                                                 </select>
                                         </td>
                                         <td class="px-4 py-4">

@@ -49,7 +49,6 @@
                 @php
                     $statusLabels = __('staff.statuses');
                     $mutableStatusLabels = __('staff.mutable_statuses');
-                    $reasonLabels = __('staff.reasons');
                     $statusClasses = [
                         'active' => 'bg-[var(--pn-success-soft)] text-[var(--pn-success)]',
                         'invited' => 'bg-[var(--pn-surface-subtle)] text-[var(--pn-primary)]',
@@ -93,15 +92,6 @@
                                                     <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="status-{{ $member->id }}" name="status" required>
                                                         @foreach ($mutableStatusLabels as $value => $label)
                                                             <option value="{{ $value }}" @selected(($member->status === 'invited' ? 'active' : $member->status) === $value)>{{ $label }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label class="block text-sm font-semibold" for="reason-{{ $member->id }}">{{ __('staff.reason_code') }}</label>
-                                                    <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="reason-{{ $member->id }}" name="reason_code" required>
-                                                        <option value="">{{ __('staff.choose_reason') }}</option>
-                                                        @foreach ($reasonLabels as $value => $label)
-                                                            <option value="{{ $value }}">{{ $label }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>

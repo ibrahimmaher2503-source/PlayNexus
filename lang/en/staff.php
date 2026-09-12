@@ -26,8 +26,6 @@ return [
     'staff_action' => 'Update status',
     'new_status' => 'New status',
     'expected_status' => 'Current status confirmation',
-    'reason_code' => 'Reason',
-    'choose_reason' => 'Choose a reason',
     'save' => 'Save status',
     'owner_locked' => 'Owner accounts cannot be changed here.',
     'self_locked' => 'Your own account cannot be changed here.',
@@ -48,11 +46,6 @@ return [
         'suspended' => 'Suspended',
         'disabled' => 'Disabled',
     ],
-    'reasons' => [
-        'staffing_change' => 'Staffing change',
-        'access_review' => 'Access review',
-        'correction' => 'Correction',
-    ],
     'pagination_label' => 'Staff pages',
     'page_position' => 'Page :current of :last',
     'previous' => 'Previous',
@@ -69,7 +62,5 @@ return [
         'status_invalid' => 'Choose an allowed new status.',
         'expected_status_required' => 'Refresh and confirm the current status.',
         'expected_status_invalid' => 'The current status confirmation is invalid.',
-        'reason_required' => 'Choose a reason for this change.',
-        'reason_invalid' => 'Choose an allowed reason for this change.',
     ],
 ];
