@@ -10,11 +10,11 @@ class Tenant extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'is_active'];
+    protected $fillable = ['name', 'legal_name', 'default_locale', 'timezone', 'currency', 'is_active'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'lock_version' => 'integer'];
     }
 
     public function branches(): HasMany
