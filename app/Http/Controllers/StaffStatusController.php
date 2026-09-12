@@ -9,7 +9,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class StaffStatusController extends Controller
@@ -40,6 +42,77 @@ class StaffStatusController extends Controller
             ->withQueryString();
 
         return view('staff.index', compact('actor', 'tenant', 'staff'));
+    }
+
+    public function invite(Request $request): View
+    {
+        [$actor, $tenant] = $this->authorizedContext($request);
+
+        return view('staff.invite', compact('actor', 'tenant'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        [$actor, $tenant] = $this->authorizedContext($request);
+
+        $name = $request->input('name');
+        $email = $request->input('email');
+        $request->merge([
+            'name' => is_string($name) ? trim($name) : $name,
+            'email' => is_string($email) ? Str::lower(trim($email)) : $email,
+        ]);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
+        ], [
+            'name.required' => __('staff.validation.name_required'),
+            'name.string' => __('staff.validation.name_invalid'),
+            'name.max' => __('staff.validation.name_invalid'),
+            'email.required' => __('staff.validation.email_required'),
+            'email.string' => __('staff.validation.email_invalid'),
+            'email.email' => __('staff.validation.email_invalid'),
+            'email.max' => __('staff.validation.email_invalid'),
+            'email.unique' => __('staff.validation.email_taken'),
+        ]);
+
+        DB::transaction(function () use ($actor, $tenant, $validated): void {
+            $lockedTenant = Tenant::query()
+                ->whereKey($tenant->getKey())
+                ->where('is_active', true)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
+            Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
+
+            $invited = new User;
+            $invited->tenant_id = $lockedTenant->getKey();
+            $invited->name = $validated['name'];
+            $invited->email = $validated['email'];
+            $invited->email_verified_at = null;
+            $invited->password = Hash::make(Str::random(64));
+            $invited->status = 'invited';
+            $invited->save();
+
+            $now = now('UTC');
+            DB::table('audit_logs')->insert([
+                'tenant_id' => $lockedTenant->getKey(),
+                'branch_id' => null,
+                'actor_user_id' => $lockedActor->getKey(),
+                'actor_type' => 'user',
+                'action' => 'staff.invited',
+                'subject_type' => 'user',
+                'subject_id' => (string) $invited->getKey(),
+                'outcome' => 'success',
+                'reason_code' => 'staffing_change',
+                'before_json' => null,
+                'after_json' => json_encode(['status' => 'invited'], JSON_THROW_ON_ERROR),
+                'request_id' => (string) Str::uuid(),
+                'occurred_at' => $now,
+            ]);
+        });
+
+        return to_route('staff.index')->with('success', __('staff.invited'));
     }
 
     public function update(Request $request, User $user): RedirectResponse
