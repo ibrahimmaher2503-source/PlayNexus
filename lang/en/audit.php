@@ -41,6 +41,10 @@ return [
         'guardian_id' => 'Guardian ID',
         'child_id' => 'Child ID',
         'pricing_rule_id' => 'Pricing rule ID',
+        'old_pricing_rule_id' => 'Previous pricing rule ID',
+        'new_pricing_rule_id' => 'New pricing rule ID',
+        'old_version' => 'Previous version',
+        'new_version' => 'New version',
     ],
     'snapshot_boolean' => [
         'true' => 'Yes',
@@ -74,6 +78,7 @@ return [
         'family.child.updated' => 'Child details updated',
         'family.child.added' => 'Child added to family',
         'pricing.rule.created' => 'Pricing rule created',
+        'pricing.rule.versioned' => 'Pricing rule versioned',
     ],
     'reasons' => [
         'setup_change' => 'Setup change',

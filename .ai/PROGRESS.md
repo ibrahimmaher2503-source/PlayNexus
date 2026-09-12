@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-12 M3 immutable pricing version replacement
+
+- Added an authorized replacement action that retires the current active rule and creates version +1 atomically without rewriting historical money, duration, or tax facts.
+- Added expected-version conflict handling, current branch tax snapshots, PII-free old/new audit identifiers, and manager-only bilingual native replacement controls.
+- Three Luna/xhigh workstreams delivered backend, UI, and adversarial coverage; coordinator review corrected the create/replacement success-message mapping.
+- Focused version tests pass 18 / 181; full PHP 8.5 regression passes 224 / 1,849. Pint, Vite, documentation, and pricing-route checks pass; browser and fresh MySQL acceptance remain unavailable.
+
 ## 2026-09-12 M3 immutable pricing rules
 
 - Added tenant/branch-scoped immutable fixed-duration pricing-rule storage, active-rule listing, and manager creation with integer EGP amounts and branch tax snapshots.

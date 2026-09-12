@@ -491,6 +491,8 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 **Implemented pricing configuration — 2026-09-12:** `/app/pricing` provides bilingual branch filtering, active immutable rule cards/table, exact fixed-term explanation, integer-derived EGP display, empty/success/validation states, and a manager-only creation form. Reception/cashier users receive a view-only state. Editing, retirement, calculator/quote, ticket, QR, and check-in controls are intentionally absent.
 
+**Implemented immutable replacement — 2026-09-12:** each manageable active rule exposes a compact native disclosure that preserves its current values and submits a replacement with the expected version. Success creates version +1 and retires the old row; stale forms show an accessible conflict, while historical facts remain unchanged. Reception/cashier users see no replacement control. In-place editing, calculator/quote, ticket, QR, and check-in controls remain absent.
+
 ### WF-12 Tenant administration
 
 **Goal:** Let a Super Admin provision, activate, suspend, or reactivate one tenant without entering unrelated tenant data or deleting history.

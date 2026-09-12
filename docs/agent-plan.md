@@ -10,6 +10,8 @@ Replace an active pricing rule only by atomic immutable versioning. `POST /app/p
 
 No migration/model expansion, in-place update/delete, activation scheduling, calculator/tax total, ticket/QR/check-in/session work. Coordinator reviews and gates the integrated result.
 
+**Accepted result:** T42-T44 are integrated. Current active rules are replaced only by atomic retirement plus version +1 creation; stale/replayed and out-of-scope attempts fail without partial writes. Manager-only bilingual replacement controls use the existing pricing surface. Focused version tests pass 18 / 181 and full PHP 8.5 regression passes 224 / 1,849; Pint, Vite, documentation, and pricing-route checks pass. Browser and fresh MySQL acceptance remain outstanding.
+
 ## 2026-09-12 M3 T39-T41 immutable pricing-rule wave
 
 Three Luna/xhigh workers implement the first M3 slice. Contract: list current-scope rules and create one immutable active branch rule with code/name/version 1, `base_duration_seconds`, integer `base_price_minor`, fixed `grace_period_seconds=600`, fixed `overtime_unit_seconds=1800`, integer `overtime_price_minor`, EGP currency, selected branch tax snapshot, actor, status, and timestamps. Unique `(tenant_id, branch_id, code, version)` and tenant-aware branch/actor foreign keys are mandatory.

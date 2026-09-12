@@ -41,6 +41,10 @@ return [
         'guardian_id' => 'معرّف ولي الأمر',
         'child_id' => 'معرّف الطفل',
         'pricing_rule_id' => 'معرّف قاعدة التسعير',
+        'old_pricing_rule_id' => 'معرّف قاعدة التسعير السابقة',
+        'new_pricing_rule_id' => 'معرّف قاعدة التسعير الجديدة',
+        'old_version' => 'الإصدار السابق',
+        'new_version' => 'الإصدار الجديد',
     ],
     'snapshot_boolean' => [
         'true' => 'نعم',
@@ -74,6 +78,7 @@ return [
         'family.child.updated' => 'تحديث بيانات الطفل',
         'family.child.added' => 'إضافة طفل إلى الأسرة',
         'pricing.rule.created' => 'إنشاء قاعدة تسعير',
+        'pricing.rule.versioned' => 'إنشاء إصدار جديد لقاعدة التسعير',
     ],
     'reasons' => [
         'setup_change' => 'تغيير الإعداد',

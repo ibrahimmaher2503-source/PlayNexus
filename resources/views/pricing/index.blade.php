@@ -9,6 +9,12 @@
         $ruleList = collect($rules ?? []);
         $selectedBranchId = (int) old('branch_id', request()->query('branch_id', session('branch_id', 0)));
         $selectedBranch = $branchList->firstWhere('id', $selectedBranchId);
+        $manageableBranchIds = $manageableBranchList->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
+        if ($manageableBranchIds === [] && ($canManage ?? false)) {
+            $manageableBranchIds = $branchList->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
+        }
+        $replacementRouteAvailable = app('router')->has('pricing.versions.store');
+        $showReplacementControls = ($canManage ?? false) && $replacementRouteAvailable && $manageableBranchIds !== [];
         if ($selectedBranchId > 0) {
             $ruleList = $ruleList
                 ->filter(fn (mixed $rule): bool => (int) data_get($rule, 'branch_id') === $selectedBranchId)
@@ -17,6 +23,10 @@
         $formatEgp = static function (mixed $minor): string {
             $value = max(0, (int) $minor);
             return number_format(intdiv($value, 100), 0, '.', ',').'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
+        };
+        $formatEgpInput = static function (mixed $minor): string {
+            $value = max(0, (int) $minor);
+            return intdiv($value, 100).'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
         };
         $formatPercent = static function (mixed $basisPoints): string {
             $value = max(0, (int) $basisPoints);
@@ -43,6 +53,13 @@
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+            </div>
+        @endif
+
+        @if (session('conflict') || $errors->has('expected_version'))
+            <div class="mt-6 rounded-[10px] border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] p-4 text-[var(--pn-ink)]" id="pricing-conflict" role="alert" aria-live="assertive" tabindex="-1">
+                <p class="font-semibold">{{ __('pricing.replacement_conflict_title') }}</p>
+                <p class="mt-1 text-sm leading-6">{{ session('conflict') ?? $errors->first('expected_version') }}</p>
             </div>
         @endif
 
@@ -120,6 +137,9 @@
                                     <th class="whitespace-nowrap px-4 py-3 text-start font-semibold" scope="col">{{ __('pricing.overtime_price') }}</th>
                                     <th class="whitespace-nowrap px-4 py-3 text-start font-semibold" scope="col">{{ __('pricing.tax_snapshot') }}</th>
                                     <th class="whitespace-nowrap px-4 py-3 text-start font-semibold" scope="col">{{ __('pricing.status') }}</th>
+                                    @if ($showReplacementControls)
+                                        <th class="whitespace-nowrap px-4 py-3 text-start font-semibold" scope="col">{{ __('pricing.replacement_column') }}</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[var(--pn-border)]">
@@ -139,6 +159,70 @@
                                         <td class="whitespace-nowrap px-4 py-4 tabular-nums"><bdi dir="ltr">{{ $formatEgp(data_get($rule, 'overtime_price_minor', 0)) }} EGP</bdi></td>
                                         <td class="whitespace-nowrap px-4 py-4 tabular-nums"><bdi dir="ltr">{{ $formatPercent(data_get($rule, 'tax_rate_bps', 0)) }}</bdi><span class="block text-sm text-[var(--pn-ink-muted)]">{{ in_array($taxMode, ['inclusive', 'exclusive'], true) ? __('pricing.'.$taxMode) : '—' }}</span></td>
                                         <td class="whitespace-nowrap px-4 py-4"><span class="inline-flex min-h-8 items-center rounded-full border border-[var(--pn-success)] bg-[var(--pn-success-soft)] px-3 text-sm font-semibold text-[var(--pn-success)]">{{ __('pricing.active') }}</span></td>
+                                        @if ($showReplacementControls)
+                                            @php($canReplace = in_array((int) data_get($rule, 'branch_id'), $manageableBranchIds, true))
+                                            <td class="min-w-64 px-4 py-4 align-top">
+                                                @if ($canReplace)
+                                                    <details class="group rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)]" id="pricing-replacement-{{ data_get($rule, 'id') }}">
+                                                        <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 font-semibold text-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--pn-focus)]">
+                                                            <span>{{ __('pricing.replacement_summary') }}</span>
+                                                            <span aria-hidden="true" class="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+                                                        </summary>
+                                                        <div class="border-t border-[var(--pn-border)] p-3">
+                                                            <p class="text-xs leading-5 text-[var(--pn-ink-muted)]">{{ __('pricing.replacement_description') }}</p>
+                                                            <p class="mt-2 text-xs leading-5 text-[var(--pn-ink-muted)]">{{ __('pricing.replacement_history_notice') }}</p>
+                                                            <dl class="mt-3 grid grid-cols-2 gap-2 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-3 text-xs">
+                                                                <div>
+                                                                    <dt class="font-semibold text-[var(--pn-ink-muted)]">{{ __('pricing.current_version') }}</dt>
+                                                                    <dd class="mt-1 font-bold"><bdi dir="ltr">{{ __('pricing.version', ['version' => data_get($rule, 'version', 1)]) }}</bdi></dd>
+                                                                </div>
+                                                                <div>
+                                                                    <dt class="font-semibold text-[var(--pn-ink-muted)]">{{ __('pricing.current_price') }}</dt>
+                                                                    <dd class="mt-1 font-bold"><bdi dir="ltr">{{ $formatEgp(data_get($rule, 'base_price_minor', 0)) }} EGP</bdi></dd>
+                                                                </div>
+                                                            </dl>
+
+                                                            <form class="mt-4 space-y-4" method="POST" action="{{ route('pricing.versions.store', $rule) }}" aria-describedby="replacement-help-{{ data_get($rule, 'id') }}">
+                                                                @csrf
+                                                                <input type="hidden" name="expected_version" value="{{ data_get($rule, 'version', 1) }}">
+                                                                <p class="sr-only" id="replacement-help-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_history_notice') }}</p>
+                                                                <div>
+                                                                    <label class="block text-sm font-semibold" for="replacement-name-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_name_label') }}</label>
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-name-{{ data_get($rule, 'id') }}" name="name" type="text" value="{{ old('name', data_get($rule, 'name')) }}" maxlength="190" required @error('name') aria-invalid="true" aria-describedby="replacement-name-error-{{ data_get($rule, 'id') }}" @enderror>
+                                                                    @error('name')
+                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-name-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                    @enderror
+                                                                </div>
+                                                                <div>
+                                                                    <label class="block text-sm font-semibold" for="replacement-duration-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_duration_label') }}</label>
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-duration-{{ data_get($rule, 'id') }}" name="base_duration_minutes" type="number" min="1" max="1440" step="1" value="{{ old('base_duration_minutes', intdiv((int) data_get($rule, 'base_duration_seconds', 0), 60)) }}" required @error('base_duration_minutes') aria-invalid="true" aria-describedby="replacement-duration-error-{{ data_get($rule, 'id') }}" @enderror>
+                                                                    @error('base_duration_minutes')
+                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-duration-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                    @enderror
+                                                                </div>
+                                                                <div>
+                                                                    <label class="block text-sm font-semibold" for="replacement-base-price-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_base_price_label') }}</label>
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-base-price-{{ data_get($rule, 'id') }}" name="base_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ old('base_price_egp', $formatEgpInput(data_get($rule, 'base_price_minor', 0))) }}" required @error('base_price_egp') aria-invalid="true" aria-describedby="replacement-base-price-error-{{ data_get($rule, 'id') }}" @enderror>
+                                                                    @error('base_price_egp')
+                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-base-price-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                    @enderror
+                                                                </div>
+                                                                <div>
+                                                                    <label class="block text-sm font-semibold" for="replacement-overtime-price-{{ data_get($rule, 'id') }}">{{ __('pricing.replacement_overtime_price_label') }}</label>
+                                                                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="replacement-overtime-price-{{ data_get($rule, 'id') }}" name="overtime_price_egp" type="number" min="0" step="0.01" inputmode="decimal" dir="ltr" value="{{ old('overtime_price_egp', $formatEgpInput(data_get($rule, 'overtime_price_minor', 0))) }}" required @error('overtime_price_egp') aria-invalid="true" aria-describedby="replacement-overtime-price-error-{{ data_get($rule, 'id') }}" @enderror>
+                                                                    @error('overtime_price_egp')
+                                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]" id="replacement-overtime-price-error-{{ data_get($rule, 'id') }}">{{ $message }}</p>
+                                                                    @enderror
+                                                                </div>
+                                                                <button class="inline-flex min-h-11 w-full items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('pricing.replacement_submit') }}</button>
+                                                            </form>
+                                                        </div>
+                                                    </details>
+                                                @else
+                                                    <span class="text-sm text-[var(--pn-ink-muted)]">—</span>
+                                                @endif
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>

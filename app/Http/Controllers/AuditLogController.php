@@ -31,9 +31,24 @@ class AuditLogController extends Controller
         'family.child.updated',
         'family.child.added',
         'pricing.rule.created',
+        'pricing.rule.versioned',
     ];
 
-    private const SNAPSHOT_KEYS = ['status', 'role', 'is_active', 'branch_id', 'name', 'code', 'guardian_id', 'child_id', 'pricing_rule_id'];
+    private const SNAPSHOT_KEYS = [
+        'status',
+        'role',
+        'is_active',
+        'branch_id',
+        'name',
+        'code',
+        'guardian_id',
+        'child_id',
+        'pricing_rule_id',
+        'old_pricing_rule_id',
+        'new_pricing_rule_id',
+        'old_version',
+        'new_version',
+    ];
 
     public function index(Request $request): View
     {
