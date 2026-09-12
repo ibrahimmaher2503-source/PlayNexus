@@ -14,6 +14,6 @@ class TenantFactory extends Factory
     {
         $name = fake()->company();
 
-        return ['name' => $name, 'legal_name' => $name, 'is_active' => true];
+        return ['name' => $name, 'legal_name' => $name, 'is_active' => true, 'status' => 'active'];
     }
 }

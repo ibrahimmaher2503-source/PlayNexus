@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureBranchAccess;
+use App\Http\Middleware\EnsurePlatformAccess;
 use App\Http\Middleware\EnsureTenantAccess;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', SetLocale::class);
         $middleware->alias([
             'branch.access' => EnsureBranchAccess::class,
+            'platform.access' => EnsurePlatformAccess::class,
             'tenant.access' => EnsureTenantAccess::class,
         ]);
         $middleware->redirectGuestsTo('/login');
