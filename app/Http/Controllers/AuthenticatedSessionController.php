@@ -28,6 +28,7 @@ class AuthenticatedSessionController extends Controller
             $request->session()->forget('branch_id');
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+            $request->session()->put('locale', app()->getLocale());
 
             return back()
                 ->withErrors(['email' => __('These credentials do not match our records.')])

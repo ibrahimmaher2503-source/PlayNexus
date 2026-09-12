@@ -1,15 +1,25 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 combined integration checkpoint
+
+Recovered local integration at `6dafe21`: T10 `c3b2065` and T11 `c61f9e8` are merged into `codex/first`; T12 report `4093e8d` is integrated. Reviewed status enforcement, forward migration/backfill, mass-assignment exclusion, policy checks, locale middleware/controller and the failed-login interaction. Retained the pending focused fix that restores the validated locale after failed-login session invalidation; its regression checks guest state and the following Arabic RTL page.
+
+Combined verification: `php artisan test` PASS (37 tests / 247 assertions), process-local SQLite `:memory:` and array sessions; `php vendor/bin/pint --test` PASS; `npm run build` PASS (optional fontaine notice); documentation validator PASS (0 errors / 2 existing placeholder warnings); `git diff --check` PASS.
+
+Three Terra review agents were attempted (`staff_review_now`, `locale_review_now`, `owner_review_now`); all ended with usage-limit errors, so no independent agent review is claimed. Coordinator performed the code review. T12 is accepted as investigation only: owner representation and owner branch scope remain unresolved; no owner/platform implementation is authorized by that report.
+
+Status: code integrated and automated checks PASS; T13 runtime acceptance remains PARTIAL. No combined T10/T11 browser or MySQL acceptance is claimed; historical T07/T09 evidence does not cover this wave. Next bounded acceptance is active login -> locale switch/invalid-login persistence -> select branch -> suspend user -> protected reload clears authentication/context. Then close T13 and define owner representation before dispatching the next implementation wave. Full M1, PHP 8.5 and production remain incomplete. No main merge, push or shared service change.
+
 ## Parallel M1 wave — 2026-09-10
 
 Current goal: complete independent M1 gaps in parallel, then one coordinated review/integration round. Base application commit 0e360eb; start workers from the planning commit containing this section. User requested three Terra subagents; coordinator dispatched /root/staff_status (A), /root/locale_switch (B), /root/owner_contract (C), all from 38fa251 in separate worktrees. Coordinator monitors, reviews and integrates accepted results locally.
 
 | Task | Owner | Status | Dependency / acceptance |
 | --- | --- | --- | --- |
-| T10 staff status enforcement | A | IN_PROGRESS | T09 integrated; invited/active/suspended/disabled statuses, deny non-active login and revoke existing access on next request |
-| T11 session locale switch | B | IN_PROGRESS | T09 integrated; en/ar switch persists, LTR/RTL and validation localization work without server reconfiguration |
-| T12 owner/platform authorization contract investigation | C | IN_PROGRESS | Read-only code/spec analysis; identify authoritative scope representation, contradictions and smallest next vertical slice |
-| T13 combined review/integration | Orchestrator | TODO | Review A/B independently as delivered; merge accepted A then B, combine runtime journey; C informs next wave |
+| T10 staff status enforcement | A | INTEGRATED; RUNTIME_PENDING | T09 integrated; invited/active/suspended/disabled statuses, deny non-active login and revoke existing access on next request |
+| T11 session locale switch | B | INTEGRATED; RUNTIME_PENDING | T09 integrated; en/ar switch persists, LTR/RTL and validation localization work without server reconfiguration |
+| T12 owner/platform authorization contract investigation | C | DONE (investigation only) | Read-only code/spec analysis; identify authoritative scope representation, contradictions and smallest next vertical slice |
+| T13 combined review/integration | Orchestrator | PARTIAL | Review A/B independently as delivered; merge accepted A then B, combine runtime journey; C informs next wave |
 
 Ownership: A owns User/status migration and factory/seeder adjustments, existing auth controller/tenant middleware/TenantContext/BranchPolicy only as necessary, new StaffStatusTest and directly affected existing tests. B owns routes/web.php, bootstrap/app.php locale registration, new locale controller/middleware, lang files, existing Blade views/CSS only as needed, new LocaleSwitchTest. C owns only docs/owner-platform-contract-review.md; no implementation or approval edits. A/B return check evidence in their final reports; orchestrator alone updates shared .ai status/test records and this ledger at integration. Do not edit each other's tests or shared configuration. All workers use isolated data/ports/cookies; no shared DB/server/.env changes.
 

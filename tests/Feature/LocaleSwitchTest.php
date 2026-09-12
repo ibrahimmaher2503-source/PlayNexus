@@ -73,7 +73,14 @@ class LocaleSwitchTest extends TestCase
             ->from(route('login'))
             ->post(route('login.store'), ['email' => 'missing@example.test', 'password' => 'wrong-password'])
             ->assertRedirect(route('login'))
-            ->assertSessionHasErrors(['email' => 'بيانات الدخول غير صحيحة.']);
+            ->assertSessionHasErrors(['email' => 'بيانات الدخول غير صحيحة.'])
+            ->assertSessionHas('locale', 'ar');
+
+        $this->assertGuest();
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('lang="ar"', false)
+            ->assertSee('dir="rtl"', false);
     }
 
     private function staff(): User
