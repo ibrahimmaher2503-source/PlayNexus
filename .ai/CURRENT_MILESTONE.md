@@ -1,5 +1,11 @@
 # Current Milestone
 
+## 2026-09-12 M2 started — family registry first slice
+
+M1 remains closed. M2 starts with a bounded staff-assisted family registry: current-tenant search by normalized guardian phone or child name, and atomic creation of one guardian, one child, and one active relationship. Same-tenant phone matches block a second record and return the existing-family path until OQ-17 chooses merge/create-with-approval behavior; cross-tenant matches are never disclosed. Consent events, safety notes/photos, family editing, history, check-in, and M2 closure remain outside this first wave until their approved contracts are ready.
+
+Next three actions: T33 schema/models, T34 authorization/controller/routes, and T35 bilingual UI/feature acceptance. Three Luna/xhigh workers own disjoint files; the coordinator reviews and integrates their shared result.
+
 ## 2026-09-12 M1 closed
 
 M1 access and branch foundation is DONE on `codex/first`. PHP 8.5 compatibility (T31) is closed; the final full suite passes on PHP 8.4.21 and 8.5.8, and current migrations plus the full suite pass on isolated MySQL 8.4.11/InnoDB. Real-browser Arabic RTL/English LTR acceptance covers the shared responsive shell, tenant/branch settings, audit labels, active navigation, skip link, and zero console warnings/errors. M2 is ready for planning but not started. This is not production readiness; no main merge or push.

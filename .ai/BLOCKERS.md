@@ -1,5 +1,9 @@
 # Blockers
 
+## 2026-09-12 M2 start boundary
+
+No blocker prevents the first family-registry slice. Full M2 schema/API freeze remains blocked by OQ-17 duplicate resolution after a match and approved consent/privacy notice wording/version/retention. The first slice therefore has no phone uniqueness constraint, never creates a same-tenant duplicate, and does not claim consent capture or M2 completion.
+
 ## 2026-09-12 M1 closure
 
 No blocker remains for M1 local acceptance. T30 MySQL, T31 PHP 8.5, and T32 browser acceptance are closed. Production readiness remains blocked on deployment-specific TLS, managed secrets, monitoring, backup/restore, and operational approval. M2 and later schema/API freeze still depend on their documented product/legal decisions; they do not reopen M1.

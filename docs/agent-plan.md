@@ -1,5 +1,15 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 M2 T33-T35 first family-registry wave
+
+The user authorized M2 start with three Luna/xhigh workers. Fixed contract: one visible flow at `/app/families` and `/app/families/create`; search by trimmed/capped child name or normalized guardian phone; only current-tenant safe results; create one guardian, one child and one active guardian-child link in one transaction. Same-tenant normalized phone match creates nothing and returns the existing-family path; cross-tenant matches stay undisclosed. No phone uniqueness constraint, consent event, safety note/photo, editing, visit history, check-in or speculative permission key in this wave.
+
+- **T33 data:** migration, Guardian/Child models and factories, relations/casts/masked-phone helper, and database-integrity tests only.
+- **T34 backend:** family authorization for active owner or fixed eligible branch roles, E.164 normalization, controller/routes, transaction/audit, duplicate guard, and backend security tests only.
+- **T35 UI:** bilingual accessible search/create/results/empty/error/success views, navigation entry and UI feature tests only.
+
+The coordinator owns shared status documentation, integration corrections, full regression, build/format/docs checks and real-browser acceptance. Any worker must stop at its file boundary and report missing peer dependencies rather than widening scope.
+
 ## 2026-09-12 custom roles and staff administration accepted
 
 Three requested Luna/xhigh workers split custom roles, staff search, and direct staff creation. Coordinator reviewed and tightened the result: `/app/roles` creates tenant roles and toggles the enforced `branches.view` permission; eligible roles are assignable at `/app/assignments`; staff search is tenant-scoped by name/email; `/app/staff/create` creates an active account with a generated unknown password for password recovery. Built-in role maps, owner transfer, email delivery, and speculative permission keys remain out of scope.

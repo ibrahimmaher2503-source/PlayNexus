@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-09-12: Start M2 with a conservative family-registry slice
+
+**Authority:** The product owner asked to begin M2 after confirming current readiness and requested three Luna/xhigh workers with coordinator review.
+**Decision:** Build current-tenant family search and atomic guardian + child + active relationship creation first. Normalize Egyptian/local phone formats to E.164 where valid. If the same normalized phone already exists in the tenant, stop creation and guide staff to the existing record; a match in another tenant is neither returned nor treated as a local duplicate.
+**Boundary:** This temporary safe behavior does not decide OQ-17's eventual merge or supervised duplicate flow. Consent events, policy wording, safety notes/photos, editing, visit history, tickets and check-in remain later slices. No unique phone constraint is added.
+
 ## 2026-09-12: Close M1 at the access-and-branch boundary
 
 **Decision:** Mark M1 DONE after PHP 8.4/8.5, SQLite/MySQL 8.4.11, focused security, build/format/audit, documentation, and real bilingual browser gates pass.
