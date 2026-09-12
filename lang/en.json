@@ -1,5 +1,6 @@
 {
     "Arabic": "Arabic",
+    "Available branches": "Available branches",
     "Assigned branches": "Assigned branches",
     "Branch context": "Branch context",
     "Change": "Change",
@@ -7,6 +8,7 @@
     "Email address": "Email address",
     "English": "English",
     "Language": "Language",
+    "No active branches are available.": "No active branches are available.",
     "No active branch assignments are available.": "No active branch assignments are available.",
     "Password": "Password",
     "Select": "Select",

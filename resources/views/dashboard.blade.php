@@ -32,9 +32,9 @@
         </header>
 
         <section class="mt-8 max-w-xl" aria-labelledby="branches-heading">
-            <h2 class="text-lg font-bold" id="branches-heading">{{ __('Assigned branches') }}</h2>
+            <h2 class="text-lg font-bold" id="branches-heading">{{ __('Available branches') }}</h2>
             @if ($branches->isEmpty())
-                <p class="mt-3 text-[var(--pn-ink-muted)]">{{ __('No active branch assignments are available.') }}</p>
+                <p class="mt-3 text-[var(--pn-ink-muted)]">{{ __('No active branches are available.') }}</p>
             @else
                 <div class="mt-4 space-y-3">
                     @foreach ($branches as $branch)

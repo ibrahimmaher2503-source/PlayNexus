@@ -29,6 +29,9 @@ class EnsureTenantAccess
             return redirect()->route('login');
         }
 
+        Auth::setUser($user);
+        $request->setUserResolver(fn (?string $guard = null) => $user);
+
         $tenant = app(TenantContext::class)->current($user);
 
         if (! $tenant) {
@@ -38,7 +41,7 @@ class EnsureTenantAccess
         }
 
         if ($branchId = $request->session()->get('branch_id')) {
-            $branch = $user->activeBranches()->whereKey($branchId)->first();
+            $branch = $user->accessibleBranches()->whereKey($branchId)->first();
 
             if (! $branch || ! Gate::forUser($user)->allows('view', $branch)) {
                 $request->session()->forget('branch_id');

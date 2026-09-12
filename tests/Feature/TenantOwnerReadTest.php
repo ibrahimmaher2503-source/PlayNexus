@@ -32,7 +32,7 @@ class TenantOwnerReadTest extends TestCase
             ->assertOk()
             ->assertSee(route('tenant.show'), false);
 
-        $this->getJson('/branches/'.$branch->id)->assertNotFound();
+        $this->getJson('/branches/'.$branch->id)->assertOk()->assertJsonPath('id', $branch->id);
     }
 
     public function test_staff_and_branch_owner_spoof_cannot_read_tenant(): void
