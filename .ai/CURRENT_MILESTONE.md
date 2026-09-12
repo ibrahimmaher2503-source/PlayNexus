@@ -1,5 +1,9 @@
 # Current Milestone
 
+## 2026-09-12 T21-T23 integrated feature wave
+
+Staff invitation, owner branch lifecycle, and tenant audit viewing are locally integrated on `codex/first`. Focused verification passed 23 tests / 188 assertions; the full suite passed 103 tests / 691 assertions. Pint, frontend build, documentation validation, and whitespace checks passed. Browser remains deferred by user; MySQL/PHP 8.5 remain unverified. No main merge or push.
+
 ## 2026-09-12 T18-T20 integrated feature wave
 
 Three requested Luna/xhigh workers delivered complete features in isolated worktrees from `bb5f883`. Integrated T18 `ee9a35b` (owner all-active-branch access), T19 `7c6e171` plus `401a235` (existing non-owner staff status and per-row validation correction), T20 `3066663` (fixed branch assignment management). T20 worker later amended its commit to `95e99b6` solely for SQL-null assertion handling; coordinator applied that correction directly after the original commit was integrated. Shared audit migration, route composition, owner navigation and canonical documentation are coordinator-owned.

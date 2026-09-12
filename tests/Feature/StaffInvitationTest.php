@@ -26,9 +26,9 @@ class StaffInvitationTest extends TestCase
             ->assertSee(__('staff.invite_email'))
             ->assertSee('name="name"', false)
             ->assertSee('name="email"', false)
-            ->assertSee('name="password"', false)
-            ->assertSee('name="role"', false)
-            ->assertSee('name="branch_id"', false)
+            ->assertDontSee('name="password"', false)
+            ->assertDontSee('name="role"', false)
+            ->assertDontSee('name="branch_id"', false)
             ->assertSee($tenant->name);
     }
 
@@ -151,7 +151,9 @@ class StaffInvitationTest extends TestCase
             ])
             ->assertRedirect(route('staff.index'));
 
-        $this->post(route('login.store'), [
+        $this->post(route('logout'))->assertRedirect(route('login'));
+
+        $this->from(route('login'))->post(route('login.store'), [
             'email' => 'pending-login@example.test',
             'password' => 'known-to-operator',
         ])

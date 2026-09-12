@@ -1,5 +1,17 @@
 # Test Results
 
+## 2026-09-12 T21-T23 integration acceptance
+
+- Focused: `php artisan test --filter='StaffInvitationTest|BranchAdministrationTest|AuditLogViewTest'` — PASS, 23 tests / 188 assertions.
+- Full: `php artisan test` — PASS, 103 tests / 691 assertions.
+- Environment: process-local SQLite `:memory:`, empty `DB_URL`, array sessions, `SESSION_CONNECTION` unset.
+- `php vendor/bin/pint --test` — PASS.
+- `npm run build` — PASS; optional fontaine notice only.
+- `python tools/validate_documentation.py` — PASS, 0 errors / 2 existing placeholder warnings.
+- `git diff --check` — PASS.
+
+Initial focused run exposed only test setup defects in the invitation login scenario; the owner session was explicitly logged out and the login request now has the login-page referer. Browser is DEFERRED_BY_USER. MySQL migration/locking and PHP 8.5 are unverified.
+
 ## 2026-09-12 T18-T20 integrated feature wave
 
 Three requested Luna/xhigh workers delivered complete features in isolated worktrees from `bb5f883`. Integrated T18 `ee9a35b` (owner all-active-branch access), T19 `7c6e171` plus `401a235` (existing non-owner staff status and per-row validation correction), T20 `3066663` (fixed branch assignment management). T20 worker later amended its commit to `95e99b6` for SQL-null assertion handling; coordinator applied that correction directly. A subsequent worker-only `f9803fa` flash-key consistency amendment was not integrated: the tested original controller/view already use matching status keys. Shared audit migration, route composition, owner navigation and canonical documentation are coordinator-owned.

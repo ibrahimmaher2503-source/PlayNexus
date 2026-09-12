@@ -20,6 +20,8 @@ Route::middleware('auth')->post('/logout', [AuthenticatedSessionController::clas
 Route::middleware(['auth', 'tenant.access'])->group(function (): void {
     require __DIR__.'/staff.php';
     require __DIR__.'/assignments.php';
+    require __DIR__.'/branches-admin.php';
+    require __DIR__.'/audit.php';
     Route::get('/app', [BranchContextController::class, 'index'])->name('dashboard');
     Route::get('/app/tenant', [TenantReadController::class, 'show'])->name('tenant.show');
     Route::post('/branch-context/{branch}', [BranchContextController::class, 'store'])->name('branch-context.store');

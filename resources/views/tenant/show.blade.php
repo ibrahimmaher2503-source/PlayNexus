@@ -14,6 +14,8 @@
             <div class="flex flex-wrap items-end gap-3">
                 <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('staff.index') }}">{{ __('tenant.manage_staff') }}</a>
                 <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('assignments.index') }}">{{ __('tenant.manage_assignments') }}</a>
+                <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('branches.manage') }}">{{ __('tenant.manage_branches') }}</a>
+                <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('audit.index') }}">{{ __('tenant.view_audit') }}</a>
                 <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
                     @csrf
                     <label class="text-sm font-semibold" for="locale">{{ __('Language') }}</label>

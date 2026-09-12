@@ -1,5 +1,9 @@
 # Progress
 
+## 2026-09-12 T21-T23 completed locally
+
+Three Luna/xhigh workers implemented staff invitation, branch create/status management, and the tenant audit viewer. Coordinator reviewed and integrated commits `4c7df3b`, `29aa88e`, and `77745f0`, wired routes/navigation, and corrected invitation assertions/session setup. New focused tests pass 23/188; full suite passes 103/691. No email delivery, owner transfer, platform access, browser acceptance, or shared service change was added.
+
 ## 2026-09-12 T18-T20 integrated feature wave
 
 Three requested Luna/xhigh workers delivered complete features in isolated worktrees from `bb5f883`. Integrated T18 `ee9a35b` (owner all-active-branch access), T19 `7c6e171` plus `401a235` (existing non-owner staff status and per-row validation correction), T20 `3066663` (fixed branch assignment management). T20 worker later amended its commit to `95e99b6` solely for SQL-null assertion handling; coordinator applied that correction directly after the original commit was integrated. Shared audit migration, route composition, owner navigation and canonical documentation are coordinator-owned.

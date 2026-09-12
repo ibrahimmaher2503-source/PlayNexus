@@ -3,6 +3,8 @@
 return [
     'manage_staff' => 'إدارة الموظفين',
     'manage_assignments' => 'صلاحيات الفروع',
+    'manage_branches' => 'إدارة الفروع',
+    'view_audit' => 'سجل التدقيق',
     'back_to_dashboard' => 'العودة إلى لوحة التشغيل',
     'navigation_label' => 'ملف المنشأة',
     'page_description' => 'راجع بيانات منشأتك وحسابات الموظفين.',

@@ -1,5 +1,9 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 T21-T23 delivery accepted
+
+Three Luna/xhigh feature workers delivered complete vertical slices: T21 staff invitation `4c7df3b`, T22 branch lifecycle `29aa88e`, and T23 tenant audit viewer `77745f0`. Coordinator reviewed actual diffs/tests, wired the feature route files and owner navigation, corrected invitation test assertions/session setup, and accepted the combined result after 23/188 focused and 103/691 full tests plus Pint/build/docs/diff checks. Browser remains deferred; MySQL/PHP 8.5 and broader platform/owner-transfer scope remain incomplete. No main merge or push.
+
 ## 2026-09-12 T18-T20 integrated feature wave
 
 Three requested Luna/xhigh workers delivered complete features in isolated worktrees from `bb5f883`. Integrated T18 `ee9a35b` (owner all-active-branch access), T19 `7c6e171` plus `401a235` (existing non-owner staff status and per-row validation correction), T20 `3066663` (fixed branch assignment management). T20 worker later amended its commit to `95e99b6` solely for SQL-null assertion handling; coordinator applied that correction directly after the original commit was integrated. Shared audit migration, route composition, owner navigation and canonical documentation are coordinator-owned.
