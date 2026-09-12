@@ -1,5 +1,18 @@
 # Test Results
 
+## 2026-09-12 application shell acceptance
+
+| Check | Result |
+|---|---|
+| Permission-aware navigation regression | `php artisan test --filter="LocaleSwitchTest|TenantOwnerReadTest|StaffManagementTest|BranchAdministrationTest|BranchAssignmentManagementTest|AuditLogViewTest|TenantSettingsTest"` — PASS, 66 tests / 462 assertions |
+| Full regression | `php artisan test` — PASS, 142 tests / 1,106 assertions |
+| Formatting | `php vendor/bin/pint --test` — PASS |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 existing review-placeholder warnings |
+| Browser | PASS at `http://127.0.0.1:8206`: Arabic RTL shell, 64px top bar, sidebar plus mobile drawer, one locale action, one logout action, and no horizontal overflow |
+
+The browser acceptance used one focused screenshot and compact DOM assertions after automated checks. The current slice is presentation-only apart from the separately tested tenant-settings audit cleanup; no new database schema or authorization rule was added.
+
 ## 2026-09-12 branch lifecycle UI follow-up
 
 - `php artisan test --filter=BranchAdministrationTest`: PASS, 10 tests / 83 assertions.

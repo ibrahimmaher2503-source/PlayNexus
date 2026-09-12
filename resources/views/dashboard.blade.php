@@ -4,27 +4,11 @@
 
 @section('content')
     <main class="mx-auto min-h-screen max-w-5xl px-4 py-6 sm:px-6">
-        <header class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--pn-border)] pb-5">
+        <header class="border-b border-[var(--pn-border)] pb-5">
             <div>
-                <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant?->name ?? 'PlayNexus' }}</p>
-                <h1 class="mt-1 text-2xl font-bold">{{ __('Branch context') }}</h1>
+                <h1 class="text-2xl font-bold">{{ __('Branch context') }}</h1>
                 <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('Signed in as :user', ['user' => auth()->user()->name]) }}</p>
                 <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ $selectedBranch ? __('Current branch: :branch', ['branch' => $selectedBranch->name]) : __('Select an assigned branch to continue.') }}</p>
-            </div>
-            <div class="flex flex-wrap items-end gap-3">
-                <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
-                    @csrf
-                    <label class="text-sm font-semibold" for="locale">{{ __('Language') }}</label>
-                    <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="locale" name="locale">
-                        <option value="en" @selected(app()->isLocale('en'))>{{ __('English') }}</option>
-                        <option value="ar" @selected(app()->isLocale('ar'))>{{ __('Arabic') }}</option>
-                    </select>
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Change') }}</button>
-                </form>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Sign out') }}</button>
-                </form>
             </div>
         </header>
 

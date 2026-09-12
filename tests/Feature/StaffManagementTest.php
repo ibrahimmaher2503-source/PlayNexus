@@ -33,6 +33,9 @@ class StaffManagementTest extends TestCase
             ->assertSee($target->name)
             ->assertDontSee($foreign->name)
             ->assertSee(__('staff.owner_locked'))
+            ->assertSee('name="locale" value="ar"', false)
+            ->assertSee(__('Switch to :language', ['language' => __('Arabic')]))
+            ->assertDontSee('id="locale"', false)
             ->assertSee(__('staff.save'));
 
         $this->actingAs($owner)

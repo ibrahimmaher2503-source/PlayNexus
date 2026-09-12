@@ -7,6 +7,8 @@
 
 **M1 acceptance — 2026-09-12:** The shared authenticated navigation, tenant settings, semantic state tokens, skip link, 44px controls, Arabic RTL/English LTR behavior, tablet overflow behavior, and reduced-motion fallback were checked in the real browser. No console warnings or errors were present in the accepted journey.
 
+**Application shell follow-up — 2026-09-12:** Authenticated tenant pages now use the specified 248px desktop sidebar, 64px top bar, and sub-1024px navigation drawer. The shell keeps branch, locale, user, and sign-out context in one consistent location; navigation remains permission-aware and uses only implemented routes.
+
 ## 1. Design direction
 
 PlayNexus should feel modern, calm, warm, and operationally trustworthy. It is not an arcade-themed interface and not a dense accounting ERP.

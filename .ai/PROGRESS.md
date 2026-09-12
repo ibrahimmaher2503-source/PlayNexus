@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-12 application shell
+
+- Replaced the horizontal authenticated link strip with the PRD-aligned 248px desktop sidebar, 64px top bar, and responsive navigation drawer.
+- Centralized tenant/branch context, locale switching, user identity, and sign-out; removed duplicate page-level controls and dashboard return links.
+- Kept navigation permission-aware and limited to routes already implemented in M1.
+- Verified Arabic RTL tablet rendering in the real browser, production asset build, focused authorization/UI tests, full regression, formatting, and documentation validation.
+
 ## 2026-09-12 branch lifecycle UI clarification
 
 Replaced the ambiguous status selector with one state-aware action per branch: deactivate or reactivate. Each row now explains the operational consequence required by FR-TEN-006 before the reason-required action, keeps branch settings separate, and renders complete Arabic/English copy. Real Arabic RTL tablet verification passed without page overflow, untranslated keys, or console warnings/errors.

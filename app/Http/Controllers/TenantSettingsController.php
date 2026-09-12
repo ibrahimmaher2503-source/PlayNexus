@@ -37,7 +37,6 @@ class TenantSettingsController extends Controller
             'timezone' => ['required', Rule::in(DateTimeZone::listIdentifiers())],
             'currency' => ['required', Rule::in(['EGP'])],
             'expected_lock_version' => ['required', 'integer', 'min:1'],
-            'reason_code' => ['required', Rule::in(['setup_change', 'correction'])],
         ]);
 
         $changed = DB::transaction(function () use ($actor, $tenant, $data): bool {
@@ -62,7 +61,7 @@ class TenantSettingsController extends Controller
                 'actor_user_id' => $lockedActor->getKey(), 'actor_type' => 'user',
                 'action' => 'tenant.profile.updated', 'subject_type' => 'tenant',
                 'subject_id' => (string) $lockedTenant->getKey(), 'outcome' => 'success',
-                'reason_code' => $data['reason_code'],
+                'reason_code' => 'setup_change',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
                 'request_id' => (string) Str::uuid(), 'occurred_at' => now('UTC'),

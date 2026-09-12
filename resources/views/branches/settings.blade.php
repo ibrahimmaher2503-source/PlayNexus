@@ -11,21 +11,6 @@
                 <h1 class="mt-1 text-2xl font-bold">{{ __('branch_settings.page_title') }}</h1>
                 <p class="mt-1 max-w-2xl text-sm text-[var(--pn-ink-muted)]">{{ __('branch_settings.page_description') }}</p>
             </div>
-            <div class="flex flex-wrap items-end gap-3">
-                <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
-                    @csrf
-                    <label class="text-sm font-semibold" for="locale">{{ __('Language') }}</label>
-                    <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="locale" name="locale">
-                        <option value="en" @selected(app()->isLocale('en'))>{{ __('English') }}</option>
-                        <option value="ar" @selected(app()->isLocale('ar'))>{{ __('Arabic') }}</option>
-                    </select>
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Change') }}</button>
-                </form>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Sign out') }}</button>
-                </form>
-            </div>
         </header>
 
         @if (session('success') || session('status_message'))

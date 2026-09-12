@@ -1,5 +1,9 @@
 # Handoff
 
+## 2026-09-12 application shell follow-up
+
+The authenticated tenant UI now follows `DESIGN.md`: a 248px desktop sidebar, 64px top bar, and responsive RTL/LTR drawer. Tenant/branch context, locale, identity, and logout are centralized; owner-only links remain policy-gated and no unimplemented PRD modules were exposed. Acceptance: 142 tests / 1,106 assertions, frontend build, Pint, documentation validation, and focused browser evidence all pass.
+
 ## 2026-09-12 branch lifecycle UI follow-up
 
 The branch management table now presents one explicit state-aware action with consequence copy and a required reason instead of a redundant status selector. Current SQLite regression is 142 tests / 1,102 assertions on PHP 8.4.21 and 8.5.8; accepted MySQL evidence remains 142 / 1,096 because the follow-up changes only Blade, translations, and UI assertions.

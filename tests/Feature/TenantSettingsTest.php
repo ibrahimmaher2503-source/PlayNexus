@@ -24,9 +24,12 @@ class TenantSettingsTest extends TestCase
     public function test_owner_can_view_and_update_profile_with_audit(): void
     {
         [$tenant, $owner] = $this->owner();
-        $this->actingAs($owner)->get(route('tenant.settings.edit'))->assertOk()->assertSee(__('tenant_settings.title'));
+        $this->actingAs($owner)->get(route('tenant.settings.edit'))
+            ->assertOk()
+            ->assertSee(__('tenant_settings.title'))
+            ->assertDontSee('name="reason_code"', false);
 
-        $this->patch(route('tenant.settings.update'), $this->payload($tenant, ['name' => 'Updated venue', 'legal_name' => 'Updated Venue LLC', 'default_locale' => 'ar']))
+        $this->patch(route('tenant.settings.update'), $this->payload($tenant, ['name' => 'Updated venue', 'legal_name' => 'Updated Venue LLC', 'default_locale' => 'ar', 'reason_code' => 'correction']))
             ->assertRedirect(route('tenant.settings.edit'));
 
         $tenant->refresh();
@@ -36,7 +39,7 @@ class TenantSettingsTest extends TestCase
         $this->assertSame(2, $tenant->lock_version);
         $audit = DB::table('audit_logs')->where('action', 'tenant.profile.updated')->sole();
         $this->assertSame($owner->id, $audit->actor_user_id);
-        $this->assertSame('correction', $audit->reason_code);
+        $this->assertSame('setup_change', $audit->reason_code);
     }
 
     public function test_non_owner_is_forbidden_and_foreign_input_cannot_change_scope(): void
@@ -80,7 +83,6 @@ class TenantSettingsTest extends TestCase
         return array_merge([
             'name' => $tenant->name, 'legal_name' => $tenant->legal_name, 'default_locale' => $tenant->default_locale,
             'timezone' => $tenant->timezone, 'currency' => 'EGP', 'expected_lock_version' => $tenant->lock_version,
-            'reason_code' => 'correction',
         ], $overrides);
     }
 }
