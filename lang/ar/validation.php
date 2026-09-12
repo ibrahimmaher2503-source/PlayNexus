@@ -5,6 +5,7 @@ return [
     'in' => ':attribute المحددة غير صالحة.',
     'required' => 'حقل :attribute مطلوب.',
     'string' => 'يجب أن يكون :attribute نصًا.',
+    'unique' => 'القيمة :attribute مستخدمة بالفعل.',
     'attributes' => [
         'email' => 'البريد الإلكتروني',
         'locale' => 'اللغة',

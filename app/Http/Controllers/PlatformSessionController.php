@@ -34,6 +34,7 @@ class PlatformSessionController extends Controller
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+            $request->session()->put('locale', app()->getLocale());
 
             return back()
                 ->withErrors(['email' => __('platform.auth.invalid_credentials')])

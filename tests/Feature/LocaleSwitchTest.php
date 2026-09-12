@@ -25,6 +25,20 @@ class LocaleSwitchTest extends TestCase
             ->assertSee('تسجيل دخول الموظفين');
     }
 
+    public function test_guest_can_switch_locale_on_platform_login_and_stay_on_that_page(): void
+    {
+        $this->from(route('platform.login'))
+            ->post(route('locale.store'), ['locale' => 'ar'])
+            ->assertRedirect(route('platform.login'))
+            ->assertSessionHas('locale', 'ar');
+
+        $this->get(route('platform.login'))
+            ->assertOk()
+            ->assertSee('lang="ar"', false)
+            ->assertSee('dir="rtl"', false)
+            ->assertSee('تسجيل الدخول إلى إدارة المنصة');
+    }
+
     public function test_authenticated_user_returns_to_the_application_with_the_selected_locale(): void
     {
         $user = $this->staff();
@@ -39,6 +53,18 @@ class LocaleSwitchTest extends TestCase
             ->assertSee('lang="ar"', false)
             ->assertSee('dir="rtl"', false)
             ->assertSee('سياق الفرع');
+    }
+
+    public function test_authenticated_user_stays_on_an_account_settings_page_when_switching_locale(): void
+    {
+        $user = $this->staff();
+        $branch = $user->branches()->firstOrFail();
+
+        $this->actingAs($user)
+            ->from(route('branches.settings', $branch))
+            ->post(route('locale.store'), ['locale' => 'ar'])
+            ->assertRedirect(route('branches.settings', $branch))
+            ->assertSessionHas('locale', 'ar');
     }
 
     public function test_locale_rejects_malformed_values_and_ignores_client_redirects(): void

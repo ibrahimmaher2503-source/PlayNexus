@@ -446,6 +446,24 @@ class PlatformAdministrationTest extends TestCase
             ->assertSee('dir="rtl"', false);
     }
 
+    public function test_invalid_platform_login_preserves_the_selected_arabic_locale(): void
+    {
+        $this->withSession(['locale' => 'ar'])
+            ->from(route('platform.login'))
+            ->post(route('platform.login.store'), [
+                'email' => 'missing-platform@example.test',
+                'password' => 'wrong-password',
+            ])
+            ->assertRedirect(route('platform.login'))
+            ->assertSessionHasErrors(['email' => 'بيانات الدخول غير صحيحة.'])
+            ->assertSessionHas('locale', 'ar');
+
+        $this->get(route('platform.login'))
+            ->assertOk()
+            ->assertSee('lang="ar"', false)
+            ->assertSee('dir="rtl"', false);
+    }
+
     /** @return array{User} */
     private function platformAdmin(bool $active = true): array
     {
