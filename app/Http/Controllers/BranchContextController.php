@@ -12,12 +12,13 @@ class BranchContextController extends Controller
 {
     public function index(Request $request)
     {
-        $branches = $request->user()->activeBranches()->orderBy('name')->get()
-            ->filter(fn (Branch $branch): bool => Gate::forUser($request->user())->allows('view', $branch))
+        $user = $request->user();
+        $branches = $user->accessibleBranches()->orderBy('name')->get()
+            ->filter(fn (Branch $branch): bool => Gate::forUser($user)->allows('view', $branch))
             ->values();
 
         return view('dashboard', [
-            'tenant' => app(TenantContext::class)->current($request->user()),
+            'tenant' => app(TenantContext::class)->current($user),
             'branches' => $branches,
             'selectedBranch' => $branches->firstWhere('id', $request->session()->get('branch_id')),
         ]);
@@ -25,8 +26,9 @@ class BranchContextController extends Controller
 
     public function store(Request $request, Branch $branch): RedirectResponse
     {
-        $branch = $request->user()->activeBranches()->whereKey($branch)->firstOrFail();
-        Gate::forUser($request->user())->authorize('view', $branch);
+        $user = $request->user();
+        $branch = $user->accessibleBranches()->whereKey($branch->getKey())->firstOrFail();
+        Gate::forUser($user)->authorize('view', $branch);
 
         $request->session()->put('branch_id', $branch->id);
 

@@ -6,9 +6,11 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -36,6 +38,41 @@ class User extends Authenticatable
             ->where('branches.is_active', true)
             ->wherePivot('tenant_id', $this->tenant_id)
             ->wherePivot('is_active', true);
+    }
+
+    public function accessibleBranches(): Builder
+    {
+        $userId = $this->getAuthIdentifier();
+
+        return Branch::query()
+            ->where('branches.is_active', true)
+            ->whereExists(function (QueryBuilder $query): void {
+                $query->selectRaw('1')
+                    ->from('tenants')
+                    ->whereColumn('tenants.id', 'branches.tenant_id')
+                    ->where('tenants.is_active', true);
+            })
+            ->where(function (Builder $query) use ($userId): void {
+                $query->whereExists(function (QueryBuilder $query) use ($userId): void {
+                    $query->selectRaw('1')
+                        ->from('tenant_owners')
+                        ->join('users', 'users.id', '=', 'tenant_owners.user_id')
+                        ->whereColumn('tenant_owners.tenant_id', 'branches.tenant_id')
+                        ->whereColumn('users.tenant_id', 'branches.tenant_id')
+                        ->where('tenant_owners.user_id', $userId)
+                        ->where('users.status', 'active');
+                })->orWhereExists(function (QueryBuilder $query) use ($userId): void {
+                    $query->selectRaw('1')
+                        ->from('branch_user')
+                        ->join('users', 'users.id', '=', 'branch_user.user_id')
+                        ->whereColumn('branch_user.branch_id', 'branches.id')
+                        ->whereColumn('branch_user.tenant_id', 'branches.tenant_id')
+                        ->whereColumn('users.tenant_id', 'branches.tenant_id')
+                        ->where('branch_user.user_id', $userId)
+                        ->where('branch_user.is_active', true)
+                        ->where('users.status', 'active');
+                });
+            });
     }
 
     /**
