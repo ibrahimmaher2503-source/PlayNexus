@@ -12,6 +12,12 @@ Implement a tenant-scoped family detail page, basic guardian/child edits with op
 
 T36 backend authorization/commands, T37 bilingual family-profile UI, and T38 adversarial review are integrated and centrally corrected. Automated, build, format, and route gates pass. Browser acceptance remains blocked by `User unavailable`; isolated MySQL evidence and the OQ-17/legal-consent decisions remain open.
 
+## 2026-09-12 M3 first slice — fixed-duration pricing configuration
+
+Create and list immutable branch pricing rules using the approved OQ-16 shape: integer EGP amounts, fixed package duration, 600-second grace, 1,800-second rounded-up overtime units, and selected-branch tax snapshot. No default business prices are seeded. Ticket types/QR are excluded pending OQ-18; calculation, check-in, sessions, extensions, retirement, and M3 closure remain later.
+
+Next three actions: T39 pricing data model/integrity, T40 scoped authorization/backend/audit, and T41 bilingual UI/feature acceptance. Three Luna/xhigh workers own disjoint files; the coordinator reviews all shared contracts and gates.
+
 ## 2026-09-12 M1 closed
 
 M1 access and branch foundation is DONE on `codex/first`. PHP 8.5 compatibility (T31) is closed; its full suite passes on PHP 8.4.21 and 8.5.8, and its migrations plus suite passed on isolated MySQL 8.4.11/InnoDB. M2 is now in progress through the family-registry first slice; this is not M2 closure or production readiness. No main merge or push.

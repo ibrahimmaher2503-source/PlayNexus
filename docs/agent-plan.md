@@ -1,5 +1,15 @@
 # PlayNexus Agent Plan
 
+## 2026-09-12 M3 T39-T41 immutable pricing-rule wave
+
+Three Luna/xhigh workers implement the first M3 slice. Contract: list current-scope rules and create one immutable active branch rule with code/name/version 1, `base_duration_seconds`, integer `base_price_minor`, fixed `grace_period_seconds=600`, fixed `overtime_unit_seconds=1800`, integer `overtime_price_minor`, EGP currency, selected branch tax snapshot, actor, status, and timestamps. Unique `(tenant_id, branch_id, code, version)` and tenant-aware branch/actor foreign keys are mandatory.
+
+- **T39 data:** migration, model/factory/relations, composite constraints/indexes, and data-integrity tests.
+- **T40 backend:** owner/branch-manager manage policy, scoped view for eligible fixed roles, controller/routes, validation, transaction/audit, and security tests.
+- **T41 UI:** bilingual responsive pricing list/create surface, branch context, integer-to-EGP presentation, fixed-rule explanation, empty/validation/success states, navigation, and UI tests.
+
+No seeded price, in-place edits, calculator/tax total, ticket type, issuance, QR, check-in, session, extension, or retirement/version cloning. OQ-18 blocks ticket behavior. Coordinator owns integration corrections, canonical status, full tests, build, and available browser/MySQL evidence.
+
 ## 2026-09-12 M2 T36-T38 family-profile wave
 
 The user authorized another three-agent Luna/xhigh wave. Fixed boundary: current-tenant family detail; edit guardian name/phone/email/preferred locale and child name/optional DOB with expected `lock_version`; add one child and active allowlisted relationship to an existing guardian atomically. Same-tenant phone conflict must point to the existing family and create no write. Audit JSON stores IDs and changed field names, never raw PII.

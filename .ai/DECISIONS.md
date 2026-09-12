@@ -84,7 +84,15 @@ The following initial decisions are approved for the MVP baseline:
 - **OQ-02:** QR/barcode input uses browser keyboard-input scanners. Proprietary wristband/scanner SDKs are deferred.
 - **OQ-15:** Child date of birth is optional; the system may use an age/family-band value where needed, without requiring more precision than the approved purpose.
 
-**Still open:** OQ-08 receipt numbering/content requires Finance/Legal approval; OQ-16 pricing, OQ-12 guardian verification, and the remaining operational decisions must close before their affected slices are frozen.
+**Historical status at approval time:** OQ-08 receipt numbering/content, OQ-16 pricing, OQ-12 guardian verification, and remaining operational decisions were still open here. OQ-08, OQ-12, and OQ-16 were subsequently approved and synchronized in the canonical documents; later unresolved questions remain gated separately.
+
+## 2026-09-12: Start M3 with immutable fixed-duration pricing configuration
+
+**Authority:** The product owner asked to continue subsequent milestones with another Luna/xhigh worker wave.
+**Decision:** Implement current-tenant/current-branch pricing-rule list and creation first. Rules are immutable versioned configuration: fixed duration, integer EGP base price, fixed 600-second grace, fixed 1,800-second overtime unit, integer EGP overtime price, and a snapshot of the selected branch tax rate/mode. No in-place update, calculation/checkout, or seeded business price.
+**Authorization:** Active Tenant Owners manage active branches in their tenant. Active branch managers manage only their active assignments. Reception and cashier may view active rules only in their active assigned branches; they cannot create them. Custom `branches.view` alone grants neither pricing permission.
+**Boundary:** Ticket types/issuance/QR remain blocked by OQ-18. Check-in, live sessions, tax-total calculation, extensions, retirement/version cloning, and M3 closure remain later slices.
+**Rationale:** OQ-16 fixes the pricing shape, while OQ-18 still leaves ticket behavior unresolved. An immutable configuration slice advances M3 without inventing ticket or Finance examples.
 
 ## 2026-09-12: Narrow tenant-owner read representation
 
