@@ -9,6 +9,12 @@
 
 **Application shell follow-up — 2026-09-12:** Authenticated tenant pages now use the specified 248px desktop sidebar, 64px top bar, and sub-1024px navigation drawer. The shell keeps branch, locale, user, and sign-out context in one consistent location; navigation remains permission-aware and uses only implemented routes.
 
+**Ticket surface — 2026-09-13:** The implemented ticket-only page prioritizes keyboard/manual scan validation, explicit branch/date/family context and native lifecycle disclosures. The same ticket table becomes labeled cards on narrower screens, preserving actions without horizontal scrolling. Local square QR rendering and scoped single-page A5 output include status/holder-lock facts; cancellation explicitly does not refund money. Authenticated Arabic/English headless-browser mobile/desktop/tablet evidence is recorded in `.ai/TEST_RESULTS.md`; sessions and checkout are not implied.
+
+**Check-in/live-session surface — 2026-09-13:** The implemented session page leads with branch/capacity context, then a compact server-filtered board and a visually distinct ticket consume-and-start action for authorized staff. Cashier receives an explicit read-only state. Session cards keep child, guardian, branch, state, ticket, branch-local start/expected end and elapsed time scannable on desktop, tablet and mobile without a wide table. Success/conflict/denial copy states whether anything changed; no money or checkout promise appears. Authenticated Arabic/English responsive Edge evidence is in `.ai/TEST_RESULTS.md`.
+
+**Read-only estimate follow-up — 2026-09-13:** Active session cards now add one quiet teal estimate panel with a prominent total, compact base/grace/overtime/tax details, server as-of time and an explicit non-final/no-checkout/no-payment notice. Desktop uses at most two cards per row so money labels stay readable; mobile remains a single linear card. No new component library or decorative pattern was added.
+
 ## 1. Design direction
 
 PlayNexus should feel modern, calm, warm, and operationally trustworthy. It is not an arcade-themed interface and not a dense accounting ERP.

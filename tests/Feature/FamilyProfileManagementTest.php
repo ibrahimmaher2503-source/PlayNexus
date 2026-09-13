@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\FamilyController;
 use App\Models\Child;
 use App\Models\Guardian;
 use App\Models\Tenant;
@@ -138,6 +139,8 @@ class FamilyProfileManagementTest extends TestCase
                 'date_of_birth' => '2017-05-06',
                 'relationship_type' => 'mother',
                 'expected_version' => 1,
+                'child_data_consent' => '1',
+                'notice_version' => FamilyController::NOTICE_VERSION,
             ])
             ->assertCreated();
 
@@ -157,6 +160,8 @@ class FamilyProfileManagementTest extends TestCase
                 'date_of_birth' => null,
                 'relationship_type' => 'mother',
                 'expected_version' => 1,
+                'child_data_consent' => '1',
+                'notice_version' => FamilyController::NOTICE_VERSION,
             ])
             ->assertStatus(409);
         $this->assertDatabaseMissing('children', ['full_name' => 'Retry Must Not Save']);
@@ -199,6 +204,8 @@ class FamilyProfileManagementTest extends TestCase
                 'date_of_birth' => null,
                 'relationship_type' => 'parent',
                 'expected_version' => 1,
+                'child_data_consent' => '1',
+                'notice_version' => FamilyController::NOTICE_VERSION,
             ]);
             $this->fail('The audit failure should escape the request.');
         } catch (RuntimeException $exception) {

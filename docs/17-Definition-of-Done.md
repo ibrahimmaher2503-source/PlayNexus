@@ -1,5 +1,9 @@
 # Definition of Done
 
+## 2026-09-13 M3 local assessment
+
+M3 pricing, tickets, ticket-backed check-in/live board and the read-only estimate meet local engineering DoD: exact time/money/tax boundaries, non-mutation/fail-closed evidence, full regression on PHP 8.4/PHP 8.5/SQLite/MySQL, real InnoDB concurrency, fresh migrations, formatting/build/documentation/whitespace checks, and authenticated bilingual responsive browser evidence. Production DoD is not met because selected deployment migration, Legal/DPO approval, monitoring/backups and operational acceptance remain separate gates. Checkout/release/finance behavior is not part of M3.
+
 A backlog item is done only when:
 
 - behavior and scope match an approved requirement and acceptance criteria;

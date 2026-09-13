@@ -4,11 +4,11 @@
 **Source baseline:** PlayNexus PRD v1.0, June 2026  
 **Verified source:** 27,198 bytes; SHA-256 `D9119C1A3325DD8DBF318296EB52DDFF95B064A0C0061EAD96CAAD68D9FEF5D2`  
 **Implementation target:** Laravel web MVP  
-**Status:** M1 locally accepted; M2 family registry in progress; M3 immutable pricing-rule first slice implemented
+**Status:** M1 locally accepted; Egypt M2 engineering implemented / release partial; M3 pricing, tickets, ticket-backed check-in/live board and read-only estimate locally accepted / release partial
 
-## Implementation status — 2026-09-12
+## Implementation status — 2026-09-13
 
-M1 access and branch foundation is DONE on `codex/first`. M2 now includes tenant-scoped search, registration, family detail, basic correction, and adding children; consent, duplicate merge/review, safety/emergency data, relationship revocation, and history remain open. M3 has started with scoped immutable fixed-duration pricing-rule creation/listing only. Ticket types/QR/check-in are not implemented. New M2/M3 migrations still need fresh isolated MySQL acceptance, the current browser bridge is unavailable, and production readiness is not claimed.
+M1 access and branch foundation is DONE. The approved Egypt M2 family contract is implemented, including hard duplicate-phone reuse, consent/withdrawal, emergency/safety safeguards and verified relationship lifecycle. M3 is locally accepted with immutable pricing versions, ticket lifecycle, atomic ticket-backed check-in, hard capacity, masked live sessions and an exact non-persisted estimate from immutable pricing/time/tax facts. Full isolated MySQL/SQLite/PHP 8.5 and scoped authenticated Edge acceptance pass. M4 time mutations/final checkout, guardian release, financial workflows and production approval remain open; an estimate is not checkout and cancellation is not a refund. See `.ai/TEST_RESULTS.md` for current evidence.
 
 `docs/` is the single source of truth for product, technical, delivery, and implementation documentation. Do not create parallel summary copies.
 
@@ -53,19 +53,11 @@ Included: tenant and branch setup, staff/RBAC, guardian and child profiles, sess
 
 Deferred: native apps, online marketplace, AI, advanced loyalty and memberships, birthday management, advanced inventory/HR, franchise controls, accounting integrations, white-label products, and broad marketing automation.
 
-## Decisions required before Sprint 1 closes
+## Decision register snapshot
 
-- Whether MVP payments are record-only or include an online gateway.
-- Whether checkout, payment recording, session completion, and receipt issuance happen as one terminal action or as a recoverable reception/cashier handoff.
-- Whether wristbands/scanners are mandatory hardware or optional keyboard-input devices.
-- Supported launch countries, currencies, VAT behavior, branch timezone, and receipt requirements.
-- Exact pricing models, rounding rules, pause policy, grace period, and overage rules.
-- Guardian checkout verification method and emergency override evidence.
-- Subscription plans, tenant limits, and trial/suspension behavior.
-- Whether temporary offline operation is required. The current architecture assumes online operation.
-- Notification providers and whether SMS/WhatsApp are pilot requirements or later integrations.
-- Whether the POS module's `daily shift close` is required in the MVP or whether the explicit MVP daily revenue/reconciliation reports are sufficient for the pilot.
-- Whether basic incident recording/search is required in the MVP; it appears in the Safety module but not in the PRD's explicit MVP feature list.
+- **Approved:** record-only in-person payments/no online gateway; browser keyboard-input scanners; Egypt/EGP/Africa-Cairo/Arabic-English; online-only operation; branch/year immutable receipt numbering/content; fixed-duration/grace/overtime pricing; QR plus registered-guardian confirmation with audited override; branch-scoped roles/support rules; optional DOB; branded SaaS.
+- **Approved/deferred:** incident management is outside the current MVP family/session boundary; restricted safety notes remain.
+- **Still open:** OQ-04 subscription limits, OQ-05/OQ-13 notification providers and alert policy, OQ-09 refund method/window, OQ-19 checkout/payment station handoff, OQ-21 measurable load, OQ-22 security timings/retention, and OQ-24 cashier shift close.
 
 Unresolved items are labeled assumptions; they are not hidden product commitments.
 
@@ -73,4 +65,4 @@ Unresolved items are labeled assumptions; they are not hidden product commitment
 
 The following initial decisions are approved for implementation planning: branded SaaS only (OQ-23); online-only operation (OQ-03); Egypt launch with EGP, Africa/Cairo, Arabic and English, and configurable tax behavior (OQ-06); minimum operational/safety data with recorded consent and lawful anonymization/retention exceptions (OQ-07); multi-branch staff with branch-scoped roles and deny-by-default authorization (OQ-10); default-deny, time-bound, reason-required, audited Super Admin support access (OQ-14); record-only in-person payments with no gateway in MVP (OQ-01); browser keyboard-input QR/barcode scanners with no proprietary hardware SDK (OQ-02); and optional child date of birth with purpose-limited age/family-band use (OQ-15).
 
-These decisions must be reflected in the affected SRS, architecture, ERD, permissions, API/OpenAPI, wireframe, testing, milestone, and blocker records before dependent implementation is frozen. OQ-08 receipt numbering/content, OQ-12 guardian verification, OQ-16 pricing, and remaining workflow decisions remain open.
+OQ-08 receipt numbering/content, OQ-12 guardian verification, and OQ-16 pricing are approved and reflected in the canonical pack. The remaining open items above stay gated; no M4 work is authorized by this status summary.

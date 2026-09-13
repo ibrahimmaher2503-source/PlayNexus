@@ -6,7 +6,7 @@ Deliver the smallest safe vertical slice of the PlayNexus MVP with a polished, f
 
 ## Current repository state
 
-Laravel M1 access and branch foundation is implemented and locally accepted on `codex/first`. M2 and later business workflows are not implemented; do not infer production readiness from M1 acceptance.
+Laravel M1 access/branch foundation, the approved Egypt M2 family engineering contract, and M3 immutable pricing/tickets/check-in/live sessions/read-only estimates are implemented in the integration worktree. Read the newest `docs/agent-plan.md` and `.ai/CURRENT_MILESTONE.md` entries; historical acceptance entries are not evidence for a later slice. Validation alone is not check-in, cancellation is not a financial refund, and a live estimate is not a completed checkout. Do not infer production readiness or M4/M5 behavior.
 
 ## Verified scaffold commands
 
@@ -28,7 +28,7 @@ vendor/bin/pint --test
 
 ## Next implementation boundary
 
-Begin M2 only after re-reading the approved guardian/child, consent, duplicate, and privacy contracts. Keep M1 regression checks in the acceptance set.
+M3 is locally accepted and the product owner stopped before M4. OQ-12 guardian verification is approved; OQ-19 station ownership/recovery remains open. Do not begin M4 or add final billing, guardian release, payment, receipt or refund behavior until the owner explicitly resumes it with a bounded contract. Preserve existing dirty changes.
 
 ## Architecture rules
 

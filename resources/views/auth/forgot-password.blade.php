@@ -7,15 +7,15 @@
         <section class="w-full rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-6 shadow-sm">
             <div class="flex items-center justify-between gap-4">
                 <p class="text-sm font-semibold text-[var(--pn-primary)]">PlayNexus</p>
-                <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
-                    @csrf
-                    <label class="text-sm font-semibold" for="locale">{{ __('Language') }}</label>
-                    <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="locale" name="locale">
-                        <option value="en" @selected(app()->isLocale('en'))>{{ __('English') }}</option>
-                        <option value="ar" @selected(app()->isLocale('ar'))>{{ __('Arabic') }}</option>
-                    </select>
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Change') }}</button>
-                </form>
+            <form class="flex items-center gap-2" method="POST" action="{{ route('locale.store') }}">
+                @csrf
+                <label class="sr-only" for="locale">{{ __('Language') }}</label>
+                <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="locale" name="locale" data-pn-locale-select aria-label="{{ __('Language') }}">
+                    <option value="en" @selected(app()->isLocale('en'))>{{ __('English') }}</option>
+                    <option value="ar" @selected(app()->isLocale('ar'))>{{ __('Arabic') }}</option>
+                </select>
+                <noscript><button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('Change') }}</button></noscript>
+            </form>
             </div>
             <h1 class="mt-2 text-2xl font-bold">{{ __('passwords.forgot_title') }}</h1>
             <p class="mt-2 text-sm text-[var(--pn-ink-muted)]" id="password-forgot-description">{{ __('passwords.forgot_description') }}</p>

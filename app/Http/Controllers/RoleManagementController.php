@@ -27,6 +27,22 @@ class RoleManagementController extends Controller
         $roles = CustomRole::query()
             ->where('tenant_id', $tenant->getKey())
             ->with('permissions')
+            ->select('custom_roles.*')
+            ->selectSub(
+                DB::table('branch_user')
+                    ->selectRaw('COUNT(DISTINCT branch_user.user_id)')
+                    ->whereColumn('branch_user.role', 'custom_roles.code')
+                    ->where('branch_user.tenant_id', $tenant->getKey()),
+                'assigned_staff_count',
+            )
+            ->selectSub(
+                DB::table('branch_user')
+                    ->selectRaw('COUNT(DISTINCT branch_user.branch_id)')
+                    ->whereColumn('branch_user.role', 'custom_roles.code')
+                    ->where('branch_user.tenant_id', $tenant->getKey())
+                    ->where('branch_user.is_active', true),
+                'assigned_branch_count',
+            )
             ->orderBy('name')
             ->orderBy('id')
             ->get();

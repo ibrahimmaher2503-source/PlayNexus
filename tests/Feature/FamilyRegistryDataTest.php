@@ -78,20 +78,20 @@ class FamilyRegistryDataTest extends TestCase
             $this->assertTrue(Schema::hasColumn('guardians', $column), "Missing guardians.$column");
         }
 
-        foreach (['tenant_id', 'full_name', 'date_of_birth', 'status', 'created_by_user_id', 'updated_by_user_id', 'lock_version'] as $column) {
+        foreach (['tenant_id', 'full_name', 'date_of_birth', 'emergency_contact_name', 'emergency_contact_phone_e164', 'safety_notes_encrypted', 'status', 'created_by_user_id', 'updated_by_user_id', 'lock_version'] as $column) {
             $this->assertTrue(Schema::hasColumn('children', $column), "Missing children.$column");
         }
 
-        foreach (['tenant_id', 'guardian_id', 'child_id', 'relationship_type', 'is_active', 'created_by_user_id', 'updated_by_user_id'] as $column) {
+        foreach (['tenant_id', 'guardian_id', 'child_id', 'relationship_type', 'can_consent', 'can_check_out', 'is_primary', 'verification_method', 'verified_at', 'verified_by_user_id', 'is_active', 'revoked_at', 'revoked_by_user_id', 'created_by_user_id', 'updated_by_user_id'] as $column) {
             $this->assertTrue(Schema::hasColumn('guardian_child', $column), "Missing guardian_child.$column");
         }
 
         $phoneIndex = collect(Schema::getIndexes('guardians'))->first(fn (array $index): bool => $index['columns'] === ['tenant_id', 'phone_e164']);
         $this->assertNotNull($phoneIndex);
-        $this->assertFalse($phoneIndex['unique']);
+        $this->assertTrue($phoneIndex['unique']);
         $this->assertTrue(collect(Schema::getIndexes('children'))->contains(fn (array $index): bool => $index['columns'] === ['tenant_id', 'full_name']));
         $this->assertFalse(Schema::hasColumn('guardians', 'operational_consent_at'));
-        $this->assertFalse(Schema::hasColumn('children', 'safety_notes_encrypted'));
+        $this->assertTrue(Schema::hasTable('family_consent_events'));
         $this->assertFalse(Schema::hasColumn('children', 'photo_object_key'));
     }
 

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
+use App\Models\CustomRole;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +26,7 @@ class StaffStatusController extends Controller
     public function index(Request $request): View
     {
         [$actor, $tenant] = $this->authorizedContext($request);
+        $search = $this->normalizeSearch($request->query('q'));
 
         $staff = User::query()
             ->where('users.tenant_id', $tenant->id)
@@ -35,11 +39,48 @@ class StaffStatusController extends Controller
                     ->limit(1),
                 'is_owner',
             )
+            ->selectSub(
+                DB::table('branch_user')
+                    ->join('branches', function ($join) use ($tenant): void {
+                        $join->on('branches.id', '=', 'branch_user.branch_id')
+                            ->where('branches.tenant_id', $tenant->id)
+                            ->where('branches.is_active', true);
+                    })
+                    ->selectRaw('COUNT(DISTINCT branch_user.branch_id)')
+                    ->whereColumn('branch_user.user_id', 'users.id')
+                    ->where('branch_user.tenant_id', $tenant->id)
+                    ->where('branch_user.is_active', true),
+                'branches_count',
+            )
+            ->selectSub(
+                DB::table('branch_user')
+                    ->select('branch_user.role')
+                    ->whereColumn('branch_user.user_id', 'users.id')
+                    ->where('branch_user.tenant_id', $tenant->id)
+                    ->where('branch_user.is_active', true)
+                    ->orderBy('branch_user.branch_id')
+                    ->limit(1),
+                'role_code',
+            )
             ->orderBy('users.id')
+            ->when($search !== '', function ($query) use ($search): void {
+                $pattern = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
+                $escape = DB::connection()->getDriverName() === 'mysql' ? '\\\\' : '\\';
+
+                $query->where(function ($query) use ($pattern, $escape): void {
+                    $query->whereRaw("users.name LIKE ? ESCAPE '{$escape}'", [$pattern])
+                        ->orWhereRaw("users.email LIKE ? ESCAPE '{$escape}'", [$pattern]);
+                });
+            })
             ->paginate(25)
             ->withQueryString();
 
-        return view('staff.index', compact('actor', 'tenant', 'staff'));
+        $roleLabels = array_merge(
+            is_array(__('assignments.roles')) ? __('assignments.roles') : [],
+            CustomRole::query()->where('tenant_id', $tenant->id)->pluck('name', 'code')->all(),
+        );
+
+        return view('staff.index', compact('actor', 'tenant', 'staff', 'search', 'roleLabels'));
     }
 
     public function create(Request $request): View
@@ -49,7 +90,7 @@ class StaffStatusController extends Controller
         return view('staff.create', compact('actor', 'tenant'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         [$actor, $tenant] = $this->authorizedContext($request);
 
@@ -74,41 +115,52 @@ class StaffStatusController extends Controller
             'email.unique' => __('staff.validation.email_taken'),
         ]);
 
-        DB::transaction(function () use ($actor, $tenant, $validated): void {
-            $lockedTenant = Tenant::query()
-                ->whereKey($tenant->getKey())
-                ->where('is_active', true)
-                ->lockForUpdate()
-                ->firstOrFail();
-            $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
-            Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
+        try {
+            DB::transaction(function () use ($actor, $tenant, $validated): void {
+                $lockedTenant = Tenant::query()
+                    ->whereKey($tenant->getKey())
+                    ->where('is_active', true)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
+                Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
 
-            $created = new User;
-            $created->tenant_id = $lockedTenant->getKey();
-            $created->name = $validated['name'];
-            $created->email = $validated['email'];
-            $created->email_verified_at = null;
-            $created->password = Hash::make(Str::random(64));
-            $created->status = 'active';
-            $created->save();
+                $created = new User;
+                $created->tenant_id = $lockedTenant->getKey();
+                $created->name = $validated['name'];
+                $created->email = $validated['email'];
+                $created->email_verified_at = null;
+                $created->password = Hash::make(Str::random(64));
+                $created->status = 'active';
+                $created->save();
 
-            $now = now('UTC');
-            DB::table('audit_logs')->insert([
-                'tenant_id' => $lockedTenant->getKey(),
-                'branch_id' => null,
-                'actor_user_id' => $lockedActor->getKey(),
-                'actor_type' => 'user',
-                'action' => 'staff.created',
-                'subject_type' => 'user',
-                'subject_id' => (string) $created->getKey(),
-                'outcome' => 'success',
-                'reason_code' => 'staffing_change',
-                'before_json' => null,
-                'after_json' => json_encode(['status' => 'active'], JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(),
-                'occurred_at' => $now,
-            ]);
-        });
+                $now = now('UTC');
+                DB::table('audit_logs')->insert([
+                    'tenant_id' => $lockedTenant->getKey(),
+                    'branch_id' => null,
+                    'actor_user_id' => $lockedActor->getKey(),
+                    'actor_type' => 'user',
+                    'action' => 'staff.created',
+                    'subject_type' => 'user',
+                    'subject_id' => (string) $created->getKey(),
+                    'outcome' => 'success',
+                    'reason_code' => 'staffing_change',
+                    'before_json' => null,
+                    'after_json' => json_encode(['status' => 'active'], JSON_THROW_ON_ERROR),
+                    'request_id' => (string) Str::uuid(),
+                    'occurred_at' => $now,
+                ]);
+            });
+        } catch (UniqueConstraintViolationException) {
+            if ($request->expectsJson() || $request->isJson()) {
+                return response()->json([
+                    'message' => __('staff.validation_failed'),
+                    'errors' => ['email' => [__('staff.validation.email_taken')]],
+                ], 409);
+            }
+
+            return back()->withErrors(['email' => __('staff.validation.email_taken')])->withInput();
+        }
 
         return to_route('staff.index')->with('success', __('staff.created'));
     }
@@ -211,5 +263,10 @@ class StaffStatusController extends Controller
                 ->exists(),
             403,
         );
+    }
+
+    private function normalizeSearch(mixed $value): string
+    {
+        return is_string($value) ? Str::substr(trim($value), 0, 100) : '';
     }
 }

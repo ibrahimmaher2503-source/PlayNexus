@@ -7,6 +7,7 @@
         $branchList = collect($branches ?? []);
         $manageableBranchList = collect($manageableBranches ?? []);
         $ruleList = collect($rules ?? []);
+        $ticketTypeList = collect($ticketTypes ?? []);
         $selectedBranchId = (int) old('branch_id', request()->query('branch_id', session('branch_id', 0)));
         $selectedBranch = $branchList->firstWhere('id', $selectedBranchId);
         $manageableBranchIds = $manageableBranchList->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
@@ -16,6 +17,11 @@
         }
         $replacementRouteAvailable = app('router')->has('pricing.versions.store');
         $showReplacementControls = ($canManage ?? false) && $replacementRouteAvailable && $manageableBranchIds !== [];
+        $activeTab = request()->query('tab') === 'types' ? 'types' : 'rules';
+        $typeFormContext = 'ticket-type-create';
+        $typeFormOpen = $oldFormContext === $typeFormContext && $errors->any();
+        $panelAttributes = static fn (string $tab): string => $activeTab === $tab ? '' : 'hidden aria-hidden="true"';
+        $typeBranchId = (string) old('branch_id', $selectedBranchId ?: ($manageableBranchList->first()?->id ?? ''));
         if ($selectedBranchId > 0) {
             $ruleList = $ruleList
                 ->filter(fn (mixed $rule): bool => (int) data_get($rule, 'branch_id') === $selectedBranchId)
@@ -35,12 +41,20 @@
         };
     @endphp
 
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-7xl px-4 py-6 sm:px-6" data-pn-pricing>
         <header class="border-b border-[var(--pn-border)] pb-5">
             <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant->name }}</p>
             <h1 class="mt-1 text-2xl font-bold">{{ __('pricing.page_title') }}</h1>
             <p class="mt-1 max-w-2xl text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('pricing.page_description') }}</p>
         </header>
+
+        <nav class="mt-5 overflow-x-auto border-b border-[var(--pn-border)]" aria-label="{{ __('pricing.tabs_label') }}" data-pn-pricing-tabs>
+            <div class="flex min-w-max gap-1" role="tablist">
+                @foreach (['rules' => __('pricing.tabs.rules'), 'types' => __('pricing.tabs.types')] as $tab => $label)
+                    <a class="inline-flex min-h-11 items-center border-b-2 px-4 py-2 text-sm font-semibold {{ $activeTab === $tab ? 'border-[var(--pn-primary)] text-[var(--pn-primary)]' : 'border-transparent text-[var(--pn-ink-muted)] hover:border-[var(--pn-border-strong)] hover:text-[var(--pn-ink)]' }} focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-inset" href="{{ route('pricing.index', array_filter(['tab' => $tab, 'branch_id' => $selectedBranchId ?: null])) }}" role="tab" aria-selected="{{ $activeTab === $tab ? 'true' : 'false' }}" aria-controls="pricing-tab-{{ $tab }}" @if ($activeTab === $tab) aria-current="page" @endif>{{ $label }}</a>
+                @endforeach
+            </div>
+        </nav>
 
         @if (session('success') || session('status_message'))
             <p class="mt-6 rounded-[10px] border border-[var(--pn-success)] bg-[var(--pn-success-soft)] p-4 font-semibold text-[var(--pn-success)]" role="status" aria-live="polite">{{ session('success') ?? session('status_message') }}</p>
@@ -64,6 +78,7 @@
             </div>
         @endif
 
+        <div id="pricing-tab-rules" data-pn-pricing-panel="rules" {!! $panelAttributes('rules') !!}>
         <section class="mt-8 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" aria-labelledby="pricing-branch-heading">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -318,5 +333,56 @@
                 @endif
             </aside>
         </div>
+        </div>
+
+        <div id="pricing-tab-types" data-pn-pricing-panel="types" {!! $panelAttributes('types') !!}>
+            <section class="mt-8 max-w-5xl" aria-labelledby="ticket-types-heading">
+                <div class="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-bold" id="ticket-types-heading">{{ __('pricing.ticket_types_heading') }}</h2>
+                        <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('pricing.ticket_types_description') }}</p>
+                    </div>
+                    <span class="text-sm font-semibold text-[var(--pn-ink-muted)]"><bdi dir="ltr">{{ $ticketTypeList->count() }}</bdi></span>
+                </div>
+                @if ($ticketTypeList->isEmpty())
+                    <div class="mt-4 rounded-[14px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-6" role="status">
+                        <p class="font-semibold">{{ __('pricing.ticket_types_empty') }}</p>
+                        <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('pricing.ticket_types_empty_description') }}</p>
+                    </div>
+                @else
+                    <div class="mt-4 overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm" role="region" aria-labelledby="ticket-types-heading" tabindex="0">
+                        <table class="min-w-full text-start">
+                            <caption class="sr-only">{{ __('pricing.ticket_types_table_caption') }}</caption>
+                            <thead class="border-b border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] text-sm"><tr><th class="px-4 py-3 text-start" scope="col">{{ __('pricing.ticket_type_name') }}</th><th class="px-4 py-3 text-start" scope="col">{{ __('pricing.branch') }}</th><th class="px-4 py-3 text-start" scope="col">{{ __('pricing.ticket_type_price') }}</th><th class="px-4 py-3 text-start" scope="col">{{ __('pricing.ticket_type_version') }}</th></tr></thead>
+                            <tbody class="divide-y divide-[var(--pn-border)]">
+                                @foreach ($ticketTypeList as $type)
+                                    <tr class="align-top"><th class="px-4 py-4 text-start" data-label="{{ __('pricing.ticket_type_name') }}" scope="row"><span class="block font-semibold" dir="auto">{{ $type->name }}</span><span class="mt-1 block font-mono text-sm text-[var(--pn-ink-muted)]" dir="ltr"><bdi>{{ $type->code }}</bdi></span></th><td class="px-4 py-4" data-label="{{ __('pricing.branch') }}">{{ $type->branch?->name ?? __('pricing.all_branches') }}</td><td class="px-4 py-4 tabular-nums" data-label="{{ __('pricing.ticket_type_price') }}"><bdi dir="ltr">{{ $formatEgp($type->price_minor) }} {{ $type->currency }}</bdi></td><td class="px-4 py-4 tabular-nums" data-label="{{ __('pricing.ticket_type_version') }}"><bdi dir="ltr">{{ __('pricing.version', ['version' => $type->pricingRule?->version ?? '—']) }}</bdi></td></tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </section>
+
+            <section class="mt-8 max-w-3xl" aria-labelledby="ticket-type-create-heading">
+                @if ($canManage ?? false)
+                    <details class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm" id="ticket-type-create" @if ($typeFormOpen) open @endif>
+                        <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--pn-focus)]"><span id="ticket-type-create-heading">{{ __('pricing.ticket_type_create_heading') }}</span><span aria-hidden="true" class="text-xl">+</span></summary>
+                        <div class="border-t border-[var(--pn-border)] p-5 sm:p-6"><p class="text-sm leading-6 text-[var(--pn-ink-muted)]" id="ticket-type-create-help">{{ __('pricing.ticket_type_create_description') }}</p>
+                            <form class="mt-5 grid gap-5 sm:grid-cols-2" method="POST" action="{{ route('ticket-types.store') }}" aria-describedby="ticket-type-create-help" data-pn-submit>@csrf<input type="hidden" name="form_context" value="{{ $typeFormContext }}">
+                                <div><label class="block text-sm font-semibold" for="pricing-ticket-type-branch">{{ __('pricing.branch_select_label') }}</label><select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-ticket-type-branch" name="branch_id" required><option value="">{{ __('pricing.branch_select_label') }}</option>@foreach ($manageableBranchList as $branch)<option value="{{ $branch->id }}" @selected($typeBranchId === (string) $branch->id)>{{ $branch->name }}</option>@endforeach</select>@error('branch_id')<p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $message }}</p>@enderror</div>
+                                <div><label class="block text-sm font-semibold" for="pricing-ticket-type-rule">{{ __('pricing.ticket_type_rule_label') }}</label><select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-ticket-type-rule" name="pricing_rule_id" required><option value="">{{ __('pricing.ticket_type_rule_placeholder') }}</option>@foreach ($ruleList as $rule)<option value="{{ $rule->id }}" data-branch-id="{{ $rule->branch_id }}" dir="auto">{{ $rule->name }} · <bdi dir="ltr">{{ $rule->code }}</bdi></option>@endforeach</select>@error('pricing_rule_id')<p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $message }}</p>@enderror</div>
+                                <div><label class="block text-sm font-semibold" for="pricing-ticket-type-code">{{ __('pricing.ticket_type_code_label') }}</label><input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="pricing-ticket-type-code" name="code" type="text" value="{{ $oldFormContext === $typeFormContext ? old('code') : '' }}" maxlength="50" required>@error('code')<p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $message }}</p>@enderror</div>
+                                <div><label class="block text-sm font-semibold" for="pricing-ticket-type-name">{{ __('pricing.ticket_type_name_label') }}</label><input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3" id="pricing-ticket-type-name" name="name" type="text" value="{{ $oldFormContext === $typeFormContext ? old('name') : '' }}" maxlength="190" required dir="auto">@error('name')<p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $message }}</p>@enderror</div>
+                                <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-5 font-semibold text-[var(--pn-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] sm:col-span-2" type="submit" data-pn-loading-label="{{ __('pricing.ticket_type_create_loading') }}">{{ __('pricing.ticket_type_create_submit') }}</button>
+                            </form>
+                        </div>
+                    </details>
+                @else
+                    <section class="rounded-[14px] border border-[var(--pn-border-strong)] bg-[var(--pn-surface-subtle)] p-5"><h2 class="text-lg font-bold">{{ __('pricing.view_only') }}</h2><p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('pricing.ticket_types_view_only') }}</p></section>
+                @endif
+            </section>
+        </div>
+
     </main>
 @endsection

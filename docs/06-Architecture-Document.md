@@ -1,5 +1,15 @@
 # PlayNexus Architecture Document
 
+## 2026-09-13 ticket-backed check-in vertical slice
+
+The implemented arrival command stays inside the Laravel modular monolith: one policy/controller transaction locks the active tenant, actor, accessible branch, ticket and child; rechecks ticket/family eligibility; blocks a tenant-wide Active/Paused duplicate child and hard branch capacity; then consumes the ticket and creates one `play_sessions` row, append-only `play_session_events`, `ticket_scans` evidence and audit. Same UUID/fingerprint replay returns the existing session; changed reuse conflicts. The tenant lock is the intentionally simple MVP serialization boundary and can move to a measured per-branch/per-child strategy only if throughput evidence requires it.
+
+`GET /app/sessions` uses scoped Eloquent queries and server-side filters with 25-row pagination. Cashier receives masked board data and no check-in command. The server stores UTC times and the immutable ticket pricing/timezone snapshot; one pure integer service derives a non-persisted Active-session estimate at a single server time. The Blade page renders branch-local start/expected end, elapsed time, grace/overtime/tax breakdown and an explicit non-final/no-checkout notice. Invalid snapshots hide the estimate without breaking the board.
+
+## 2026-09-13 ticket-only vertical slice
+
+Ticketing uses native Laravel models, policies, one controller, transactions, composite tenant foreign keys, and session-authenticated Blade forms. It reuses existing fixed branch authorization and the tenant command lock; there is no additional service framework. Issue captures immutable operating/pricing/timezone facts; validation logs every accepted/rejected attempt without consuming or creating a session. First successful validation atomically locks the holder. Active verified family, current child-data consent, and emergency safeguards are shared across issue, correction, and accepted validation. QR generation uses the local installed `qrcode` frontend dependency, never an external service. Audits contain scoped IDs/reasons/state, not QR, phone, or safety data. Financial reversal and atomic session consumption remain later bounded slices.
+
 ## T18-T20 owner access and staff administration amendment
 
 The authorized next wave extends explicit tenant ownership to active own-tenant branch listing/selection/reads. Ordinary branch staff still require active assignment and permitted role. Owner-only administration covers existing non-owner account status and fixed branch assignments, using fresh authorization, tenant-scoped row locks, expected-state conflict detection and atomic successful-change audit. This supersedes the prior T14 read-only exception for these named operations only. Platform access and ownership transfer remain excluded.
@@ -282,7 +292,7 @@ The pricing calculation is a pure deterministic service that accepts timestamps,
 
 **Open decision OQ-19 — station/payment handoff:** Product and Operations must decide whether Reception performs quote, payment, and completion at one station or hands a draft order to Cashier before Reception completes release. The architecture does not assign that ownership. The contract intentionally keeps quote/order creation, payment posting, and final session completion as separately idempotent, recoverable commands so either approved station model can use the same invariants. Paid-but-not-completed remains visible and retryable; payment is never silently rolled back because a later guardian-verification/completion command fails.
 
-**Open decision OQ-12 — guardian verification:** `relationship`, `code`, phone/photo/manual checks, and other candidate methods are not approved enum values yet. The checkout command accepts only the allowlist selected by Safety/Legal; manager override remains separately permissioned and audited.
+**Approved OQ-12 — guardian verification:** checkout uses session/ticket QR plus registered-guardian phone last four digits or a handoff code; failure blocks completion. Manager override is separately permissioned, reason-required, single-use and audited. This approved contract remains unimplemented because M4 has not started.
 
 ### 10.4 POS payment
 
@@ -478,7 +488,7 @@ Implementation may start when:
 - permissions and approval rules in `08-Permission-Matrix.md` are accepted;
 - the OpenAPI contract passes structural validation;
 - games/queues/participation and cashier-shift migrations/routes remain absent from the MVP release;
-- OQ-01, OQ-03, OQ-06, OQ-08, OQ-11, OQ-12, OQ-15, OQ-17, OQ-19, OQ-20, and OQ-24 have owners; any schema, enum, route, or milestone affected by them is not frozen prematurely;
+- approved OQ-01, OQ-03, OQ-06, OQ-08, OQ-11, OQ-12, OQ-15, and OQ-17 are reflected in the contract; deferred OQ-20 is not implemented; open OQ-19 and OQ-24 remain explicit gates;
 - at least one end-to-end OQ-19 station flow is approved: guardian search → child selection → check-in → pause/resume/extend → quote/order → full payment → verified checkout → receipt → report.
 
 ## Approved MVP decision amendment — 2026-09-10

@@ -57,9 +57,12 @@ class FamilyProfileUiTest extends TestCase
         $this->assertStringContainsString(route('families.children.update', [$guardian, $child]), $html);
         $this->assertStringContainsString(route('families.children.store', $guardian), $html);
         $this->assertStringContainsString('value="mother"', $html);
-        $this->assertStringNotContainsString('name="consent"', $html);
-        $this->assertStringNotContainsString('name="safety', $html);
-        $this->assertStringNotContainsString('name="emergency', $html);
+        $this->assertStringContainsString('name="child_data_consent"', $html);
+        $this->assertStringContainsString('name="safety_notes"', $html);
+        $this->assertStringContainsString('name="emergency_contact_phone"', $html);
+        $this->assertSame(3, substr_count($html, '<details '));
+        preg_match_all('/<details\b[^>]*\bopen(?:\s|>)/', $html, $closedDetails);
+        $this->assertCount(0, $closedDetails[0]);
     }
 
     public function test_arabic_profile_is_rtl_and_keeps_relationship_choices_localized(): void
@@ -130,6 +133,7 @@ class FamilyProfileUiTest extends TestCase
         $this->assertSame(1, substr_count($html, 'value="Only this child"'));
         $this->assertStringContainsString('value="Second child"', $html);
         $this->assertStringContainsString('name="form_context" value="child-create"', $html);
+        $this->assertMatchesRegularExpression('/<details\b[^>]*\bopen(?:\s|>)/', $html);
     }
 
     /** @return array{Tenant, User} */

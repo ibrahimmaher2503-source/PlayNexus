@@ -32,6 +32,12 @@ class AuditLogController extends Controller
         'family.child.added',
         'pricing.rule.created',
         'pricing.rule.versioned',
+        'ticket.type.created',
+        'ticket.issued',
+        'ticket.assignment.locked',
+        'ticket.assignment.changed',
+        'ticket.cancelled',
+        'ticket.reprinted',
     ];
 
     private const SNAPSHOT_KEYS = [
@@ -48,6 +54,9 @@ class AuditLogController extends Controller
         'new_pricing_rule_id',
         'old_version',
         'new_version',
+        'ticket_type_id',
+        'ticket_id',
+        'service_date',
     ];
 
     public function index(Request $request): View

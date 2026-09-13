@@ -1,5 +1,112 @@
 # Test Results
 
+## 2026-09-13 M3 read-only live-estimate acceptance
+
+Three user-requested `gpt-5.6-luna` / `xhigh` workers delivered the pure quote calculator, exact boundary tests and bilingual copy. Coordinator review integrated the non-mutating Active-session view, invalid-snapshot/timezone fail-closed handling and responsive card layout. This closes local M3 engineering only; it is not checkout, payment, receipt or production acceptance.
+
+| Check | Actual command / result |
+|---|---|
+| Quote + session focus | `php artisan test tests/Unit/SessionQuoteCalculatorTest.php tests/Feature/PlaySessionCheckInTest.php --compact` — PASS, 18 tests / 177 assertions |
+| Exact quote boundaries | 8 unit tests / 37 assertions — PASS: base+grace, first overtime second, second rounded unit, exclusive/inclusive 1,400 bps, zero tax, pre-start clamp and malformed snapshots |
+| Full PHP 8.4.21 / SQLite | `php artisan test --compact` — PASS, 281 total / 279 passed / 2,387 assertions / 2 explicit MySQL-only skips |
+| Full PHP 8.5.8 / SQLite | PHP 8.5.8 with task-local `PHPRC` and isolated compiled views — PASS, 281 total / 279 passed / 2,387 assertions / 2 explicit MySQL-only skips |
+| Full PHP 8.4.21 / MySQL | Isolated MySQL 8.4.11/InnoDB at `127.0.0.1:33417`, database `playnexus_session_full_m3` — PASS, 281 tests / 2,434 assertions / no skips; 70,430 ms |
+| Frontend / formatting | `npm run build`, `php vendor/bin/pint --test`, Blade compilation and `git diff --check` — PASS; only the existing optional `fontaine` notice |
+| Authenticated browser | Bundled Playwright with headless Edge on isolated `http://127.0.0.1:8214/app/sessions?branch_id=1` — PASS: synthetic Owner/Cashier, Arabic RTL/English LTR, mobile/tablet/desktop, no overflow/page errors/raw guardian phone, `171.00 EGP` total and `21.00 EGP` tax for the 1,400-bps base fixture, explicit non-final notice |
+
+The estimate reads only immutable ticket/session pricing facts and a single UTC server time. Its feature test snapshots the ticket, session, event, scan and audit state before/after GET and proves no mutation. Malformed snapshots and invalid snapshot timezones keep the board available while hiding the estimate. Visual evidence is in ignored synthetic artifacts under `deliverables/qa/sessions/`; no user data was used.
+
+## 2026-09-13 ticket-backed check-in and live-session acceptance
+
+Three user-requested `gpt-5.6-luna` / `xhigh` workers delivered the bounded session schema/controller/policy, bilingual live-board UI, and adversarial tests/review. The coordinator integrated their work, extracted the shared ticket eligibility guard, corrected authorization/query/privacy defects, and ran every acceptance gate below. This accepts ticket-backed check-in and the live board only; checkout, final charge, payment, refund, notification and production readiness are not claimed.
+
+| Check | Actual command / result |
+|---|---|
+| Focused check-in/security | `php artisan test --compact tests/Feature/PlaySessionCheckInTest.php` — PASS, 9 tests / 128 assertions |
+| Existing ticket regression | `php artisan test --compact tests/Feature/TicketLifecycleTest.php` — PASS, 20 tests / 213 assertions after shared eligibility extraction |
+| True MySQL concurrency | `php artisan test --compact tests/Feature/TicketConcurrencyTest.php` on isolated MySQL 8.4.11/InnoDB — PASS, 2 tests / 47 assertions; two independent PHP processes prove issue/scan retry idempotency and two different-key check-ins consume/start exactly once |
+| Full PHP 8.4.21 / SQLite | `php artisan test --compact` — PASS, 272 total / 270 passed / 2,338 assertions / 2 explicit MySQL-only skips |
+| Full PHP 8.5.8 / SQLite | PHP 8.5.8 with the task-local extension configuration — PASS, 272 total / 270 passed / 2,338 assertions / 2 explicit MySQL-only skips |
+| Full PHP 8.4.21 / MySQL | `php artisan test --compact` with task-local MySQL overrides — PASS, 272 tests / 2,385 assertions / no skips; 109,715 ms |
+| Fresh session schema | `php artisan migrate:fresh --force` on disposable QA MySQL — PASS, including `2026_09_13_000015_create_play_sessions`; tenant/branch/child/guardian/ticket/pricing/actor composite constraints accepted |
+| Frontend | `npm run build` — PASS; only the existing optional `fontaine` fallback notice |
+| Authenticated browser | `node .codex/session-ui-smoke.cjs` using bundled Playwright/Edge — PASS on isolated `http://127.0.0.1:8214/app/sessions?branch_id=1`; synthetic Owner check-in and Cashier read-only board, Arabic RTL/English LTR, mobile/tablet/desktop, no global overflow, GET `no-store`, no page errors, no raw guardian phone |
+
+The accepted command atomically revalidates fresh tenant/role/branch scope, ticket/family eligibility, tenant-wide Active/Paused child uniqueness and hard branch capacity; then it consumes the issued ticket, creates one Active session with immutable price/time snapshot, appends a `checked_in` event, scan evidence and audit. Same UUID/payload replays the session, changed payload conflicts, and rejected requests do not mutate business state. The board is server-filtered, masked, paginated and contains no quote/final-charge claim.
+
+Visual evidence is stored in ignored synthetic QA artifacts under `deliverables/qa/sessions/`. Existing port 8206 and its database were untouched.
+
+## 2026-09-13 OQ-18 ticket-only engineering acceptance
+
+Three user-requested `gpt-5.6-luna` / `xhigh` workers delivered bounded UI, adversarial lifecycle tests and an independent read-only security review. The coordinator integrated and verified their work. These results cover ticket type/issuance/QR/validation/pre-scan correction/unused cancellation/reprint only, not consumption, check-in, sessions, paid refunds or production readiness.
+
+| Check | Actual command / result |
+|---|---|
+| Focused lifecycle/security | `php artisan test --compact tests/Feature/TicketLifecycleTest.php` — PASS, 20 tests / 213 assertions |
+| True MySQL concurrency | `php artisan test --compact tests/Feature/TicketConcurrencyTest.php` on isolated MySQL — PASS, 1 test / 23 assertions; two independent PHP processes contend on the real transaction lock for issue and scan retries, committing one ticket/scan/audit each |
+| Full PHP 8.4.21 / SQLite | `php artisan test --compact` — PASS, 262 total / 261 passed / 2,210 assertions / 1 explicit MySQL-only concurrency skip |
+| Full PHP 8.5.8 / SQLite | PHP 8.5 executable with `PHPRC=C:\Users\N\.codex\worktrees\t08-integration\PlayNexus\.codex\php85.ini`, `artisan test --compact` — PASS, 262 total / 261 passed / 2,210 assertions / 1 explicit MySQL-only concurrency skip |
+| Full PHP 8.4.21 / MySQL | `php artisan test --compact` with task-local MySQL overrides — PASS, 262 tests / 2,233 assertions / no skips; 56,978 ms |
+| Fresh MySQL schema | `php artisan migrate:fresh --force` on task-local database — PASS, all 17 migrations including ticket tables/composite foreign keys; no existing runtime schema changed |
+| Resolved MySQL | Driver `mysql`, host `127.0.0.1`, port `33417`, database `playnexus_ticket_m3`, user `pn`; actual server 8.4.11, 27 InnoDB tables, `STRICT_TRANS_TABLES` / `ONLY_FULL_GROUP_BY` enabled |
+| Formatting / syntax / routes | `php vendor/bin/pint --test`, PHP syntax checks, Blade compilation and `php artisan route:list --path=app/tickets` / `--path=app/ticket-types` — PASS; seven web endpoints |
+| Frontend / dependency audit | `npm run build` — PASS; `npm audit --audit-level=high` — PASS, 0 vulnerabilities. Existing optional `fontaine` fallback notice only |
+| Real headless browser | `node .codex/ticket-ui-smoke.cjs` with bundled Playwright/Edge — PASS on isolated `http://127.0.0.1:8213/app/tickets?branch_id=1`; authenticated synthetic Owner `Ticket QA Owner` and Cashier `Ticket QA Cashier`, Arabic RTL/English LTR, no global mobile overflow, reachable locked-ticket reprint, manager controls hidden from cashier, raw guardian phone absent, no page errors, GET `no-store` |
+| Actual QR round-trip | Decoded rendered canvas with temporary QA-only `jsQR` and compared the exact opaque payload — PASS; square displayed dimensions. Decoder is not an application dependency; local `qrcode` rendering sends no payload to an external QR service |
+| Print output | Actual Edge A5 `ticket-print.pdf`, independently read with `pypdf` — PASS, exactly one page; artifact includes branch/date/holder/frozen money, ticket status and lock state |
+| Canonical docs / whitespace | `python tools/validate_documentation.py` and `git diff --check` — PASS, 31 Markdown files, 200 SRS IDs, 50 stories, 14 use cases, 24 OQs, 58 planned external OpenAPI paths / 72 operations, 0 errors / 2 known review-placeholder warnings; implemented seven web routes are separately declared in the OpenAPI extension |
+
+Full MySQL/SQLite runs use different task-local `VIEW_COMPILED_PATH` directories. An earlier MySQL run failed 13 view requests when another worker's `view:cache` removed shared compiled views (`filemtime` race); the isolated rerun above passed without weakening application checks. PHP 8.5's first attempts lacked `mbstring` in Artisan's child process; setting process-local `PHPRC` propagated the existing extension configuration and the full rerun passed. No shared PHP/service configuration was changed.
+
+Visual evidence (ignored synthetic QA artifacts): `deliverables/qa/tickets/ar-desktop-issued.png`, `ar-mobile-top.png`, `ar-mobile-actions.png`, `ar-mobile-locked.png`, `en-desktop-locked.png`, `cashier-tablet.png`, `qr-canvas.png`, `ticket-print.pdf`. The runnable headless harness is `.codex/ticket-ui-smoke.cjs`; synthetic fixtures are confined to `playnexus_ticket_ui_m3`. The interactive CUA bridge returned `User unavailable`, but this scoped real browser QA used an independent ephemeral context and did not touch the user's browser session. No full M2 UAT claim follows.
+
+Existing port 8206 and its database were untouched; the new migration was accepted only against task-local test/QA databases. Runtime deployment still requires an explicitly selected database/migration workflow. Full M3 and financial refunds remain open.
+
+The temporary QA web server 8213 was stopped after the final passing run; the URL above records tested history, not a live handoff link. Synthetic QA artifacts/data are preserved, and the private MySQL listener on 33417 remains running. No user data was removed.
+
+## 2026-09-13 OQ-18 decision-contract validation
+
+| Check | Result |
+|---|---|
+| Canonical documentation/OpenAPI | `python tools/validate_documentation.py` — PASS, 31 Markdown files, 200 SRS IDs, 50 stories, 14 use cases, 24 OQs, 58 OpenAPI paths / 72 operations, 0 errors / 2 known review-placeholder warnings |
+| Whitespace | `git diff --check` — PASS |
+
+Decision-only change: no ticket application behavior or application-test result is claimed.
+
+## 2026-09-13 Egypt M2 contract acceptance
+
+| Check | Result |
+|---|---|
+| Full SQLite regression | `php artisan test` — PASS, 241 tests / 1,997 assertions |
+| Full MySQL regression | MySQL 8.4.11/InnoDB on isolated loopback database `playnexus_egypt_m2` — PASS after `migrate:fresh`, 241 tests / 1,997 assertions |
+| Egypt family contract | PASS: tenant-phone DB uniqueness/hard reuse, required child-data consent, separate marketing choice/withdrawal, append-only evidence, emergency fallback, encrypted safety notes, role denial, verified relationship lifecycle, and last-guardian invariant |
+| Formatting | `php vendor/bin/pint` — PASS |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 known review-placeholder warnings |
+| Whitespace | `git diff --check` — PASS |
+| Browser | **BLOCKED:** browser bridge unavailable; automated UI coverage is not visual acceptance. |
+
+Visit history and automated retention action wait for M3 session/last-visit data under the approved dependency waiver. This is local engineering acceptance, not production Legal/DPO approval.
+
+## 2026-09-12 M1/M2 remediation acceptance
+
+| Check | Result |
+|---|---|
+| Full SQLite regression | `php artisan test --compact` — PASS, 234 tests / 1,943 assertions |
+| Full MySQL regression | MySQL 8.4.11/InnoDB on isolated loopback database `playnexus_remediation` — PASS, 234 tests / 1,943 assertions |
+| MySQL resolved config | PASS: driver `mysql`, host `127.0.0.1`, port `33417`, database `playnexus_remediation`, user `pn`, strict mode enabled |
+| Family authorization/PII | PASS: Cashier receives masked phone/email and age without raw DOB; guardian/child/relationship maintenance denied; owner/manager/reception maintenance retained; custom-role and foreign-tenant attempts denied |
+| Lifecycle agreement | PASS: inactive guardians and children are excluded from family search |
+| Retry/conflict safety | PASS: branch creation replays the same tenant-scoped UUID key once and rejects changed payloads; staff unique-constraint exceptions return a controlled conflict. A true multi-connection staff race test is not claimed. |
+| JSON errors | PASS: unauthenticated, forbidden, validation/not-found paths use stable codes and matching UUID request ID response headers |
+| Formatting | `php vendor/bin/pint --test` — PASS |
+| Frontend | `npm run build` — PASS; optional `fontaine` fallback notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 0 errors / 2 known review-placeholder warnings |
+| Whitespace | `git diff --check` — PASS |
+| Browser | **BLOCKED:** browser bridge unavailable; automated/UI markup coverage is not visual acceptance. |
+
+MySQL JSON-object assertions compare semantic content rather than object key order. This is a test-portability correction only; no M3 application behavior changed.
+
 ## 2026-09-12 M3 immutable pricing version replacement
 
 | Check | Result |
@@ -16,7 +123,7 @@
 | Browser | **BLOCKED:** the in-app browser bridge reports `User unavailable`; no visual acceptance is claimed. |
 | MySQL | **BLOCKED:** PHP has `pdo_mysql`, but no MySQL 8.4 client/server or Docker is available; the only discovered server is XAMPP MariaDB 10.4.32, which is not accepted as MySQL 8.4 evidence. No process or shared configuration was changed. |
 
-Calculator/tax totals, tickets, QR, check-in, sessions, and capacity remain outside this slice. OQ-18 still blocks ticket behavior.
+Calculator/tax totals, tickets, QR, check-in, sessions, and capacity were outside this historical slice. OQ-18 was subsequently approved on 2026-09-13; ticket implementation remains pending.
 
 ## 2026-09-12 M3 immutable pricing rules
 

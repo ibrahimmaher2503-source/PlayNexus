@@ -1,5 +1,9 @@
 # PlayNexus MVP User Stories
 
+## 2026-09-13 implementation status
+
+US-TKT-001–003, US-SES-001–002 and the read-only estimate part of US-TIM-001 are implemented: authorized ticket check-in consumes/starts once, rejects wrong scope/state/family/capacity without partial mutation, and exposes a masked responsive board with a non-final immutable-snapshot estimate. Automated MySQL/SQLite/PHP 8.5, exact money/time boundaries, true concurrency and authenticated bilingual browser evidence are current in `.ai/TEST_RESULTS.md`. Session mutations, checkout/release and financial stories remain backlog items.
+
 **Document version:** 1.1  
 **Status:** Draft backlog baseline  
 **Source:** PlayNexus PRD v1.0, `01-PRD-Baseline.md` v1.1, `02-BRD.md` v1.1, and `03-SRS.md` v1.1  
@@ -256,7 +260,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** an active branch and valid ticket type/rule, **when** I issue the ticket, **then** one Issued ticket with non-guessable QR, validity, price/rule, and tenant/branch scope is created.
+1. **Given** an active branch, branch-local service date, and valid ticket type/rule, **when** I issue the ticket, **then** one Issued ticket with non-guessable QR, immutable branch/service-date bounds, validity, price/rule, and tenant scope is created.
 2. **Given** the QR is displayed or printed on an approved pilot device, **when** it is scanned, **then** the validation interface resolves the correct ticket without child-sensitive data in the payload.
 3. **Given** the same issue command is retried, **when** idempotency matches, **then** no second ticket is created.
 
@@ -268,8 +272,8 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** a currently valid Issued ticket for the allowed scope, **when** I scan it, **then** a valid result appears and the scan attempt is logged.
-2. **Given** an expired, cancelled, consumed, unknown, or disallowed-scope ticket, **when** scanned, **then** check-in is blocked with a staff-safe reason and the attempt is logged without cross-tenant disclosure.
+1. **Given** a currently valid Issued ticket for the same branch and service date, **when** its first successful scan is accepted, **then** the holder/child binding becomes permanently non-transferable and the scan is logged.
+2. **Given** an expired, cancelled, consumed, unknown, wrong-branch, wrong-service-date, or otherwise disallowed ticket, **when** scanned, **then** check-in is blocked with a staff-safe reason, the attempt is logged without cross-tenant disclosure, and transfer remains unlocked if no earlier successful scan exists.
 3. **Given** two concurrent check-in attempts use one ticket, **when** processed, **then** at most one session and one consumption event are committed.
 
 ### US-TKT-003 — Cancel or reprint an unused ticket
@@ -280,9 +284,9 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** an unused Issued ticket and a valid reason, **when** I cancel it, **then** its state becomes Cancelled, it cannot authorize check-in, and the action is audited.
+1. **Given** an unused Issued ticket and a valid reason, **when** I cancel it, **then** its state becomes Cancelled, it cannot authorize check-in, and the action is audited. If a refund is requested, the ticket must have no successful scan/consumption/session and an in-scope Branch Manager or Tenant Owner must approve it.
 2. **Given** an authorized reprint, **when** I reprint, **then** identifier, QR, validity, price, and state remain unchanged and a reprint event is audited.
-3. **Given** a consumed/cancelled/expired ticket, **when** an invalid transition is attempted, **then** it is rejected without changing history.
+3. **Given** a successfully scanned/consumed ticket, **when** reassignment or refund is attempted, **then** it is rejected without changing ticket or financial history; an eligible paid refund instead appends the OQ-09-governed linked reversal.
 
 ### US-SES-001 — Check a child in
 

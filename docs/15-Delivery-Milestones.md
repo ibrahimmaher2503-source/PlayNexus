@@ -14,15 +14,17 @@ Tenant context, branches, staff authentication, role policies, locale/timezone/c
 
 Fast search, duplicate handling, create/edit, guardian-child links, consent, emergency contact, visit history, and authorization tests.
 
-**Status: IN PROGRESS — 2026-09-12.** Delivered current-tenant search, masked results, duplicate-safe initial registration, family profile, basic guardian/child correction, adding another child, audit evidence, authorization/adversarial tests, and bilingual UI. Merge/review, consent, emergency/safety data, relationship revocation, visit history, fresh MySQL/browser evidence, and full M2 acceptance remain open.
+**Status: IMPLEMENTED / RELEASE PARTIAL — 2026-09-13.** Delivered active current-tenant search, DB-enforced duplicate-safe registration with hard existing-family reuse, role-aware masked presentation, guardian/child maintenance, Arabic-first versioned child-data consent, separate optional marketing choice and withdrawal, required emergency contact, encrypted restricted safety notes, verified relationship link/reactivate/revoke with the final-guardian invariant, audit evidence, negative authorization/PII tests, and bilingual UI. Cashier retains lookup, masked viewing, and first registration but no maintenance permission. Full SQLite and isolated MySQL 8.4.11/InnoDB regression passes 241 / 1,997. Real browser acceptance and production Legal/DPO approval remain release gates. Visit history and retention execution wait for M3 session/last-visit data by approved waiver; merge, photos, and incidents are deferred.
 
 ## M3: Pricing, tickets, and check-in
 
 Pricing rules, ticket types, QR/barcode token, check-in workflow, live session board, branch capacity, and idempotent session creation.
 
-**Status: IN PROGRESS — 2026-09-12.** Delivered current-scope immutable fixed-duration pricing-rule creation/listing and atomic version replacement with integer EGP storage, branch tax snapshots, fixed grace/overtime terms, optimistic conflicts, audit, authorization tests, and bilingual UI. Calculation, ticket types/QR, check-in, live sessions, capacity, browser/MySQL acceptance, and M3 closure remain open; OQ-18 blocks ticket behavior.
+**Status: LOCALLY ACCEPTED / RELEASE PARTIAL — 2026-09-13.** Delivered immutable fixed-duration pricing versions; branch/date ticket type/issue/opaque QR/validate/pre-scan correction/unused cancellation/reprint; atomic ticket-backed check-in, hard capacity and masked live board; plus an exact read-only Active-session estimate from immutable time/money/tax facts. The estimate handles grace, ceil overtime and inclusive/exclusive half-up tax, is labelled non-final, persists nothing and fails closed on malformed snapshots. Full MySQL passes 281 / 2,434; SQLite/PHP 8.5 pass 279 of 281 / 2,387 with two MySQL-only skips; real concurrency and authenticated responsive bilingual Edge QA pass. Checkout, guardian release, payments, receipts, financial refunds and production gates remain M4/M5/release scopes.
 
 ## M4: Time engine and checkout
+
+**Status: NOT STARTED — 2026-09-13.** The product owner stopped before M4. OQ-12 guardian verification is approved; OQ-19 station/payment ownership remains open. Start only after an explicit bounded resume instruction.
 
 Pause/resume/extend/cancel, alerts, guardian verification, final calculation, manager adjustment, concurrency protection, and explainable billing breakdown.
 

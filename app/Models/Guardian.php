@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\PhoneNormalizer;
 use Database\Factories\GuardianFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Guardian extends Model
 {
@@ -48,12 +50,31 @@ class Guardian extends Model
     public function children(): BelongsToMany
     {
         return $this->belongsToMany(Child::class, 'guardian_child')
-            ->withPivot(['tenant_id', 'relationship_type', 'is_active', 'created_by_user_id', 'updated_by_user_id'])
+            ->withPivot([
+                'tenant_id',
+                'relationship_type',
+                'can_consent',
+                'can_check_out',
+                'is_primary',
+                'verification_method',
+                'verified_at',
+                'verified_by_user_id',
+                'is_active',
+                'revoked_at',
+                'revoked_by_user_id',
+                'created_by_user_id',
+                'updated_by_user_id',
+            ])
             ->withTimestamps();
     }
 
     public function maskedPhone(): string
     {
-        return substr((string) $this->phone_e164, 0, 3).'••••'.substr((string) $this->phone_e164, -4);
+        return PhoneNormalizer::mask($this->phone_e164);
+    }
+
+    public function playSessions(): HasMany
+    {
+        return $this->hasMany(PlaySession::class);
     }
 }

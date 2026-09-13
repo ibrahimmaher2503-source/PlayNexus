@@ -34,4 +34,11 @@ final class PhoneNormalizer
 
         return null;
     }
+
+    public static function mask(?string $value): string
+    {
+        $value = (string) $value;
+
+        return substr($value, 0, 3).'••••'.substr($value, -4);
+    }
 }

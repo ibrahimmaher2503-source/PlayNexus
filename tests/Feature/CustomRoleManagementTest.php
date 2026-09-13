@@ -107,6 +107,22 @@ class CustomRoleManagementTest extends TestCase
         $this->assertTrue(Gate::forUser($fixed)->allows('view', $branch));
     }
 
+    public function test_role_page_explains_permission_groups_and_their_limits(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $role = CustomRole::create(['tenant_id' => $tenant->id, 'name' => 'Branch viewer', 'code' => 'branch_viewer']);
+        $role->permissions()->create(['permission' => 'branches.view']);
+
+        $this->actingAs($owner)
+            ->get(route('roles.index'))
+            ->assertOk()
+            ->assertSee(__('roles.permission_groups_heading'))
+            ->assertSee(__('roles.permission_group_branch_access'))
+            ->assertSee(__('roles.permission_group_branch_access_description'))
+            ->assertSee(__('roles.permission_impact_note'))
+            ->assertSee('fieldset', false);
+    }
+
     /** @return array{Tenant, User} */
     private function owner(): array
     {

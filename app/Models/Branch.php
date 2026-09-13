@@ -14,6 +14,7 @@ class Branch extends Model
 
     protected $fillable = [
         'tenant_id',
+        'creation_key',
         'code',
         'name',
         'address_text',
@@ -52,5 +53,20 @@ class Branch extends Model
     public function pricingRules(): HasMany
     {
         return $this->hasMany(PricingRule::class);
+    }
+
+    public function ticketTypes(): HasMany
+    {
+        return $this->hasMany(TicketType::class);
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
+    public function playSessions(): HasMany
+    {
+        return $this->hasMany(PlaySession::class);
     }
 }

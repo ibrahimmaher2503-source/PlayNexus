@@ -1,5 +1,9 @@
 # PlayNexus Tooling and Delivery Guide
 
+## 2026-09-13 latest verified delivery gate
+
+M3 pricing/tickets/check-in/live board/read-only estimate passes the full suite on PHP 8.4.21/MySQL 8.4.11 (281 / 2,434) and PHP 8.4.21/8.5.8 with SQLite (279 of 281 / 2,387 with two MySQL-only skips), plus a real two-process InnoDB race and authenticated headless Edge Arabic/English responsive QA. Commands and exact evidence are in `.ai/TEST_RESULTS.md`. Task-local databases and compiled-view paths were used; the pre-existing 8206 runtime was not migrated or restarted.
+
 **Technical recommendation:** Build the MVP as one Laravel 13 modular monolith with Livewire 4, MySQL 8.4 LTS, and Laravel-native authentication, authorization, queues, cache, scheduling, storage, and tests; confirm supported patch versions when scaffolding.  
 **Optimization goal:** Shortest safe path to a pilot, not maximum framework choice or future flexibility.  
 **Recommendation verified:** 24 August 2026

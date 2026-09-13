@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\FamilyController;
 use App\Models\Branch;
 use App\Models\Child;
 use App\Models\CustomRole;
@@ -176,6 +177,45 @@ class FamilyRegistrySecurityTest extends TestCase
             ->assertViewHas('search', fn (string $search): bool => strlen($search) === 100);
     }
 
+    public function test_search_excludes_inactive_guardians_and_children(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $inactiveGuardian = Guardian::factory()->create([
+            'tenant_id' => $tenant->id,
+            'full_name' => 'Inactive guardian',
+            'phone_e164' => '+201001112233',
+            'status' => 'inactive',
+            'created_by_user_id' => $owner->id,
+            'updated_by_user_id' => $owner->id,
+        ]);
+        $activeGuardian = Guardian::factory()->create([
+            'tenant_id' => $tenant->id,
+            'full_name' => 'Active guardian',
+            'phone_e164' => '+201009998877',
+            'created_by_user_id' => $owner->id,
+            'updated_by_user_id' => $owner->id,
+        ]);
+        $inactiveChild = Child::factory()->create([
+            'tenant_id' => $tenant->id,
+            'full_name' => 'Inactive child',
+            'status' => 'inactive',
+            'created_by_user_id' => $owner->id,
+            'updated_by_user_id' => $owner->id,
+        ]);
+        $this->link($tenant, $owner, $activeGuardian, $inactiveChild);
+
+        $this->actingAs($owner)
+            ->get(route('families.index', ['q' => '0100 111 2233']))
+            ->assertOk()
+            ->assertViewHas('families', fn ($families): bool => $families->isEmpty())
+            ->assertDontSee($inactiveGuardian->full_name);
+        $this->actingAs($owner)
+            ->get(route('families.index', ['q' => 'Inactive child']))
+            ->assertOk()
+            ->assertViewHas('families', fn ($families): bool => $families->isEmpty())
+            ->assertDontSee($activeGuardian->full_name);
+    }
+
     public function test_foreign_tenant_phone_is_not_disclosed_or_treated_as_duplicate(): void
     {
         [$tenant, $owner] = $this->owner();
@@ -216,13 +256,13 @@ class FamilyRegistrySecurityTest extends TestCase
             'tenant_id' => $tenant->id,
             'guardian_id' => $guardianId,
             'child_id' => $childId,
-            'relationship_type' => 'parent',
+            'relationship_type' => 'legal_guardian',
             'is_active' => 1,
         ]);
 
         $audit = DB::table('audit_logs')->where('action', 'family.created')->sole();
         $after = json_decode($audit->after_json, true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame([
+        $this->assertEquals([
             'guardian_id' => (string) $guardianId,
             'child_id' => (string) $childId,
         ], $after);
@@ -267,6 +307,8 @@ class FamilyRegistrySecurityTest extends TestCase
             'child_name' => 'Child One',
             'date_of_birth' => null,
             'relationship_type' => 'parent',
+            'child_data_consent' => '1',
+            'notice_version' => FamilyController::NOTICE_VERSION,
         ], $overrides);
     }
 

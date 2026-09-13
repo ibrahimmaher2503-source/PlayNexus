@@ -5,7 +5,8 @@
 @section('content')
     <main class="mx-auto min-h-screen max-w-4xl px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
-            <h1 class="text-2xl font-bold">{{ __('tenant_settings.title') }}</h1>
+            <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ __('tenant_settings.organization_label') }}</p>
+            <h1 class="mt-1 text-2xl font-bold">{{ __('tenant_settings.title') }}</h1>
             <p class="mt-1 max-w-2xl text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('tenant_settings.description') }}</p>
         </header>
 
@@ -26,7 +27,25 @@
             </div>
         @endif
 
-        <form class="mt-8 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" method="POST" action="{{ route('tenant.settings.update') }}" @if ($errors->any()) aria-describedby="tenant-settings-errors" @endif>
+        <section class="mt-6 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-5 sm:p-6" aria-labelledby="organization-summary-heading">
+            <h2 class="text-lg font-bold" id="organization-summary-heading">{{ __('tenant_settings.summary_heading') }}</h2>
+            <dl class="mt-4 grid gap-4 sm:grid-cols-3">
+                <div>
+                    <dt class="text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('tenant_settings.summary_name') }}</dt>
+                    <dd class="mt-1 font-semibold">{{ $tenant->name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('tenant_settings.summary_timezone') }}</dt>
+                    <dd class="mt-1 font-semibold"><bdi dir="ltr">{{ $tenant->timezone }}</bdi></dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('tenant_settings.summary_currency') }}</dt>
+                    <dd class="mt-1 font-semibold"><bdi dir="ltr">{{ $tenant->currency }}</bdi></dd>
+                </div>
+            </dl>
+        </section>
+
+        <form class="mt-6 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" method="POST" action="{{ route('tenant.settings.update') }}" data-pn-form @if ($errors->any()) aria-describedby="tenant-settings-errors" @endif>
             @csrf
             @method('PATCH')
             <input type="hidden" name="expected_lock_version" value="{{ $tenant->lock_version }}">
@@ -55,7 +74,8 @@
                     <input class="mt-2 min-h-11 w-full cursor-not-allowed rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] px-3 text-[var(--pn-ink-muted)]" id="currency" name="currency" readonly value="EGP">
                 </div>
             </div>
-            <div class="mt-6 flex justify-end">
+            <div class="sticky bottom-0 z-10 -mx-2 mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--pn-border)] bg-[color:oklch(0.989_0.004_205_/_0.96)] px-2 py-3 backdrop-blur" data-pn-save-bar>
+                <p class="text-sm text-[var(--pn-ink-muted)]">{{ __('tenant_settings.save_hint') }}</p>
                 <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-5 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('tenant_settings.save') }}</button>
             </div>
         </form>

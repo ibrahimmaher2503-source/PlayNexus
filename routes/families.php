@@ -11,3 +11,6 @@ Route::get('/app/families/{guardian}', [FamilyProfileController::class, 'show'])
 Route::patch('/app/families/{guardian}', [FamilyProfileController::class, 'update'])->name('families.update');
 Route::patch('/app/families/{guardian}/children/{child}', [FamilyProfileController::class, 'updateChild'])->name('families.children.update');
 Route::post('/app/families/{guardian}/children', [FamilyProfileController::class, 'storeChild'])->name('families.children.store');
+Route::patch('/app/families/{guardian}/children/{child}/consent', [FamilyProfileController::class, 'withdrawConsent'])->name('families.children.consent.withdraw');
+Route::post('/app/families/{guardian}/children/{child}/relationships', [FamilyProfileController::class, 'storeRelationship'])->name('families.relationships.store');
+Route::delete('/app/families/{guardian}/children/{child}/relationships/{relatedGuardian}', [FamilyProfileController::class, 'revokeRelationship'])->name('families.relationships.revoke');

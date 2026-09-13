@@ -36,8 +36,11 @@ class BranchAdminController extends Controller
         $rawName = $request->input('name');
         $name = is_string($rawName) ? trim($rawName) : $rawName;
         $validator = Validator::make(
-            ['name' => $name],
-            ['name' => ['required', 'string', 'min:2', 'max:120']],
+            ['name' => $name, 'creation_key' => $request->header('Idempotency-Key', $request->input('creation_key'))],
+            [
+                'name' => ['required', 'string', 'min:2', 'max:120'],
+                'creation_key' => ['nullable', 'uuid'],
+            ],
             [
                 'name.required' => __('branches.validation.name_required'),
                 'name.string' => __('branches.validation.name_invalid'),
@@ -50,9 +53,11 @@ class BranchAdminController extends Controller
             return $this->validationResponse($request, $validator);
         }
 
-        $name = $validator->validated()['name'];
+        $data = $validator->validated();
+        $name = $data['name'];
+        $creationKey = $data['creation_key'] ?? (string) Str::uuid();
 
-        $branch = DB::transaction(function () use ($actor, $tenant, $name): Branch {
+        [$branch, $created] = DB::transaction(function () use ($actor, $tenant, $name, $creationKey): array {
             $lockedTenant = Tenant::query()
                 ->whereKey($tenant->getKey())
                 ->where('is_active', true)
@@ -61,8 +66,22 @@ class BranchAdminController extends Controller
             $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
             Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
 
+            $existing = Branch::query()
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->where('creation_key', $creationKey)
+                ->first();
+
+            if ($existing) {
+                if ($existing->name !== $name) {
+                    throw new HttpException(409, __('branches.conflict'));
+                }
+
+                return [$existing, false];
+            }
+
             $branch = new Branch([
                 'tenant_id' => $lockedTenant->getKey(),
+                'creation_key' => $creationKey,
                 'name' => $name,
                 'is_active' => true,
             ]);
@@ -85,14 +104,14 @@ class BranchAdminController extends Controller
                 'occurred_at' => $now,
             ]);
 
-            return $branch;
+            return [$branch, true];
         });
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => __('branches.created'), 'branch_id' => $branch->getKey()], 201);
+            return response()->json(['message' => __('branches.created'), 'branch_id' => $branch->getKey(), 'created' => $created], $created ? 201 : 200);
         }
 
-        return to_route('branches.manage')->with('success', __('branches.created'));
+        return to_route('branches.manage')->with($created ? 'success' : 'status_message', __('branches.created'));
     }
 
     public function updateStatus(Request $request, Branch $branch): JsonResponse|RedirectResponse

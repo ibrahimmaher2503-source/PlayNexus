@@ -52,7 +52,7 @@ class FamilyRegistrationUiTest extends TestCase
     {
         [$tenant, $owner] = $this->owner();
 
-        $this->actingAs($owner)
+        $noMatch = $this->actingAs($owner)
             ->withSession(['locale' => 'ar'])
             ->get(route('families.index', ['q' => 'لا توجد أسرة']))
             ->assertOk()
@@ -62,6 +62,11 @@ class FamilyRegistrationUiTest extends TestCase
             ->assertSee(__('families.no_matches_description', [], 'ar'))
             ->assertSee(__('families.add_link', [], 'ar'))
             ->assertSee($tenant->name);
+
+        $this->assertStringContainsString(
+            'href="'.route('families.create', ['q' => 'لا توجد أسرة']).'"',
+            $noMatch->getContent(),
+        );
     }
 
     public function test_create_form_is_bilingual_accessible_and_contains_only_the_bounded_fields(): void
@@ -83,13 +88,14 @@ class FamilyRegistrationUiTest extends TestCase
             ->assertSee('name="child_name"', false)
             ->assertSee('name="date_of_birth"', false)
             ->assertSee('name="relationship_type"', false)
-            ->assertSee('value="parent"', false)
             ->assertSee('value="mother"', false)
             ->assertSee('value="father"', false)
-            ->assertSee('value="other"', false)
+            ->assertSee('value="legal_guardian"', false)
+            ->assertSee('name="child_data_consent"', false)
+            ->assertSee('name="marketing_consent"', false)
+            ->assertSee('name="emergency_contact_phone"', false)
             ->assertSee('min-h-11', false)
             ->assertSee(__('families.operational_notice'))
-            ->assertDontSee('name="consent"', false)
             ->assertDontSee('name="notes"', false);
 
         $this->actingAs($owner)
@@ -102,7 +108,8 @@ class FamilyRegistrationUiTest extends TestCase
 
         $this->actingAs($owner)
             ->get(route('families.create', ['q' => '0100 111 2233']))
-            ->assertSee('value="0100 111 2233"', false);
+            ->assertSee('value="0100 111 2233"', false)
+            ->assertSee('href="'.route('families.index', ['q' => '0100 111 2233']).'"', false);
 
         $this->actingAs($owner)
             ->get(route('families.create', ['q' => 'Maya Ahmed']))

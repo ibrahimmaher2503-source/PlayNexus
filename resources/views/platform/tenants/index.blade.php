@@ -104,8 +104,8 @@
                     {{ __('platform.tenants.empty') }}
                 </div>
             @else
-                <div class="mt-4 overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm" role="region" aria-labelledby="tenant-accounts-heading" tabindex="0">
-                    <table class="min-w-[980px] w-full text-start">
+                <div class="mt-4 overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm" role="region" aria-labelledby="tenant-accounts-heading" tabindex="0" data-pn-admin-table>
+                    <table class="w-full text-start">
                         <caption class="sr-only">{{ __('platform.tenants.table_caption') }}</caption>
                         <thead class="border-b border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] text-sm">
                             <tr>
@@ -126,39 +126,42 @@
                                     $statusFormId = 'tenant-status-' . $tenantId;
                                 @endphp
                                 <tr class="align-top">
-                                    <th class="whitespace-nowrap px-4 py-4 text-start font-semibold" scope="row"><bdi dir="ltr">{{ data_get($tenant, 'internal_identifier') }}</bdi></th>
-                                    <td class="px-4 py-4">{{ data_get($tenant, 'name') }}</td>
-                                    <td class="whitespace-nowrap px-4 py-4"><bdi dir="ltr">{{ data_get($tenant, 'plan_reference') }}</bdi></td>
-                                    <td class="px-4 py-4">
+                                    <th class="whitespace-nowrap px-4 py-4 text-start font-semibold" scope="row" data-label="{{ __('platform.tenants.internal_identifier') }}"><bdi class="pn-bidi" dir="ltr">{{ data_get($tenant, 'internal_identifier') }}</bdi></th>
+                                    <td class="px-4 py-4" data-label="{{ __('platform.tenants.name') }}">{{ data_get($tenant, 'name') }}</td>
+                                    <td class="whitespace-nowrap px-4 py-4" data-label="{{ __('platform.tenants.plan_reference') }}"><bdi class="pn-bidi" dir="ltr">{{ data_get($tenant, 'plan_reference') }}</bdi></td>
+                                    <td class="px-4 py-4" data-label="{{ __('platform.tenants.status') }}">
                                         <span class="inline-flex rounded-full px-3 py-1 text-sm font-semibold {{ $statusClasses[$tenantStatus] ?? 'bg-[var(--pn-surface-subtle)] text-[var(--pn-ink-muted)]' }}">{{ $tenantStatusLabel }}</span>
                                     </td>
-                                    <td class="whitespace-nowrap px-4 py-4"><bdi dir="ltr">{{ data_get($tenant, 'lock_version') }}</bdi></td>
-                                    <td class="min-w-80 px-4 py-4">
-                                        <form id="{{ $statusFormId }}" class="space-y-3" method="POST" action="{{ route('platform.tenants.status', $tenantId) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="hidden" name="expected_status" value="{{ $tenantStatus }}">
-                                            <div class="grid gap-3 sm:grid-cols-2">
-                                                <div>
-                                                    <label class="block text-xs font-semibold" for="{{ $statusFormId }}-status">{{ __('platform.tenants.status_label') }}</label>
-                                                    <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-status" name="status" required>
-                                                        @foreach ($statusLabels as $status => $label)
-                                                            <option value="{{ $status }}" @selected($tenantStatus === $status)>{{ $label }}</option>
-                                                        @endforeach
-                                                    </select>
+                                    <td class="whitespace-nowrap px-4 py-4" data-label="{{ __('platform.tenants.lock_version') }}"><bdi dir="ltr">{{ data_get($tenant, 'lock_version') }}</bdi></td>
+                                    <td class="px-4 py-4" data-label="{{ __('platform.tenants.status_heading') }}">
+                                        <details class="pn-action-details">
+                                            <summary class="inline-flex min-h-11 cursor-pointer list-none items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 text-sm font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]">{{ __('platform.tenants.change_status') }}</summary>
+                                            <form id="{{ $statusFormId }}" class="mt-3 space-y-3 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-3" method="POST" action="{{ route('platform.tenants.status', $tenantId) }}" data-pn-confirm-form data-pn-confirm-message="{{ __('platform.tenants.confirm_status_change') }}" onsubmit="return window.confirm(this.dataset.pnConfirmMessage)">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="expected_status" value="{{ $tenantStatus }}">
+                                                <div class="grid gap-3 sm:grid-cols-2">
+                                                    <div>
+                                                        <label class="block text-xs font-semibold" for="{{ $statusFormId }}-status">{{ __('platform.tenants.status_label') }}</label>
+                                                        <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-status" name="status" required>
+                                                            @foreach ($statusLabels as $status => $label)
+                                                                <option value="{{ $status }}" @selected($tenantStatus === $status)>{{ $label }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-semibold" for="{{ $statusFormId }}-reason">{{ __('platform.tenants.reason_code') }}</label>
+                                                        <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-reason" name="reason_code" aria-describedby="{{ $statusFormId }}-reason-hint" required>
+                                                            @foreach (['setup_change', 'access_review', 'correction'] as $reason)
+                                                                <option value="{{ $reason }}">{{ __('platform.tenants.reasons.'.$reason) }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        <span class="mt-1 block text-xs text-[var(--pn-ink-muted)]" id="{{ $statusFormId }}-reason-hint">{{ __('platform.tenants.reason_hint') }}</span>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label class="block text-xs font-semibold" for="{{ $statusFormId }}-reason">{{ __('platform.tenants.reason_code') }}</label>
-                                                    <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-reason" name="reason_code" aria-describedby="{{ $statusFormId }}-reason-hint" required>
-                                                        @foreach (['setup_change', 'access_review', 'correction'] as $reason)
-                                                            <option value="{{ $reason }}">{{ __('platform.tenants.reasons.'.$reason) }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    <span class="mt-1 block text-xs text-[var(--pn-ink-muted)]" id="{{ $statusFormId }}-reason-hint">{{ __('platform.tenants.reason_hint') }}</span>
-                                                </div>
-                                            </div>
-                                            <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 text-sm font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('platform.tenants.save_status') }}</button>
-                                        </form>
+                                                <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 text-sm font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('platform.tenants.save_status') }}</button>
+                                            </form>
+                                        </details>
                                     </td>
                                 </tr>
                             @endforeach
@@ -185,5 +188,16 @@
                 </nav>
             @endif
         </section>
+
+        <dialog class="max-w-md rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-0 text-[var(--pn-ink)] shadow-xl backdrop:bg-[rgb(23_38_43_/_0.48)]" data-pn-confirm-dialog aria-labelledby="platform-confirm-title">
+            <div class="p-6">
+                <h2 class="text-lg font-bold" id="platform-confirm-title">{{ __('platform.tenants.change_status') }}</h2>
+                <p class="mt-2 text-sm leading-6 text-[var(--pn-ink-muted)]" data-pn-confirm-message></p>
+                <div class="mt-5 flex flex-wrap justify-end gap-2">
+                    <button class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="button" data-pn-confirm-cancel>{{ __('platform.tenants.cancel') }}</button>
+                    <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="button" data-pn-confirm-submit>{{ __('platform.tenants.save_status') }}</button>
+                </div>
+            </div>
+        </dialog>
     </main>
 @endsection

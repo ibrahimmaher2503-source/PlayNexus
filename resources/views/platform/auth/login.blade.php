@@ -10,14 +10,14 @@
                     <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ __('platform.brand') }}</p>
                     <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('platform.platform_label') }}</p>
                 </div>
-                <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
+                <form class="flex items-center gap-2" method="POST" action="{{ route('locale.store') }}">
                     @csrf
-                    <label class="text-sm font-semibold" for="platform-login-locale">{{ __('platform.locale.label') }}</label>
-                    <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="platform-login-locale" name="locale">
+                    <label class="sr-only" for="platform-login-locale">{{ __('platform.locale.label') }}</label>
+                    <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="platform-login-locale" name="locale" data-pn-locale-select aria-label="{{ __('platform.locale.label') }}">
                         <option value="en" @selected(app()->isLocale('en'))>{{ __('platform.locale.english') }}</option>
                         <option value="ar" @selected(app()->isLocale('ar'))>{{ __('platform.locale.arabic') }}</option>
                     </select>
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 text-sm font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('platform.locale.change') }}</button>
+                    <noscript><button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 text-sm font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('platform.locale.change') }}</button></noscript>
                 </form>
             </header>
 

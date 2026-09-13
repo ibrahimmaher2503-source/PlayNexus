@@ -1,5 +1,11 @@
 # Security Checklist
 
+## 2026-09-13 check-in security evidence
+
+The implemented check-in path reauthorizes fresh tenant/actor/branch scope under lock, hides foreign/unassigned/inactive scope, hashes lookup material, removes submitted ticket code before validation flash, masks Cashier data, enforces composite tenant foreign keys, and rolls back ticket/session/event/audit state together. Real InnoDB contention and hostile role/tenant/state tests pass. This is local application evidence, not deployment penetration testing or production approval.
+
+The live estimate accepts no client total or timestamp, reads only the immutable server-side snapshot and one UTC clock, uses bounded integer arithmetic, persists nothing, and hides itself on malformed input. A feature test proves ticket/session/event/scan/audit state is unchanged by GET. This does not replace final checkout recalculation, settlement or release controls.
+
 ## M1 review record — 2026-09-12
 
 M1 locally verifies generic/throttled authentication, session rotation and revocation, CSRF-protected mutations, deny-by-default tenant/branch/platform policies, expected-state conflicts, tenant-scoped transactions, and atomic audit records. Composer and npm report zero known vulnerabilities. TLS, managed secrets, centralized monitoring, backup/restore, and production host controls remain release gates and are not marked complete here.

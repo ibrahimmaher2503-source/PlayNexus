@@ -1,5 +1,15 @@
 # PlayNexus Permission Matrix
 
+## 2026-09-13 check-in/session policy implementation
+
+`PlaySessionPolicy` permits active Tenant Owner and assigned Branch Manager/Reception roles to check in within current active branch scope. Cashier may view the scoped masked board but cannot check in; a custom role with `branches.view` alone receives no session ability. Foreign, unassigned and inactive branch scope remains hidden as 404; an active in-scope fixed role missing check-in permission receives 403. Authorization is repeated under the transaction lock before replay or mutation. No role can override hard capacity or tenant-wide Active/Paused child uniqueness.
+
+The read-only live estimate inherits board visibility: Owner, assigned Branch Manager/Reception/Cashier may see it only for sessions already visible in active branch scope. It grants no checkout/payment permission, accepts no client amount, and exposes no additional guardian PII.
+
+## 2026-09-13 ticket lifecycle policy implementation
+
+`TicketPolicy` reuses the current fixed pricing/branch policy: active Tenant Owner, assigned Branch Manager, Reception, and Cashier can issue, validate, reprint, and correct an unused pre-scan ticket in scope. Only Owner/assigned Branch Manager can create immutable ticket types or cancel unused tickets. A custom role with only `branches.view` never gains ticket abilities. Resource queries return 404 for foreign, unassigned, or inactive scope; an active in-scope fixed role missing the manager action receives 403. Fresh authorization is repeated under the existing tenant command lock. Sensitive correction/cancellation require reason, expected version, and atomic audit; no financial refund approval or execution ability is exposed by this subset.
+
 ## T18-T20 bounded implementation amendment
 
 User-authorized wave: an active owner has `branches.view` over active own-tenant branches; may add active tenant staff directly, search them by name/email, create tenant-specific roles, toggle their currently enforced `branches.view` permission, and assign eligible custom or fixed branch roles. Branch-manager staff administration, owner transfer and all other draft permissions remain unimplemented. All owner targets are excluded from these mutations. Deny foreign scope404, missing owner403, stale submitted state409; record server-derived reasons and atomic audit for successful changes.
@@ -79,14 +89,14 @@ Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is
 
 ## 4. Guardians, children, and sensitive data
 
-**M2 first-slice enforcement — 2026-09-12:** search and initial family creation are available to an active Tenant Owner or an active `branch_manager`, `reception_staff`/legacy `reception`, or `cashier` assignment on an active branch. A custom role carrying only `branches.view` does not grant family access. Results and writes are current-tenant only; consent, edit, merge, export, photo, notes, and anonymization permissions remain unimplemented.
+**M2 current enforcement — 2026-09-12:** search, masked basic profile viewing, and initial atomic guardian-plus-child registration are available to an active Tenant Owner or an active `branch_manager`, `reception_staff`/legacy `reception`, or `cashier` assignment on an active branch. Profile correction and adding/editing children are limited to Tenant Owner, Branch Manager, and Reception. Cashier receives masked phone/email, no locale, and age without full date of birth and cannot use any family-maintenance, consent, relationship, emergency, or safety-note action. A custom role carrying only `branches.view` does not grant family access. The approved Egypt follow-up adds legal-guardian consent, emergency/safety fields, and relationship lifecycle under the existing owner/manager/reception boundary; child photos and merge remain deferred.
 
 | Action / permission code | Super Admin | Tenant Owner | Branch Manager | Reception | Cashier | Game Operator | Parent |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Search guardian/child `customers.search` | support only | T | B | B | B/M | — | O/future |
 | View basic guardian profile `guardians.view` | support only | T | B | B | B/M | — | O/future |
 | Create guardian `guardians.create` | — | T | B | B | B | — | O/future |
-| Edit guardian contact `guardians.update` | — | T | B | B | B/limited | — | O/future |
+| Edit guardian contact `guardians.update` | — | T | B | B | — | — | O/future |
 | Manage consent/opt-out `guardians.consent.manage` | — | T | B | B | — | — | O/future |
 | View basic child profile `children.view` | support only | T | B | B | B/M | — | O/future |
 | Create/edit child `children.manage` | — | T | B | B | — | — | O/future |
@@ -99,7 +109,6 @@ Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is
 | Approve/execute anonymization `customers.anonymize.execute` | — | T/A | — | — | — | — | — |
 | Export customer PII `customers.export` | — | T/A | B/A | — | — | — | O/future |
 
-`limited` means cashier may correct name/phone only while completing the current sale and cannot change consent, relationships, photos, or notes.  
 `future*` means a guardian may request a relationship change, but staff verification is required before it becomes active.
 
 ## 5. Pricing, tickets, and sessions
@@ -127,7 +136,9 @@ Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is
 | Guardian-checkout override `sessions.checkout.override` | — | T/A | B/A | R | — | — | — |
 | View session history `sessions.history.view` | support only | T | B | B | B/M | — | O/future |
 
-Reception checkout without override still requires an active checkout-capable guardian relationship and one verification method approved under OQ-12; this matrix does not choose that method. Completion also requires the linked order to be fully paid, while station/role ownership remains open under OQ-19. Completed/cancelled sessions cannot be edited; corrections are append-only adjustments.
+Reception checkout without override requires an active checkout-capable guardian relationship plus the approved OQ-12 session/ticket QR and registered-phone-last-four or handoff-code evidence. Completion also requires the linked order fully paid, while station/role ownership remains open under OQ-19. M4 is not implemented. Completed/cancelled sessions cannot be edited; corrections are append-only adjustments.
+
+**Approved OQ-18 boundary:** issue/scan actions never widen ticket scope beyond its tenant, branch, and service date. Authorized staff may correct holder assignment only before the first successful scan. A refund-eligible ticket must remain unused with no successful scan, consumption, or linked session; Branch Manager or Tenant Owner approval is mandatory and does not replace the separate refund execution permission under OQ-09.
 
 ## 6. POS, payment, full refund, and receipts
 

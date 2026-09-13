@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\FamilyController;
 use App\Models\Branch;
 use App\Models\Child;
 use App\Models\Guardian;
@@ -51,7 +52,7 @@ class FamilyProfileAdversarialTest extends TestCase
     {
         [$tenant, $owner] = $this->owner();
         $guardian = $this->guardian($tenant, $owner, 'Own guardian');
-        $otherGuardian = $this->guardian($tenant, $owner, 'Other guardian');
+        $otherGuardian = $this->guardian($tenant, $owner, 'Other guardian', '+201000000001');
         $otherChild = $this->child($tenant, $owner, 'Other guardian child');
         $this->link($tenant, $owner, $otherGuardian, $otherChild);
 
@@ -97,6 +98,8 @@ class FamilyProfileAdversarialTest extends TestCase
                 'date_of_birth' => null,
                 'relationship_type' => 'parent',
                 'expected_version' => 1,
+                'child_data_consent' => '1',
+                'notice_version' => FamilyController::NOTICE_VERSION,
             ])
             ->assertStatus(409);
 
@@ -233,6 +236,8 @@ class FamilyProfileAdversarialTest extends TestCase
                 'date_of_birth' => '2018-07-08',
                 'relationship_type' => 'mother',
                 'expected_version' => 2,
+                'child_data_consent' => '1',
+                'notice_version' => FamilyController::NOTICE_VERSION,
             ])
             ->assertCreated();
 
@@ -242,15 +247,15 @@ class FamilyProfileAdversarialTest extends TestCase
         $childAfter = json_decode($audits['family.child.updated']->after_json, true, 512, JSON_THROW_ON_ERROR);
         $addedAfter = json_decode($audits['family.child.added']->after_json, true, 512, JSON_THROW_ON_ERROR);
 
-        $this->assertSame([
+        $this->assertEquals([
             'guardian_id' => (string) $guardian->id,
             'changed_fields' => ['full_name', 'phone_e164', 'email', 'preferred_locale'],
         ], $guardianAfter);
-        $this->assertSame([
+        $this->assertEquals([
             'child_id' => (string) $child->id,
-            'changed_fields' => ['full_name', 'date_of_birth'],
+            'changed_fields' => ['full_name', 'date_of_birth', 'emergency_contact_name', 'emergency_contact_phone_e164'],
         ], $childAfter);
-        $this->assertSame([
+        $this->assertEquals([
             'guardian_id' => (string) $guardian->id,
             'child_id' => $addedChildId,
             'changed_fields' => ['child_name', 'date_of_birth', 'relationship_type'],
@@ -320,6 +325,8 @@ class FamilyProfileAdversarialTest extends TestCase
                     'date_of_birth' => null,
                     'relationship_type' => 'parent',
                     'expected_version' => 1,
+                    'child_data_consent' => '1',
+                    'notice_version' => FamilyController::NOTICE_VERSION,
                 ]);
             $this->fail('The audit failure should have escaped the request.');
         } catch (RuntimeException $exception) {

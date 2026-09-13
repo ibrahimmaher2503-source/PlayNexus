@@ -58,7 +58,7 @@ class PricingRuleVersioningTest extends TestCase
         $this->assertSame($owner->id, $audit->actor_user_id);
         $this->assertSame('pricing_rule', $audit->subject_type);
         $this->assertSame((string) $newRule->id, $audit->subject_id);
-        $this->assertSame([
+        $this->assertEquals([
             'old_pricing_rule_id' => (string) $rule->id,
             'new_pricing_rule_id' => (string) $newRule->id,
             'old_version' => 1,

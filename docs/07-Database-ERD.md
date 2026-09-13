@@ -1,5 +1,19 @@
 # PlayNexus Database ERD and Schema Specification
 
+## 2026-09-13 check-in/session implementation subset
+
+Migration `2026_09_13_000015_create_play_sessions` adds conventional bigint `play_sessions` and append-only `play_session_events`, while adding the composite ticket key needed for `(tenant_id,branch_id,ticket_id)` integrity. A session carries explicit tenant, branch, child, guardian, ticket, pricing rule, status, UTC start/expected/end times, immutable pricing snapshot, actor and lock version. Composite foreign keys prevent cross-tenant/cross-branch ticket, pricing, family or actor references; one tenant/ticket can create at most one session. Event rows carry transition, reason, actor, UTC occurrence, bounded metadata and request ID.
+
+The application serializes accepted check-in through the tenant lock and treats both Active and Paused rows as occupying child/capacity state. MySQL and SQLite cannot express the intended conditional uniqueness identically without a generated-column design, so the current safe MVP invariant is transactional and covered by a real InnoDB multi-process test. There is no authentication-table collision because the aggregate is named `play_sessions`. No pause/checkout/payment/receipt tables or commands are introduced by this subset.
+
+The M3 live estimate adds no table or column: it reads `play_sessions.started_at` and `pricing_snapshot_json` at one server time and returns an in-memory view attribute only. Final checkout inputs/outputs must use their later immutable persistence contract rather than reusing this display estimate as financial evidence.
+
+## 2026-09-13 ticket lifecycle implementation subset
+
+Migration `2026_09_13_000014_create_ticketing_tables` adds conventional bigint ticket types, tickets, and append-only ticket scans. Types reference an immutable pricing version using `(tenant_id,branch_id,pricing_rule_id)`; tickets reference their type using `(tenant_id,branch_id,ticket_type_id)`. Guardians, children, actors, and scan branches have tenant-aware foreign keys. There is no update/delete route for types or scans. This implemented subset uses UTC DATETIME ticket validity/event fields and the existing timestamp conventions, not the proposed ULID/microsecond schema below.
+
+Issued tickets capture a branch-local `service_date`, UTC half-open operating window `[valid_from,valid_until)`, integer EGP amount, full immutable pricing/tax/timezone snapshot, encrypted opaque QR payload, tenant-unique SHA-256 code hash, and separate manual display code. Issue/scan UUID keys are unique within tenant/actor and compared against canonical request fingerprints. Reassignment uses `lock_version`; first accepted validation sets permanent `assignment_locked_at`. Cancellation stores manager actor/time/reason and cannot bypass a successful scan/use. Session consumption fields are reserved denial guards, not evidence of a session or financial ledger. No payment/refund/session table is introduced by this migration.
+
 ## T18-T20 audit implementation subset
 
 The first audit_logs migration records successful staff status/branch-assignment mutations: bigint id/tenant_id/actor_user_id, nullable branch_id, actor_type/action/subject_type/subject_id/outcome/reason_code, nullable JSON before_json/after_json, server-generated UUID request_id and UTC occurred_at. Composite actor/branch FKs enforce tenant scope; no updated_at or application update/delete route. Restrict deletion of referenced entities to preserve evidence. Generic denial/security audit, platform audit, network hashes and richer masking are not delivered by this subset. Expected-state checks reuse existing staff/pivot fields; no generic version framework is added.
@@ -155,6 +169,7 @@ Tenant-owned.
 
 | Column | Type | Null/default | Constraints/notes |
 |---|---|---|---|
+| `creation_key` | UUID | yes | tenant-scoped idempotency key for branch creation retries; null only for legacy rows |
 | `code` | VARCHAR(30) | no | unique within tenant |
 | `name` | VARCHAR(190) | no | branch name |
 | `status` | ENUM | `active` | `active`, `inactive` |
@@ -169,7 +184,7 @@ Tenant-owned.
 | `lock_version` | INT UNSIGNED | `1` | optimistic concurrency |
 | `archived_at` | DATETIME(6) | yes | no new operations after archive |
 
-Constraints/indexes: `UNIQUE(tenant_id,code)`, `INDEX(tenant_id,status)`, check capacity/rate ranges.
+Constraints/indexes: `UNIQUE(tenant_id,creation_key)`, `UNIQUE(tenant_id,code)`, `INDEX(tenant_id,status)`, check capacity/rate ranges.
 
 ### 3.5 `branch_opening_hours`
 
@@ -212,7 +227,7 @@ Framework auth tables: Laravel password-reset tokens, web sessions, and Sanctum 
 
 ## 4. Customer registry
 
-**M2 implementation amendment — 2026-09-12:** the first migration implements a strict subset as `guardians`, `children`, and `guardian_child`: explicit `tenant_id`, required actor IDs, status, lock version, optional child DOB, `relationship_type`, and `is_active`, with tenant-aware composite foreign keys. Phone is indexed but intentionally not unique. Consent, secondary phone, photos, emergency/safety data, archive fields, checkout capability, relationship verification, and merge behavior remain specification-only until their contracts are approved.
+**M2 implementation amendment — 2026-09-13:** migrations implement `guardians`, `children`, `guardian_child`, and append-only `family_consent_events` with explicit tenant/actor scope, tenant-aware foreign keys, tenant-unique normalized guardian phone, optional DOB, required-on-new-active-child emergency fallback, encrypted optional safety notes, and checkout/primary/verification/revocation relationship evidence. Retention execution and any additional lifecycle timestamps wait for M3 session/last-visit data under the approved dependency waiver. Child photos and automatic merge remain deferred.
 
 ### 4.1 `guardians`
 
@@ -235,15 +250,19 @@ Tenant-owned.
 | `lock_version` | INT UNSIGNED | `1` | concurrency |
 | `archived_at` | DATETIME(6) | yes | no hard delete |
 
-Indexes proposed pending **OQ-17**: `INDEX(tenant_id,phone_e164)`, `INDEX(tenant_id,full_name)`, `INDEX(tenant_id,email)`. Whether normalized phone is warn-only, supervisor-confirmed duplicate creation, merge-assisted, or unique is not approved. The migration must not add a uniqueness constraint and the API must not freeze “create anyway” behavior until OQ-17 is closed.
+Approved indexes: `UNIQUE(tenant_id,phone_e164)`, `INDEX(tenant_id,full_name)`, and `INDEX(tenant_id,email)`. OQ-17 is closed: a current-tenant match reuses the existing family; there is no create-anyway or automatic merge in MVP.
 
 ### 4.2 `children`
 
-Tenant-owned. Proposed columns pending **OQ-15**: `full_name VARCHAR(190)`, `date_of_birth DATE NULL`, `gender ENUM('female','male','unspecified') DEFAULT 'unspecified'`, `photo_object_key VARCHAR(500) NULL`, `emergency_contact_name VARCHAR(190) NULL`, `emergency_contact_phone_e164 VARCHAR(20) NULL`, `safety_notes_encrypted LONGTEXT NULL`, `status ENUM('active','restricted','anonymized')`, `created_by_user_id`, `updated_by_user_id`, `lock_version`, `archived_at`, timestamps. Definite indexes are `(tenant_id,full_name)` and `(tenant_id,status)`; the DOB/age representation and related index are not migration-ready until OQ-15 chooses full DOB, declared age, year/month, or a jurisdiction-dependent combination. If DOB is approved, age is derived for the requested local date and never redundantly stored.
+Tenant-owned. Approved M2 columns: `full_name VARCHAR(190)`, optional `date_of_birth DATE`, required-for-active `emergency_contact_name VARCHAR(190)` and `emergency_contact_phone_e164 VARCHAR(20)`, optional application-encrypted `safety_notes_encrypted TEXT`, `status ENUM('active','restricted','anonymized')`, actor IDs, `lock_version`, `archived_at`, and timestamps. Child photo and gender are deferred. If DOB exists, age is derived for the requested local date and never redundantly stored.
 
 ### 4.3 `guardian_children` (planned full model; first slice uses `guardian_child`)
 
-Tenant-owned. Columns: `guardian_id`, `child_id`, `relationship ENUM('mother','father','legal_guardian','authorized_pickup','other')`, `can_check_out BOOLEAN DEFAULT TRUE`, `is_primary BOOLEAN DEFAULT FALSE`, `relationship_verified_at DATETIME(6) NULL`, `relationship_verified_by_user_id NULL`, `status ENUM('active','revoked')`, timestamps. PK/unique `(tenant_id,guardian_id,child_id)` and tenant-aware FKs. A child must have at least one active relationship with `can_check_out=TRUE`; registration and relationship-revocation actions enforce this invariant in one transaction. Relationship verification does not select the checkout evidence method; that remains open under **OQ-12**.
+Tenant-owned. Columns: `guardian_id`, `child_id`, `relationship ENUM('mother','father','legal_guardian','authorized_pickup','other')`, `can_consent BOOLEAN`, `can_check_out BOOLEAN`, `is_primary BOOLEAN`, verification actor/time/method, status, revocation actor/time, and timestamps. PK/unique `(tenant_id,guardian_id,child_id)` and tenant-aware FKs. Only mother/father/legal guardian may have `can_consent=TRUE`. A child must retain at least one active, verified, checkout-capable legal guardian; revocation/reactivation enforces this invariant transactionally. OQ-12 defines the later checkout evidence method.
+
+### 4.4 `family_consent_events`
+
+Append-only tenant-owned evidence: `guardian_id`, `child_id`, `consent_type` (`child_data`, `marketing`), `status` (`granted`, `withdrawn`), `notice_version`, purpose/data-category snapshot, `locale`, `method`, staff actor, optional branch, request ID, and `occurred_at` UTC. No mutable consent Boolean is authoritative. Child-data consent must reference an active consent-capable relationship; marketing refusal never blocks service.
 
 ## 5. Pricing, tickets, and sessions
 
@@ -277,11 +296,13 @@ Tenant-owned. Columns: `branch_id NULL`, `pricing_rule_id`, `code VARCHAR(50)`, 
 
 ### 5.4 `tickets`
 
-Tenant-owned. Columns: `branch_id`, `ticket_type_id`, `guardian_id NULL`, `child_id NULL`, `order_item_id NULL`, `status ENUM('issued','consumed','cancelled','expired')`, `code_hash CHAR(64)`, `code_payload_encrypted TEXT`, `display_code VARCHAR(20)`, `issued_at`, `valid_from`, `valid_until NULL`, `consumed_at NULL`, `cancelled_at NULL`, `cancelled_by_user_id NULL`, `cancellation_reason VARCHAR(500) NULL`, `uses_count SMALLINT UNSIGNED DEFAULT 0`, `max_uses SMALLINT UNSIGNED`, `price_snapshot_json JSON`, `issued_by_user_id`, `lock_version`, timestamps. Unique `(tenant_id,code_hash)`, `(tenant_id,display_code)`; indexes `(tenant_id,branch_id,status,valid_until)`, `(tenant_id,child_id)`. A ticket payload is treated as a bearer secret and never logged. Issuance creates `issued` directly; reprint is an audit event and does not change state or payload.
+Tenant-owned. Columns: `branch_id`, `service_date DATE`, `ticket_type_id`, `guardian_id NULL`, `child_id NULL`, `order_item_id NULL`, `status ENUM('issued','consumed','cancelled','expired')`, `code_hash CHAR(64)`, `code_payload_encrypted TEXT`, `display_code VARCHAR(20)`, `issued_at`, `valid_from`, `valid_until`, `assignment_locked_at NULL`, `consumed_at NULL`, `cancelled_at NULL`, `cancelled_by_user_id NULL`, `cancellation_reason VARCHAR(500) NULL`, `uses_count SMALLINT UNSIGNED DEFAULT 0`, `max_uses SMALLINT UNSIGNED`, `price_snapshot_json JSON`, `issued_by_user_id`, `lock_version`, timestamps. Unique `(tenant_id,code_hash)`, `(tenant_id,display_code)`; indexes `(tenant_id,branch_id,service_date,status)`, `(tenant_id,branch_id,status,valid_until)`, `(tenant_id,child_id)`. `service_date` is interpreted in the immutable ticket branch time-zone/operating-window snapshot. A ticket payload is treated as a bearer secret and never logged. Issuance creates `issued` directly; reprint is an audit event and does not change state or payload.
+
+Before `assignment_locked_at`, authorized staff may correct an unused ticket's guardian/child binding with expected-version and audit evidence. The first accepted scan sets `assignment_locked_at`; binding is immutable afterward. Refund eligibility requires `status=issued`, no accepted scan/lock, no consumption, and no linked session, plus an action-bound Branch Manager/Tenant Owner approval. The later OQ-09 financial workflow appends any paid reversal and never rewrites the ticket/payment.
 
 ### 5.5 `ticket_scans`
 
-Tenant-owned and append-only. Columns: `ticket_id NULL` (unknown codes still produce a scan row with no ticket), `branch_id`, `scanned_by_user_id`, `scanned_at`, `scan_purpose ENUM('validate','check_in','reentry')`, `result ENUM('accepted','not_found','expired','cancelled','already_consumed','wrong_branch','policy_denied')`, `code_hash CHAR(64)`, `device_label VARCHAR(120) NULL`, `reason_code VARCHAR(80) NULL`, `request_id CHAR(36)`. Indexes `(tenant_id,ticket_id,scanned_at)`, `(tenant_id,branch_id,scanned_at)`, `(tenant_id,result,scanned_at)`.
+Tenant-owned and append-only. Columns: `ticket_id NULL` (unknown codes still produce a scan row with no ticket), `branch_id`, `scanned_by_user_id`, `scanned_at`, `scan_purpose ENUM('validate','check_in','reentry')`, `result ENUM('accepted','not_found','expired','cancelled','already_consumed','wrong_branch','wrong_service_date','policy_denied')`, `code_hash CHAR(64)`, `device_label VARCHAR(120) NULL`, `reason_code VARCHAR(80) NULL`, `request_id CHAR(36)`. Indexes `(tenant_id,ticket_id,scanned_at)`, `(tenant_id,branch_id,scanned_at)`, `(tenant_id,result,scanned_at)`.
 
 ### 5.6 `sessions`
 
@@ -529,7 +550,7 @@ Migrations must be small and reversible until data-bearing destructive changes. 
 16. Framework `jobs`, `job_batches` if used, and `failed_jobs`.
 17. Seed immutable roles, MVP permissions, role-permission mappings, allowlisted operational notification templates, and a controlled initial Super Admin. Do not seed games, shifts, marketing, parent self-service, or incident permissions unless their scope is approved.
 
-Before the affected migrations are frozen, OQ-06, OQ-08, OQ-12, OQ-15, OQ-17, OQ-20, and OQ-24 must be decided. The proposed currency relationship, receipt numbering, nullable DOB, non-unique phone index, verification evidence, and incident tables are explicitly not approved product/legal choices.
+OQ-06, OQ-08, OQ-12, OQ-15, OQ-17, and the M2 handling of OQ-20 are decided. OQ-20 incident tables remain deferred and OQ-24 remains open for later POS scope. Production privacy notice/licensing and Finance/Legal deployment sign-off remain operational gates, not permission to invent new schema behavior.
 
 For the first migration set, use fresh schema creation rather than a long series of rename/alter migrations. Once production contains data, all migration changes become forward-only operational changes with explicit rollback/roll-forward instructions.
 

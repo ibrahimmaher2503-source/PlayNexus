@@ -286,6 +286,68 @@ class StaffManagementTest extends TestCase
             });
     }
 
+    public function test_owner_can_search_staff_by_name_or_email_and_open_branch_access_directly(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $nameMatch = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Alice Example',
+            'email' => 'alice@example.test',
+        ]);
+        $emailMatch = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Bob Example',
+            'email' => 'bob@example.test',
+        ]);
+        $other = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Charlie Example',
+            'email' => 'charlie@example.test',
+        ]);
+        $foreignTenant = Tenant::factory()->create();
+        $foreign = User::factory()->create([
+            'tenant_id' => $foreignTenant->id,
+            'name' => 'Alice Foreign',
+            'email' => 'alice-foreign@example.test',
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('staff.index', ['q' => '  Alice  ']))
+            ->assertOk()
+            ->assertViewHas('search', 'Alice')
+            ->assertSee($nameMatch->name)
+            ->assertSee('href="'.route('assignments.index', ['user_id' => $nameMatch->id]).'"', false)
+            ->assertDontSee($emailMatch->name)
+            ->assertDontSee($other->name)
+            ->assertDontSee($foreign->name)
+            ->assertSee(__('staff.search_label'))
+            ->assertSee('role="search"', false);
+
+        $this->get(route('staff.index', ['q' => 'bob@example.test']))
+            ->assertOk()
+            ->assertSee($emailMatch->name)
+            ->assertDontSee($nameMatch->name);
+
+        $this->get(route('staff.index', ['q' => str_repeat('A', 120)]))
+            ->assertOk()
+            ->assertViewHas('search', str_repeat('A', 100));
+    }
+
+    public function test_staff_search_has_a_localized_no_result_state(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        User::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Existing staff']);
+
+        foreach ([['en', 'No staff accounts match this search.'], ['ar', 'لا توجد حسابات موظفين تطابق هذا البحث.']] as [$locale, $message]) {
+            $this->actingAs($owner)->withSession(['locale' => $locale])
+                ->get(route('staff.index', ['q' => 'does-not-exist']))
+                ->assertOk()
+                ->assertSee($message)
+                ->assertSee('for="staff-search"', false)
+                ->assertSee('id="staff-search"', false);
+        }
+    }
+
     /** @return array{Tenant, User} */
     private function owner(): array
     {

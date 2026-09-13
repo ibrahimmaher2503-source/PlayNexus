@@ -115,6 +115,22 @@ class BranchAdministrationTest extends TestCase
             ->assertJsonValidationErrors(['name']);
     }
 
+    public function test_branch_creation_retry_returns_the_original_branch_without_duplicate_audit(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $key = '4c6bb485-4701-44ed-82c9-26d15af0196f';
+
+        $first = $this->actingAs($owner)->postJson(route('branches.store'), ['name' => 'Retry safe', 'creation_key' => $key]);
+        $first->assertCreated()->assertJsonPath('created', true);
+        $second = $this->postJson(route('branches.store'), ['name' => 'Retry safe', 'creation_key' => $key]);
+        $second->assertOk()->assertJsonPath('created', false)->assertJsonPath('branch_id', $first->json('branch_id'));
+
+        $this->postJson(route('branches.store'), ['name' => 'Changed payload', 'creation_key' => $key])->assertConflict();
+        $this->assertDatabaseCount('branches', 1);
+        $this->assertDatabaseCount('audit_logs', 1);
+        $this->assertDatabaseHas('branches', ['tenant_id' => $tenant->id, 'creation_key' => $key, 'name' => 'Retry safe']);
+    }
+
     public function test_foreign_status_target_is_hidden_before_validation(): void
     {
         [$tenant, $owner] = $this->owner();

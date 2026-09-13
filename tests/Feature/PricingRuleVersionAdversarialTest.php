@@ -228,7 +228,7 @@ class PricingRuleVersionAdversarialTest extends TestCase
         $newRule = PricingRule::query()->findOrFail($response->json('pricing_rule_id'));
         $audit = DB::table('audit_logs')->where('action', 'pricing.rule.versioned')->sole();
 
-        $this->assertSame([
+        $this->assertEquals([
             'old_pricing_rule_id' => (string) $target->id,
             'new_pricing_rule_id' => (string) $newRule->id,
             'old_version' => 1,

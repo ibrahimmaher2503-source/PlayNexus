@@ -1,5 +1,9 @@
 # PlayNexus MVP Use Cases
 
+## 2026-09-13 UC-04 implemented boundary
+
+UC-04 is implemented through ticket-backed check-in and the live board: current authorized scope and family safety are revalidated, one ticket/session commits atomically and idempotently, hard branch capacity and tenant-wide duplicate-child state are enforced, and rejected attempts retain privacy-safe scan evidence without business mutation. The UC-05 read-only monitoring/estimate portion now derives exact grace/overtime/tax values from immutable facts without persistence; pause/resume/extend/adjust/cancel remain unimplemented. Browser acceptance covers Owner and Cashier. UC-06/07 checkout/release and all financial completion remain outside this boundary.
+
 **Document version:** 1.1  
 **Status:** Draft operational-flow baseline  
 **Source:** PlayNexus PRD v1.0, `01-PRD-Baseline.md` v1.1, `02-BRD.md` v1.1, `03-SRS.md` v1.1, and `04-User-Stories.md` v1.1  
@@ -189,13 +193,13 @@ Global constraints for all use cases:
 **Preconditions**
 
 - Reception Staff is authenticated, assigned to the operating branch, and permitted to access family records.
-- Approved fields, consent/privacy notice, phone-normalization policy, and child age/date representation are configured.
+- The approved Egypt M2 fields, Arabic-first privacy notice, legal-guardian child-data consent, phone normalization, and optional child DOB/age representation are configured.
 
 **Success postconditions**
 
 - The correct current-tenant guardian and child are selected, or new records are created.
 - Every child has at least one active same-tenant guardian relationship.
-- Consent evidence and required emergency/safety information are retained.
+- Versioned legal-guardian child-data consent evidence, required emergency contact, and any optional restricted safety note are retained.
 - Potential duplicate handling follows the approved policy.
 
 **Minimum guarantee**
@@ -208,14 +212,14 @@ Global constraints for all use cases:
 1. Reception asks for the guardian's phone or child name and enters a search.
 2. The system normalizes the search value and returns safe current-tenant matches only.
 3. Reception confirms the family using permitted identifying context.
-4. The system displays linked children and active guardians, current consent status, safety notes, and visit history within permission.
+4. The system displays linked children and active guardians, current consent status, and restricted safety information within permission. Visit history appears only after M3 session records exist.
 5. Reception confirms or updates permitted contact, emergency, consent, and safety information.
 6. Reception selects the child for the visit.
 
 **Extension A — new family**
 
 1. **At step 2**, no appropriate match exists; Reception starts guardian registration.
-2. Reception enters required guardian contact/emergency information and captures the approved consent response/version.
+2. Reception presents the Arabic-first notice, records acknowledgment for necessary service processing, and captures explicit written/electronic child-data consent from an active legal guardian; optional marketing consent is separate and unchecked.
 3. The system performs normalized-phone duplicate detection again before commit.
 4. Reception enters child name, approved date-of-birth/age fields, optional approved photo/notes, and relationship.
 5. The system atomically creates the guardian, child, active relationship, and consent evidence.
@@ -223,9 +227,9 @@ Global constraints for all use cases:
 
 **Other extensions**
 
-- **2a — Potential duplicate:** System applies OQ-17 decision: warn/require supervisor/use existing/approved merge path. It never silently creates an uncontrolled duplicate.
+- **2a — Potential duplicate:** A normalized-phone match opens the existing current-tenant family. Create-anyway and automated merge do not exist in MVP; foreign-tenant matches remain undisclosed.
 - **4a — Additional guardian:** Reception links another same-tenant guardian with relationship type and active state.
-- **5a — Consent change:** A new versioned consent event is appended; prior evidence remains.
+- **5a — Consent change:** A new versioned grant/withdrawal event is appended; prior evidence remains. Withdrawal stops consent-based processing without erasing records subject to a documented hold.
 - **5b — Optional child photo:** Approved image is privately stored; registration can continue without a photo.
 
 **Exceptions**
@@ -250,7 +254,7 @@ Global constraints for all use cases:
 
 **Preconditions**
 
-- Tenant, branch, staff assignment, guardian-child link, and required pricing/ticket configuration are active.
+- Tenant, branch, staff assignment, guardian-child link, and required pricing/ticket configuration are active; a branch-local service date is selected.
 - Child has no Active/Paused session in the tenant.
 - If payment before entry is required, the ticket/order is eligible under that policy.
 
@@ -271,12 +275,12 @@ Global constraints for all use cases:
 2. Reception/Cashier selects an active ticket type/pricing rule.
 3. The system calculates/displays the ticket price and validity using server-held configuration.
 4. Staff confirms issue/sale according to payment policy.
-5. The system issues one tenant/branch-scoped ticket with a non-guessable QR payload.
+5. The system issues one tenant/branch-scoped ticket for the selected branch-local service date with a non-guessable QR payload.
 6. The system displays/prints the QR using supported browser hardware.
 7. Reception scans or selects the ticket for check-in.
-8. The system validates tenant/branch policy, validity window, Issued state, entitlement, child eligibility, branch state, and staff permission.
+8. The system validates tenant/branch, service date/operating window, validity, Issued state, entitlement, child eligibility, branch state, and staff permission.
 9. Reception confirms check-in.
-10. In one transaction, the system consumes the ticket, creates the Active session at server time, snapshots the rule, and appends ticket/session/audit events.
+10. In one transaction, the system locks holder/child assignment, consumes the ticket, creates the Active session at server time, snapshots the rule, and appends ticket/session/audit events.
 11. The system returns the Active session and current expected timing/alert information.
 
 **Extensions**
@@ -284,12 +288,13 @@ Global constraints for all use cases:
 - **2a — No pre-issued ticket required:** Reception selects an active pricing rule directly; check-in creates the session without ticket consumption if approved venue policy permits.
 - **5a — Reprint:** Authorized staff reprints the same QR; identity/state/price/validity do not change and reprint is audited.
 - **7a — Manual QR entry:** Authorized UI accepts the resolved ticket identifier if scanner input fails, subject to the same validation.
-- **8a — Valid ticket sold earlier:** Existing Issued ticket can be used if all scope, validity, entitlement, and transfer rules under OQ-18 pass.
+- **5b — Pre-scan correction:** Authorized staff may correct/reassign an unused Issued ticket before any successful scan; the change is audited and cannot alter tenant, branch, service date, price, or QR identity.
+- **8a — Valid ticket sold earlier:** Existing Issued ticket can be used only in its assigned branch and branch-local service date while still unused.
 
 **Exceptions**
 
 - **3e — Client price tampering:** Server rejects/recalculates; tampered amount does not post.
-- **8e — Expired/cancelled/consumed/wrong-scope/unknown ticket:** Check-in is blocked with a staff-safe reason and validation attempt logged.
+- **8e — Expired/cancelled/consumed/wrong-branch/wrong-service-date/unknown ticket:** Check-in is blocked with a staff-safe reason and validation attempt logged; a failed scan never locks transfer.
 - **8f — Inactive branch/rule or existing active session:** Check-in is blocked and ticket remains unconsumed.
 - **10e — Concurrent scan/check-in:** One request succeeds; others receive the existing result or a conflict; at most one session/consumption exists.
 - **10f — Transaction failure:** Ticket and session return/remain in their prior valid states.
@@ -530,7 +535,7 @@ Global constraints for all use cases:
 
 ## 11. UC-09 — Refund a posted payment
 
-**Goal:** Record an authorized policy-valid refund while preserving original financial evidence and report reconciliation. Refund type/window/method remain Open Decision OQ-09; ASM-10 assumes full-only for planning.  
+**Goal:** Record an authorized policy-valid refund while preserving original financial evidence and report reconciliation. For a ticket-linked payment, OQ-18 requires the ticket to remain unused with no successful scan/consumption/session. Refund type/window/method remain Open Decision OQ-09; ASM-10 assumes full-only for planning.
 **Primary actor:** Branch Manager or other refund-authorized user  
 **Supporting actor:** Cashier/requester where approval separation applies  
 **Trigger:** An eligible posted sale requires correction/refund.  
@@ -538,7 +543,7 @@ Global constraints for all use cases:
 
 **Preconditions**
 
-- Original payment is Posted, in actor's scope, not already fully refunded, and eligible under approved OQ-09 policy.
+- Original payment is Posted, in actor's scope, not already fully refunded, and eligible under approved OQ-09 policy; any linked ticket also passes the approved unused-ticket rule.
 - Actor has refund permission and any required approval.
 
 **Success postconditions**
@@ -893,7 +898,7 @@ The following must be closed through the BRD/SRS decision log before affected us
 | OQ-08 receipt numbering/content | UC-01, UC-06, UC-08 | Legal scope and mandatory fields. |
 | OQ-09 refund policy | UC-09 | Methods, window, eligibility, approval, posting semantics. |
 | OQ-10 multi-branch roles | UC-02, UC-10, UC-14 | Assignment cardinality and role-per-branch behavior. |
-| OQ-11 capacity enforcement | UC-04 | Warning/block/override and concurrency behavior. |
+| OQ-11 capacity enforcement | UC-04 | **Resolved for Egypt MVP:** hard non-overridable block; Active/Paused sessions count; transactional concurrency behavior. |
 | OQ-12 guardian verification | UC-06, UC-07 | Approved methods, evidence, privacy, fallback. |
 | OQ-14 Super Admin support access | UC-14 | Least-privilege functions and approval/audit process. |
 | OQ-15/OQ-17 family age/duplicate policy | UC-03, UC-10 | Data fields, matching, age bands, duplicate resolution. |

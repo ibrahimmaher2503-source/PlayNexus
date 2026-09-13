@@ -1,5 +1,15 @@
 # PlayNexus UI/UX Wireframes
 
+**Implemented live estimate — 2026-09-13:** Active session cards include a calm bordered estimate panel with server as-of time, base/grace/overtime/net/tax/total lines and an explicit non-final/no-checkout/no-payment notice. It is readable in Arabic RTL and English LTR on mobile, tablet and desktop; two-column desktop cards prevent the breakdown becoming cramped. Cashier can read but receives no mutation control. Invalid snapshots omit the panel instead of displaying guessed money.
+
+## 2026-09-13 implemented check-in and live-session surface
+
+`/app/sessions` reuses the existing sidebar/topbar and design tokens. It shows branch context and live capacity first, then native branch/family/status filters, an explicit ticket-consume-and-start form for authorized reception roles, and a masked card board with branch-local start/expected end and elapsed time. Success, validation, denial, conflict, capacity-full, read-only and empty states state whether data changed. Cashier sees the board/filter surface only. Server-side 25-row pagination and card layout avoid the earlier wide-table/mobile failure mode. Authenticated Arabic/English desktop/mobile/tablet evidence is recorded in `.ai/TEST_RESULTS.md`; no quote, final charge, release verification or payment is represented.
+
+## 2026-09-13 implemented ticket operation surface
+
+The ticket page reuses the existing bilingual application shell and design tokens: prominent keyboard-scanner/manual-code validation strip, branch/family search, native dated issuance, manager type creation, scoped ticket list/history, explicit permanent-holder lock, pre-scan correction, unused manager cancellation, and same-ticket reprint. QR renders locally in an authorized non-cacheable printable artifact. Cancellation is labelled separately from a financial refund; validation does not promise session entry. Loading/empty/validation/conflict/success and missing-manager states remain visible. Desktop/tablet and mobile directionality/print checks require actual runtime evidence, not the standalone wireframe.
+
 **Document status:** Draft MVP interaction baseline pending stakeholder approval  
 **Audience:** Product, UX, Laravel, QA, and operations teams  
 **Source:** PlayNexus PRD v1.0, June 2026  
@@ -512,7 +522,7 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 +------------------------------------------------------------------------------------------------+
 ```
 
-**States and safety:** Pending, Active, and Suspended transitions require permission, reason where applicable, concurrency control, and platform audit. Support access to tenant content is denied by default and remains an OQ-14 decision. Subscription plans/limits are not invented while OQ-04 is open.
+**States and safety:** Pending, Active, and Suspended transitions require permission, reason where applicable, concurrency control, and platform audit. Approved OQ-14 keeps support access to tenant content denied by default and permits only least-privilege, time-bound, reason-required, audited access. Subscription plans/limits are not invented while OQ-04 is open.
 
 ### WF-13 Ticket lifecycle
 
@@ -521,18 +531,18 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 ```text
 +------------------------------------------------------------------------------------------------+
 | Tickets                                  [Issue ticket] [Scan / validate]                        |
-| Search ticket / QR [____________________] Status [All v] Valid on [24 Aug 2026] [Apply]          |
+| Search ticket / QR [____________________] Status [All v] Service date [24 Aug 2026] [Apply]      |
 |------------------------------------------------------------------------------------------------|
 | Ticket       Type          Valid until          Status       Last scan              Action      |
 | TK-A71Q      60 minutes    24 Aug, 16:00 EEST   Issued       Not scanned            [Open]       |
 | TK-C22M      Family        24 Aug, 15:00 EEST   Consumed     14:02 Valid            [History]    |
 |------------------------------------------------------------------------------------------------|
-| TK-A71Q | same opaque QR | EGP 180.00 | Issued                                                   |
-| [Reprint same ticket]  [Cancel ticket: reason required]  [View scan history]                    |
+| TK-A71Q | Downtown | 24 Aug | same opaque QR | EGP 180.00 | Issued                               |
+| [Correct holder before scan] [Reprint] [Request unused-ticket refund] [Scan history]            |
 +------------------------------------------------------------------------------------------------+
 ```
 
-**States and safety:** An Issued ticket may become Consumed, Cancelled, or Expired. Consumed, Cancelled, and Expired are terminal for entry; reprint preserves identifier, QR, price, validity, and state. Every validation attempt records a safe result, and the QR carries no child-sensitive data.
+**States and safety:** An Issued ticket is valid only at its branch and branch-local service date. Authorized holder correction is available only before the first successful scan; afterward the assignment is visibly locked. An unused ticket refund requires manager/owner approval and reason. Consumed, Cancelled, and Expired are terminal for entry; reprint preserves identifier, QR, price, validity, and state. Every validation attempt records a safe result, and the QR carries no child-sensitive data.
 
 ### WF-14 Operational notifications
 

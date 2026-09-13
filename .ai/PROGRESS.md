@@ -1,5 +1,46 @@
 # Progress
 
+## 2026-09-13 M3 read-only estimate and local closure
+
+- Added one pure integer calculator for immutable session snapshots: fixed duration plus grace, ceil overtime units, inclusive/exclusive half-up tax, negative elapsed clamping, overflow guards, and fail-closed malformed input.
+- Added a quiet bilingual live-estimate panel to Active session cards with server as-of time, base/grace/overtime/net/tax/total breakdown and an explicit non-final/no-checkout/no-payment notice. Cashier remains read-only; GET creates no ticket/session/event/scan/audit mutation.
+- Three `gpt-5.6-luna` / `xhigh` workers supplied calculator, boundary tests and copy; coordinator integration and visual review widened the operational card layout and hardened invalid-snapshot/timezone recovery.
+- Focused checks pass 18 / 177. Full PHP 8.4 and 8.5 SQLite pass 279 of 281 / 2,387 with two MySQL-only skips; MySQL 8.4.11/InnoDB passes 281 / 2,434. Vite, Pint, Blade, whitespace and authenticated Arabic/English Owner/Cashier responsive Edge QA pass.
+- M3 is locally accepted. Production release remains gated. M4 has not started; OQ-12 is approved, OQ-19 remains open, and no mutation, release, payment, or receipt behavior is authorized until the owner explicitly resumes a bounded M4 contract.
+
+## 2026-09-13 M3 ticket-backed check-in and live sessions
+
+- Added atomic idempotent ticket consumption plus one Active `play_session`, immutable ticket/pricing/time facts, append-only session event, privacy-safe scan evidence and audit under a fresh tenant command lock.
+- Enforced current role/branch scope, active verified family/consent/emergency eligibility, tenant-wide Active/Paused child uniqueness and hard branch capacity with no override. Owner/assigned Manager/Reception may check in; Cashier receives a masked read-only board.
+- Added a bilingual responsive session surface with branch/occupancy context, server-side family/status filters, explicit consume-and-start consequence, validation/conflict/no-change states, branch-local start/expected end, elapsed time and 25-row pagination.
+- Full SQLite and PHP 8.5 suites pass 270 of 272 tests / 2,338 assertions with two explicit MySQL-only skips. Full MySQL passes 272 / 2,385; the two-process concurrency gate passes 2 / 47. Authenticated Edge QA passes Owner/Cashier, RTL/LTR and mobile/tablet/desktop checks. Existing port 8206 was untouched.
+- This check-in stage is locally accepted. Checkout, time transitions, final charge/tax quote, guardian release verification, payments/refunds and production gates remain outside it.
+
+## 2026-09-13 historical M3 ticket-only implementation
+
+- Three Luna/xhigh workers completed bounded UI, adversarial tests and read-only security review; coordinator integrated and independently corrected tenant/branch disclosure, family eligibility, frozen source-version issuance, canonical retry handling, QR geometry, mobile actions and one-page printing.
+- Delivered immutable branch types, dated issuance, encrypted opaque QR/hash, scan evidence and first-scan holder lock, audited pre-scan correction, manager-only unused cancellation without a financial refund, and same-identity reprint. Money/time/tax facts remain snapshotted; existing active types retain their frozen price when the pricing source is retired.
+- Full isolated MySQL 8.4.11/InnoDB regression passes 262 / 2,233, including real two-process concurrency. SQLite passes 261 / 2,210 plus one explicit MySQL-only skip. Authenticated headless Edge ticket QA passes bilingual/role/mobile/QR round-trip and single-page A5 checks; Pint/Vite pass. Canonical implementation and evidence are synchronized in `docs/` and `.ai/TEST_RESULTS.md`.
+- At this checkpoint M3 remained partial: consumption/check-in/sessions/capacity, approved calculator examples, financial payment/refund execution and production gates were open. The current section above supersedes the check-in status. Existing port 8206 and its database were untouched.
+
+## 2026-09-13 M3 OQ-18 ticket policy approval
+
+- Closed OQ-18 for Egypt: tickets are branch-specific and service-date-bound; holder assignment becomes immutable after the first successful scan; refund eligibility is limited to unused tickets before any successful scan/consumption/session and requires in-scope manager/owner approval, reason, linked reversal where paid, and audit.
+- Synchronized the BRD, SRS, stories, use case, ERD, permissions, API/OpenAPI, wireframe, testing, traceability, milestone, checklist, blocker, handoff, and agent-plan contracts. Ticket implementation remains the next M3 slice and is not claimed here.
+
+## 2026-09-13 Egypt M2 contract implementation
+
+- Implemented the approved Egypt baseline: tenant-unique normalized guardian phone with hard existing-family reuse; Arabic-first versioned child-data consent and separate optional marketing choice; append-only grant/withdrawal evidence; required emergency contact; encrypted restricted safety notes; and verified relationship link/reactivate/revoke with the final-guardian invariant.
+- Added bilingual responsive registration/profile controls, explicit unbundled unchecked consent choices, relationship verification by the registered guardian phone's last four digits, and server-side role/scope enforcement. Cashier remains unable to maintain consent, safety data, children, or relationships.
+- Full SQLite and isolated MySQL 8.4.11/InnoDB suites pass 241 tests / 1,997 assertions. Pint, Vite, documentation validation, and whitespace checks pass. Real browser acceptance remains blocked by bridge availability; production use remains gated on Legal/DPO approval of the deployed notice and data-processing details.
+
+## 2026-09-12 M1/M2 remediation and acceptance hardening
+
+- Split family authorization by action: Cashier keeps tenant-scoped masked search/profile access and the approved atomic first registration, but cannot edit guardians, add/edit children, manage relationships, or receive raw phone/email/DOB values.
+- Centralized role-aware family serialization, made family search active-only, added hostile-role and cross-tenant regressions, protected branch creation with a tenant-scoped idempotency key, and converted staff-email uniqueness races into a controlled conflict response.
+- Added stable JSON error envelopes with request IDs, a native accessible mobile navigation dialog, semantic warning tokens, and mobile assignment cards that avoid the horizontal-scroll workflow.
+- Full SQLite and isolated MySQL 8.4.11/InnoDB suites pass 234 tests / 1,943 assertions. Pint, Vite, documentation validation, and whitespace checks pass. Browser acceptance remains blocked because the browser bridge is unavailable.
+
 ## 2026-09-12 M3 immutable pricing version replacement
 
 - Added an authorized replacement action that retires the current active rule and creates version +1 atomically without rewriting historical money, duration, or tax facts.

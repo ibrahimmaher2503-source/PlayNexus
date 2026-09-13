@@ -1,6 +1,6 @@
 # PlayNexus
 
-PlayNexus is a Laravel 13 documentation-first foundation for a cloud-based, multi-tenant and multi-branch operating system for kids entertainment venues in MENA. Business modules are intentionally not implemented yet.
+PlayNexus is a Laravel 13 documentation-first, multi-tenant and multi-branch operating system for kids entertainment venues in MENA. Access/branch foundation, the approved Egypt family contract, and M3 immutable pricing/tickets/check-in/live sessions with a read-only non-final estimate are implemented. Checkout, child release, POS, financial refunds, and production release remain outside the delivered boundary.
 
 ## MVP outcome
 
@@ -29,7 +29,7 @@ Re-check supported patch versions when scaffolding; the major-version rationale 
 
 ## Current status
 
-M1 access and branch foundation is complete on `codex/first`: tenant and branch scope, staff and platform authentication, owner administration, fixed policies, locale/timezone/currency settings, audit history, and the bilingual responsive application shell. M2 guardian and child registration has not started. This is local milestone acceptance, not production readiness. See [.ai/CURRENT_MILESTONE.md](.ai/CURRENT_MILESTONE.md) and [.ai/PROGRESS.md](.ai/PROGRESS.md).
+M1 is complete and M2 Egypt family engineering is implemented with remaining release gates. M3 is locally accepted: immutable pricing/tickets, atomic ticket-backed check-in, hard branch capacity, masked live sessions and exact read-only estimates are backed by isolated MySQL/SQLite/PHP 8.5 tests, real concurrency and authenticated bilingual responsive Edge QA. M4 checkout/final charge and guardian release, M5 payments/refunds, and production gates remain open. The current integration worktree preserves uncommitted user changes. See [.ai/CURRENT_MILESTONE.md](.ai/CURRENT_MILESTONE.md) and [.ai/PROGRESS.md](.ai/PROGRESS.md).
 
 ## Local setup
 
@@ -55,4 +55,4 @@ The guarded `.env` command creates a new local environment and key only when `.e
 
 ## Next milestone
 
-M2 starts only from the approved guardian/child identity, duplicate handling, consent, and privacy rules. Open later-milestone decisions do not reopen the accepted M1 boundary.
+M4 has not started. M3 remains locally accepted while OQ-19 checkout/payment station ownership stays open; resuming M4 requires an explicit bounded contract. Open later-milestone decisions do not reopen accepted M1–M3 work.

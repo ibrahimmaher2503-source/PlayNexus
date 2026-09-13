@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\PricingRule;
 use App\Models\Tenant;
+use App\Models\TicketType;
 use App\Models\User;
 use App\Policies\PricingRulePolicy;
 use Illuminate\Contracts\View\View;
@@ -53,12 +54,22 @@ class PricingRuleController extends Controller
             ->orderByDesc('version')
             ->get();
 
+        $ticketTypes = TicketType::query()
+            ->with(['branch:id,name', 'pricingRule:id,version,status'])
+            ->where('tenant_id', $tenant->getKey())
+            ->where('status', 'active')
+            ->whereIn('branch_id', $branches->modelKeys())
+            ->when(is_int($selectedBranchId), fn ($query) => $query->where('branch_id', $selectedBranchId))
+            ->orderBy('branch_id')
+            ->orderBy('name')
+            ->get();
+
         $manageableBranches = $branches
             ->filter(fn (Branch $branch): bool => $policy->canCreateBranch($actor, $branch))
             ->values();
         $canManage = $manageableBranches->isNotEmpty();
 
-        return view('pricing.index', compact('actor', 'tenant', 'branches', 'manageableBranches', 'rules', 'canManage'));
+        return view('pricing.index', compact('actor', 'tenant', 'branches', 'manageableBranches', 'rules', 'ticketTypes', 'canManage'));
     }
 
     public function store(Request $request): JsonResponse|RedirectResponse

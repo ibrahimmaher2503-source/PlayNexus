@@ -6,6 +6,7 @@ use App\Models\Child;
 use App\Models\Guardian;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\FamilyConsentRecorder;
 use App\Support\PhoneNormalizer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -16,12 +17,15 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\In;
 
 class FamilyController extends Controller
 {
     private const SEARCH_MAX_LENGTH = 100;
 
-    private const RELATIONSHIP_TYPES = ['parent', 'mother', 'father', 'other'];
+    public const NOTICE_VERSION = 'egypt-family-v1-2026-09-12';
+
+    private const CONSENTING_RELATIONSHIP_TYPES = ['parent', 'mother', 'father', 'legal_guardian'];
 
     public function index(Request $request): View
     {
@@ -37,8 +41,10 @@ class FamilyController extends Controller
         [$actor, $tenant] = $this->authorizedContext($request);
         $search = $this->normalizeSearch($request->query('q'));
         $suggestedPhone = PhoneNormalizer::normalize($search) === null ? '' : $search;
+        $noticeVersion = self::NOTICE_VERSION;
+        $canManageSafety = Gate::forUser($actor)->allows('manageSensitiveRegistration', Guardian::class);
 
-        return view('families.create', compact('actor', 'tenant', 'suggestedPhone'));
+        return view('families.create', compact('actor', 'tenant', 'search', 'suggestedPhone', 'noticeVersion', 'canManageSafety'));
     }
 
     public function store(Request $request): JsonResponse|RedirectResponse
@@ -62,7 +68,17 @@ class FamilyController extends Controller
             'preferred_locale' => ['required', 'string', Rule::in(['ar', 'en'])],
             'child_name' => ['required', 'string', 'min:2', 'max:190'],
             'date_of_birth' => ['nullable', 'date', 'before_or_equal:today'],
-            'relationship_type' => ['required', 'string', Rule::in(self::RELATIONSHIP_TYPES)],
+            'relationship_type' => ['required', 'string', Rule::in(self::CONSENTING_RELATIONSHIP_TYPES)],
+            'emergency_contact_name' => ['nullable', 'string', 'min:2', 'max:190'],
+            'emergency_contact_phone' => ['nullable', 'string', 'max:100', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (filled($value) && PhoneNormalizer::normalize($value) === null) {
+                    $fail(__('families.validation.emergency_phone_invalid'));
+                }
+            }],
+            'safety_notes' => ['nullable', 'string', 'max:1000'],
+            'child_data_consent' => ['accepted'],
+            'marketing_consent' => ['nullable', 'boolean'],
+            'notice_version' => ['required', new In([self::NOTICE_VERSION])],
         ], [
             'guardian_name.required' => __('families.validation.guardian_name_required'),
             'guardian_name.string' => __('families.validation.guardian_name_invalid'),
@@ -83,6 +99,7 @@ class FamilyController extends Controller
             'date_of_birth.before_or_equal' => __('families.validation.date_of_birth_invalid'),
             'relationship_type.required' => __('families.validation.relationship_type_required'),
             'relationship_type.in' => __('families.validation.relationship_type_invalid'),
+            'child_data_consent.accepted' => __('families.validation.child_data_consent_required'),
         ]);
 
         if ($validator->fails()) {
@@ -91,8 +108,16 @@ class FamilyController extends Controller
 
         $data = $validator->validated();
         $phone = PhoneNormalizer::normalize($data['phone']);
+        $data['relationship_type'] = $data['relationship_type'] === 'parent' ? 'legal_guardian' : $data['relationship_type'];
+        $data['emergency_contact_name'] = $data['emergency_contact_name'] ?? $data['guardian_name'];
+        $data['emergency_contact_phone_e164'] = PhoneNormalizer::normalize($data['emergency_contact_phone'] ?? $data['phone']);
+        $requestId = (string) $request->attributes->get('request_id', Str::uuid());
 
-        $result = DB::transaction(function () use ($actor, $tenant, $data, $phone): array {
+        if (filled($data['safety_notes'] ?? null) && Gate::forUser($actor)->denies('manageSensitiveRegistration', Guardian::class)) {
+            abort(403);
+        }
+
+        $result = DB::transaction(function () use ($actor, $tenant, $data, $phone, $requestId): array {
             $lockedTenant = Tenant::query()
                 ->whereKey($tenant->getKey())
                 ->where('is_active', true)
@@ -125,6 +150,9 @@ class FamilyController extends Controller
             $child->tenant_id = $lockedTenant->getKey();
             $child->full_name = $data['child_name'];
             $child->date_of_birth = $data['date_of_birth'] ?? null;
+            $child->emergency_contact_name = $data['emergency_contact_name'];
+            $child->emergency_contact_phone_e164 = $data['emergency_contact_phone_e164'];
+            $child->safety_notes_encrypted = $data['safety_notes'] ?? null;
             $child->created_by_user_id = $lockedActor->getKey();
             $child->updated_by_user_id = $lockedActor->getKey();
             $child->save();
@@ -132,10 +160,21 @@ class FamilyController extends Controller
             $guardian->children()->attach($child->getKey(), [
                 'tenant_id' => $lockedTenant->getKey(),
                 'relationship_type' => $data['relationship_type'],
+                'can_consent' => true,
+                'can_check_out' => true,
+                'is_primary' => true,
+                'verification_method' => 'registered_phone_last_four',
+                'verified_at' => now('UTC'),
+                'verified_by_user_id' => $lockedActor->getKey(),
                 'is_active' => true,
                 'created_by_user_id' => $lockedActor->getKey(),
                 'updated_by_user_id' => $lockedActor->getKey(),
             ]);
+
+            FamilyConsentRecorder::record($lockedActor, $lockedTenant, $guardian, $child, 'child_data', 'granted', $data['preferred_locale'], $requestId);
+            if ((bool) ($data['marketing_consent'] ?? false)) {
+                FamilyConsentRecorder::record($lockedActor, $lockedTenant, $guardian, $child, 'marketing', 'granted', $data['preferred_locale'], $requestId);
+            }
 
             $now = now('UTC');
             DB::table('audit_logs')->insert([
@@ -206,9 +245,11 @@ class FamilyController extends Controller
         $phone = PhoneNormalizer::normalize($search);
         $query = Guardian::query()
             ->where('guardians.tenant_id', $tenant->getKey())
+            ->where('guardians.status', 'active')
             ->with(['children' => function ($children) use ($tenant): void {
                 $children
                     ->where('children.tenant_id', $tenant->getKey())
+                    ->where('children.status', 'active')
                     ->where('guardian_child.tenant_id', $tenant->getKey())
                     ->where('guardian_child.is_active', true)
                     ->select(['children.id', 'children.tenant_id', 'children.full_name', 'children.date_of_birth']);
@@ -223,6 +264,7 @@ class FamilyController extends Controller
             $query->whereHas('children', function ($children) use ($tenant, $pattern, $escape): void {
                 $children
                     ->where('children.tenant_id', $tenant->getKey())
+                    ->where('children.status', 'active')
                     ->where('guardian_child.tenant_id', $tenant->getKey())
                     ->where('guardian_child.is_active', true)
                     ->whereRaw("children.full_name LIKE ? ESCAPE '{$escape}'", [$pattern]);
@@ -239,7 +281,7 @@ class FamilyController extends Controller
 
     private function trimInputs(Request $request): void
     {
-        foreach (['guardian_name', 'phone', 'email', 'preferred_locale', 'child_name', 'date_of_birth', 'relationship_type'] as $key) {
+        foreach (['guardian_name', 'phone', 'email', 'preferred_locale', 'child_name', 'date_of_birth', 'relationship_type', 'emergency_contact_name', 'emergency_contact_phone', 'safety_notes', 'notice_version'] as $key) {
             $value = $request->input($key);
             if (is_string($value)) {
                 $request->merge([$key => trim($value)]);

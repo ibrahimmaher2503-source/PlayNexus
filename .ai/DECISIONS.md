@@ -1,5 +1,47 @@
 # Decisions
 
+## 2026-09-13: Freeze read-only session estimate arithmetic
+
+**Authority:** The product owner authorized closing the remaining Egypt defaults so delivery could continue; this closes the bounded OQ-16 worked examples for an estimate, not Checkout or Finance approval.
+**Decision:** Base ticket price covers the snapshotted base duration plus 600-second grace. Overtime begins on the first later second and rounds up in snapshotted 1,800-second units. Exclusive tax is rounded half up once on base plus overtime and added; inclusive tax keeps that configured total and extracts its rounded included-tax portion. All math uses integer minor units, server UTC time, and the session's immutable snapshot. A zero rate is valid.
+**Examples:** With base 15,000, base duration 3,600, grace 600, overtime unit 1,800, overtime price 7,500, and a 1,400 bps fixture: elapsed 4,200 -> exclusive total 17,100; 4,201 -> one unit and total 25,650; 6,001 -> two units and total 34,200. Inclusive at 4,201 keeps total 22,500, with extracted tax 2,763 and net 19,737.
+**Tax boundary:** Egypt's VAT Law No. 67/2016 states the standard rate as 14%, but PlayNexus does not decide whether a specific operator/activity is taxable, exempt, registered, or differently treated. The application never seeds 14%; the branch-approved snapshotted rate/mode governs. Venue legal/accounting approval remains required.
+**Non-goals:** The estimate is read-only and non-final. No persisted quote, discount, extension, pause, checkout, guardian release, payment, amount-due, refund, receipt or tax filing behavior is authorized.
+
+## 2026-09-13: Hard branch capacity for Egypt MVP check-in
+
+**Authority:** The product owner authorized the coordinator to close the remaining Egypt decisions with a safe default so delivery could continue.
+**Decision:** OQ-11 uses a hard, non-overridable check-in block for the MVP. Active and Paused sessions both occupy capacity. The final capacity check and ticket consumption/session creation run under the same tenant transaction lock; concurrent attempts cannot over-commit a branch. A rejected capacity attempt records privacy-safe scan evidence and changes no ticket/session state.
+**Boundary:** No manager override, waitlist, reservation, capacity warning notification or automatic retry is introduced. A later policy change requires a new explicit decision, audit/approval model and concurrency tests.
+
+## 2026-09-13: Keep ticket-type price/version independent of later pricing replacement
+
+**Implementation clarification:** The approved immutable ticket type captures a current active pricing version when created. Replacing that pricing rule preserves its historical facts and does not silently disable or reprice an active ticket type; later issuance snapshots the type's unchanged price/source version. A new price needs a manager-created new type/code. No type update/retirement or automatic rebinding command is introduced by this bounded ticket slice. Validation and unused-ticket cancellation are not session creation or financial refund execution.
+
+## 2026-09-13: Approve the Egypt MVP ticket scope, transfer, date, and refund eligibility
+
+**Authority:** The product owner approved the proposed Egypt default and closed OQ-18 for M3 implementation.
+**Decision:** Every MVP ticket belongs to exactly one tenant and one branch and carries a `service_date` interpreted in that branch's configured time zone. It is valid only for that branch and the configured operating window of that service day. A successful first scan/consumption permanently locks its holder/child binding; no transfer or reassignment is allowed afterward. An unused Issued ticket may be corrected/reassigned before the first successful scan by authorized staff with audit evidence.
+**Refund eligibility:** Only an unused Issued ticket with no successful scan, consumption, or linked session may be refunded. Refund requires Branch Manager or Tenant Owner authority in scope, a non-empty reason, an action-bound approval, an immutable linked financial reversal when a posted payment exists, and audit evidence. Consumed tickets are never refundable. This closes ticket eligibility only; OQ-09 still owns payment method, refund window, and execution mechanics.
+**Safety and concurrency:** Wrong-branch, wrong-service-day, expired, cancelled, or consumed scans fail with staff-safe results. First successful scan, ticket consumption, and session creation remain atomic/idempotent. Failed scans do not lock transfer. No implementation or release claim is made by this decision entry.
+
+## 2026-09-12: Approve the Egypt M2 privacy, family, and safety baseline
+
+**Authority:** The product owner authorized closing the remaining M2 decisions using a conservative Egypt-appropriate baseline so implementation can continue.
+**Regulatory basis:** Egypt Personal Data Protection Law 151/2020, Executive Regulations 816/2025, and the January 2026 PDPC consent/privacy-notice guidance. This is an engineering/product baseline and does not replace the controller's production legal/DPO sign-off or required PDPC licensing/registration assessment.
+
+- **OQ-17 duplicate policy:** normalized guardian phone is unique within a tenant for MVP. A match always opens the existing family; there is no create-anyway or automated merge. Corrections update the existing profile. The database/application must reject concurrent duplicates without disclosing cross-tenant matches.
+- **Privacy notice and lawful basis:** show a concise Arabic-first privacy notice with optional English translation. Operational guardian contact data uses the documented service/contract lawful basis and notice acknowledgment; it is not presented as freely withdrawable consent when service processing is necessary.
+- **Child-data consent:** before activating a child record, capture written/electronic, explicit, unbundled consent from an active legal guardian. For the conservative MVP, guardian consent is required for every person under 18. `authorized_pickup` and `other` cannot grant child-data consent. Store append-only grant/withdrawal evidence: tenant, child, consenting guardian, notice/policy version, purpose/data categories, locale, method, staff actor, UTC time, branch/request correlation, and withdrawal time.
+- **Marketing:** separate optional unchecked consent. Refusal never blocks service. Withdrawal is free and immediate. Consent/opt-out evidence is retained for at least three years; no marketing send is authorized until provider/licensing requirements are separately approved.
+- **Retention:** active family operational data is retained while the relationship is active and for three years after the last visit or closure, then anonymized/deleted unless a documented legal, financial, safety, complaint, or litigation hold applies. Consent/audit evidence follows the longer applicable hold. The privacy notice states the period/criteria and data-subject rights.
+- **Emergency and safety:** an active child must have an emergency contact name and normalized phone; the primary guardian may be reused rather than duplicating data. Safety notes are optional, capped, encrypted at rest, excluded from normal logs/exports, and available only to Owner/Branch Manager/Reception on a need-to-know basis. Child photos are deferred from M2.
+- **Relationship lifecycle:** allow `mother`, `father`, `legal_guardian`, `authorized_pickup`, and `other`. Only the first three can provide child-data consent. Checkout authority is explicit and requires verified active relationship evidence. Linking/reactivation/revocation is transactional and audited; the final active checkout-capable legal-guardian relationship can never be revoked.
+- **Visit history:** freeze a read-only, tenant-scoped, newest-first contract for Owner/Branch Manager/Reception with 25-item pagination. It exposes visit date, branch, status, start/end/duration, and masked ticket/receipt references only. Implementation is deferred until M3 supplies session records and does not block release of the M2 registry/profile aggregate.
+- **OQ-20 incident module:** defer the conditional incident-management module beyond M2. Safety notes remain M2 data; incident categories/workflow are not invented by this decision.
+
+**Implementation gate:** migrations, APIs, UI, masking, withdrawal, authorization, negative tests, and Arabic/English copy must implement this contract before M2 is marked complete. Production deployment additionally requires the operator's Legal/DPO approval of the actual notice text, retention schedule, controller/DPO contact details, processor/cross-border disclosures, and licensing obligations.
+
 ## 2026-09-12: Continue M2 with basic family-profile maintenance
 
 **Authority:** The product owner asked to continue remaining milestones with another Luna/xhigh worker wave.
@@ -120,3 +162,8 @@ User authorized the next three-feature wave. Explicit active tenant ownership no
 **Authority:** The product owner requested direct employee creation, name/email search, and UI control of custom roles and permissions.
 **Decision:** Tenant Owners create active staff accounts from name/email; the server generates an unknown random password and staff use the existing generic recovery flow. Owners may create tenant-specific roles and toggle only the implemented `branches.view` permission. A custom role appears in branch assignment only while that permission is enabled; built-in role maps remain fixed.
 **Boundary:** No admin-chosen/shared password, invitation delivery, owner transfer, role deletion, or speculative permission registry. All writes remain tenant-scoped, transactional, audited, and deny foreign/custom-role escalation.
+## 2026-09-12: Remediate M2 family authorization and disclosure
+
+**Decision:** Separate family search/create/view, guardian update, child create/update, relationship management, and sensitive-data presentation at the policy boundary. Cashier keeps approved search, masked profile viewing, and initial atomic family registration, but cannot use generic guardian maintenance, add/edit children, or manage relationships. Owner, Branch Manager, and Reception retain the implemented maintenance slice. A single server-side presenter masks Cashier phone/email, omits locale, and returns age without full date of birth.
+**Boundary:** These are native policy abilities, not new tenant-configurable permission keys. No sale-context Cashier correction, consent, emergency/safety data, merge, relationship endpoint, visit history, ticket, session, POS, or M3 expansion is introduced. Inactive guardians and children are excluded so search and profile state agree.
+**Rationale:** This applies least privilege and minimum disclosure without inventing the future sale context or unresolved legal/product behavior.

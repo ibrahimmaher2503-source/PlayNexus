@@ -30,6 +30,7 @@
             $snapshotStatuses = __('audit.snapshot_status');
             $snapshotRoles = __('audit.snapshot_role');
             $snapshotBooleans = __('audit.snapshot_boolean');
+            $subjectLabels = __('audit.subject_types');
         @endphp
 
         <section class="mt-8" aria-labelledby="filters-heading">
@@ -39,7 +40,7 @@
                     <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('audit.success_only') }}</p>
                 </div>
             </div>
-            <form class="mt-4 grid gap-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4" method="GET" action="{{ route('audit.index') }}">
+            <form class="mt-4 grid gap-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4" method="GET" action="{{ route('audit.index') }}" data-pn-form>
                 <div>
                     <label class="block text-sm font-semibold" for="action">{{ __('audit.action_filter') }}</label>
                     <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="action" name="action">
@@ -66,88 +67,86 @@
             </form>
         </section>
 
-        <section class="mt-8" aria-labelledby="audit-table-heading">
+        <section class="mt-6" aria-labelledby="audit-table-heading">
             <h2 class="sr-only" id="audit-table-heading">{{ __('audit.table_caption') }}</h2>
             @if ($logs->isEmpty())
-                <p class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-6 text-[var(--pn-ink-muted)]" role="status">{{ __('audit.no_logs') }}</p>
+                <div class="rounded-[14px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-6" role="status">
+                    <p class="font-semibold">{{ __('audit.no_logs') }}</p>
+                    @if (request()->hasAny(['action', 'actor_user_id', 'outcome']))
+                        <a class="mt-3 inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold text-[var(--pn-primary)] hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('audit.index') }}">{{ __('audit.clear_filters') }}</a>
+                    @endif
+                </div>
             @else
-                <div class="overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm" role="region" aria-labelledby="audit-table-heading" tabindex="0">
-                    <table class="min-w-[1100px] divide-y divide-[var(--pn-border)] text-start">
+                <div class="overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm" data-pn-table data-pn-responsive-table role="region" aria-labelledby="audit-table-heading" tabindex="0">
+                    <table class="min-w-full divide-y divide-[var(--pn-border)] text-start">
                         <caption class="sr-only">{{ __('audit.table_caption') }}</caption>
                         <thead class="bg-[var(--pn-surface-subtle)] text-sm font-semibold">
                             <tr>
                                 <th class="px-4 py-3 text-start" scope="col">{{ __('audit.occurred_at') }}</th>
-                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.actor') }}</th>
+                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.event') }}</th>
                                 <th class="px-4 py-3 text-start" scope="col">{{ __('audit.branch') }}</th>
-                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.action') }}</th>
-                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.subject') }}</th>
                                 <th class="px-4 py-3 text-start" scope="col">{{ __('audit.outcome') }}</th>
-                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.reason') }}</th>
-                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.before') }}</th>
-                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.after') }}</th>
+                                <th class="px-4 py-3 text-start" scope="col">{{ __('audit.details') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[var(--pn-border)]">
                             @foreach ($logs as $log)
                                 @php
                                     $occurredAt = \Illuminate\Support\Carbon::parse($log->occurred_at, 'UTC')->utc();
+                                    $localOccurredAt = $occurredAt->copy()->setTimezone($tenant->timezone ?: 'UTC');
                                     $actionLabel = is_array($actionLabels) && isset($actionLabels[$log->action]) ? $actionLabels[$log->action] : __('audit.unknown_action');
                                     $reasonLabel = is_array($reasonLabels) && isset($reasonLabels[$log->reason_code]) ? $reasonLabels[$log->reason_code] : __('audit.unknown_reason');
                                     $outcomeLabel = is_array($outcomeLabels) && isset($outcomeLabels[$log->outcome]) ? $outcomeLabels[$log->outcome] : __('audit.unknown_outcome');
                                     $beforeSnapshot = $beforeSnapshots->get($log->id, []);
                                     $afterSnapshot = $afterSnapshots->get($log->id, []);
+                                    $subjectLabels = is_array($subjectLabels) ? $subjectLabels : [];
+                                    $subjectLabel = $subjectLabels[$log->subject_type] ?? $log->subject_type;
                                 @endphp
                                 <tr class="align-top">
-                                    <td class="whitespace-nowrap px-4 py-4">
-                                        <time datetime="{{ $occurredAt->toIso8601String() }}" dir="ltr">{{ $occurredAt->format('Y-m-d H:i:s.u') }} UTC</time>
+                                    <td class="px-4 py-3" data-label="{{ __('audit.occurred_at') }}">
+                                        <time class="block whitespace-nowrap font-semibold tabular-nums" datetime="{{ $occurredAt->toIso8601String() }}" title="{{ __('audit.utc_time', ['time' => $occurredAt->format('Y-m-d H:i:s.u')]) }}" dir="ltr">{{ $localOccurredAt->format('Y-m-d H:i') }}</time>
+                                        <span class="mt-1 block text-xs text-[var(--pn-ink-muted)]">{{ $localOccurredAt->format('T') }} · {{ __('audit.local_time') }}</span>
                                     </td>
-                                    <td class="px-4 py-4 font-semibold">{{ $actorLabels->get($log->actor_user_id, __('audit.unknown_actor')) }} <span class="font-normal text-[var(--pn-ink-muted)]">#<bdi dir="ltr">{{ $log->actor_user_id }}</bdi></span></td>
-                                    <td class="px-4 py-4">{{ $log->branch_id === null ? __('audit.no_branch') : $branchLabels->get($log->branch_id, __('audit.unknown_branch')) }}</td>
-                                    <td class="px-4 py-4 font-semibold">{{ $actionLabel }}</td>
-                                    <td class="px-4 py-4"><bdi dir="ltr">{{ $log->subject_type }} #{{ $log->subject_id }}</bdi></td>
-                                    <td class="px-4 py-4">{{ $outcomeLabel }}</td>
-                                    <td class="px-4 py-4">{{ $reasonLabel }}</td>
-                                    <td class="min-w-48 px-4 py-4">
-                                        @if (empty($beforeSnapshot))
-                                            <span class="text-sm text-[var(--pn-ink-muted)]">{{ __('audit.no_snapshot') }}</span>
-                                        @else
-                                            <dl class="space-y-1 text-sm">
-                                                @foreach ($beforeSnapshot as $key => $value)
-                                                    @php
-                                                        $displayValue = $value;
-                                                        if ($key === 'is_active' && is_bool($value)) {
-                                                            $displayValue = $snapshotBooleans[$value ? 'true' : 'false'] ?? $value;
-                                                        } elseif ($key === 'status' && is_array($snapshotStatuses) && isset($snapshotStatuses[$value])) {
-                                                            $displayValue = $snapshotStatuses[$value];
-                                                        } elseif ($key === 'role' && is_array($snapshotRoles) && isset($snapshotRoles[$value])) {
-                                                            $displayValue = $snapshotRoles[$value];
-                                                        }
-                                                    @endphp
-                                                    <div class="flex gap-2"><dt class="font-semibold">{{ is_array($snapshotLabels) && isset($snapshotLabels[$key]) ? $snapshotLabels[$key] : $key }}</dt><dd>{{ $displayValue }}</dd></div>
-                                                @endforeach
-                                            </dl>
-                                        @endif
+                                    <td class="px-4 py-3" data-label="{{ __('audit.event') }}">
+                                        <p class="font-semibold">{{ $actionLabel }}</p>
+                                        <p class="mt-1 text-sm">{{ $actorLabels->get($log->actor_user_id, __('audit.unknown_actor')) }} <span class="text-[var(--pn-ink-muted)]">· {{ $subjectLabel }} <bdi dir="ltr">#{{ $log->subject_id }}</bdi></span></p>
                                     </td>
-                                    <td class="min-w-48 px-4 py-4">
-                                        @if (empty($afterSnapshot))
-                                            <span class="text-sm text-[var(--pn-ink-muted)]">{{ __('audit.no_snapshot') }}</span>
-                                        @else
-                                            <dl class="space-y-1 text-sm">
-                                                @foreach ($afterSnapshot as $key => $value)
-                                                    @php
-                                                        $displayValue = $value;
-                                                        if ($key === 'is_active' && is_bool($value)) {
-                                                            $displayValue = $snapshotBooleans[$value ? 'true' : 'false'] ?? $value;
-                                                        } elseif ($key === 'status' && is_array($snapshotStatuses) && isset($snapshotStatuses[$value])) {
-                                                            $displayValue = $snapshotStatuses[$value];
-                                                        } elseif ($key === 'role' && is_array($snapshotRoles) && isset($snapshotRoles[$value])) {
-                                                            $displayValue = $snapshotRoles[$value];
-                                                        }
-                                                    @endphp
-                                                    <div class="flex gap-2"><dt class="font-semibold">{{ is_array($snapshotLabels) && isset($snapshotLabels[$key]) ? $snapshotLabels[$key] : $key }}</dt><dd>{{ $displayValue }}</dd></div>
-                                                @endforeach
-                                            </dl>
-                                        @endif
+                                    <td class="px-4 py-3" data-label="{{ __('audit.branch') }}">{{ $log->branch_id === null ? __('audit.no_branch') : $branchLabels->get($log->branch_id, __('audit.unknown_branch')) }}</td>
+                                    <td class="px-4 py-3" data-label="{{ __('audit.outcome') }}"><span class="inline-flex rounded-full bg-[var(--pn-success-soft)] px-3 py-1 text-sm font-semibold text-[var(--pn-success)]">{{ $outcomeLabel }}</span></td>
+                                    <td class="px-4 py-3" data-label="{{ __('audit.details') }}">
+                                        <details>
+                                            <summary class="inline-flex min-h-11 cursor-pointer items-center rounded-[10px] border border-[var(--pn-border-strong)] px-3 text-sm font-semibold text-[var(--pn-primary)] outline-none hover:bg-[var(--pn-surface-subtle)] focus-visible:ring-2 focus-visible:ring-[var(--pn-focus)]">{{ __('audit.view_details') }}</summary>
+                                            <div class="mt-3 max-w-2xl rounded-[10px] bg-[var(--pn-surface-subtle)] p-4">
+                                                <p class="text-sm"><span class="font-semibold">{{ __('audit.reason') }}:</span> {{ $reasonLabel }}</p>
+                                                <div class="mt-3 grid gap-4 sm:grid-cols-2">
+                                                    @foreach ([__('audit.before') => $beforeSnapshot, __('audit.after') => $afterSnapshot] as $snapshotTitle => $snapshot)
+                                                        <section aria-label="{{ $snapshotTitle }}">
+                                                            <h3 class="text-sm font-bold">{{ $snapshotTitle }}</h3>
+                                                            @if (empty($snapshot))
+                                                                <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('audit.no_snapshot') }}</p>
+                                                            @else
+                                                                <dl class="mt-2 space-y-1 text-sm">
+                                                                    @foreach ($snapshot as $key => $value)
+                                                                        @php
+                                                                            $displayValue = $value;
+                                                                            if ($key === 'is_active' && is_bool($value)) {
+                                                                                $displayValue = $snapshotBooleans[$value ? 'true' : 'false'] ?? $value;
+                                                                            } elseif ($key === 'status' && is_array($snapshotStatuses) && isset($snapshotStatuses[$value])) {
+                                                                                $displayValue = $snapshotStatuses[$value];
+                                                                            } elseif ($key === 'role' && is_array($snapshotRoles) && isset($snapshotRoles[$value])) {
+                                                                                $displayValue = $snapshotRoles[$value];
+                                                                            }
+                                                                        @endphp
+                                                                        <div class="flex flex-wrap gap-x-2"><dt class="font-semibold">{{ is_array($snapshotLabels) && isset($snapshotLabels[$key]) ? $snapshotLabels[$key] : $key }}</dt><dd>{{ $displayValue }}</dd></div>
+                                                                    @endforeach
+                                                                </dl>
+                                                            @endif
+                                                        </section>
+                                                    @endforeach
+                                                </div>
+                                                <p class="mt-4 border-t border-[var(--pn-border)] pt-3 text-xs text-[var(--pn-ink-muted)]">{{ __('audit.correlation_id') }}: <bdi dir="ltr">{{ $log->request_id }}</bdi></p>
+                                            </div>
+                                        </details>
                                     </td>
                                 </tr>
                             @endforeach

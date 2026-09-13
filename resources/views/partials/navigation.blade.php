@@ -19,15 +19,20 @@
     if (app('router')->has('pricing.index') && $navigationUser->can('viewAny', \App\Models\PricingRule::class)) {
         $navigationSections[0]['links'][] = ['pricing.index', ['pricing.*'], __('pricing.page_title'), 'pricing'];
     }
+    if (app('router')->has('tickets.index') && $navigationUser->can('viewAny', \App\Models\Ticket::class)) {
+        $navigationSections[0]['links'][] = ['tickets.index', ['tickets.*', 'ticket-types.*'], __('tickets.page_title'), 'tickets'];
+    }
+    if (app('router')->has('sessions.index') && class_exists(\App\Models\PlaySession::class) && $navigationUser->can('viewAny', \App\Models\PlaySession::class)) {
+        $navigationSections[0]['links'][] = ['sessions.index', ['sessions.*'], __('sessions.page_title'), 'sessions'];
+    }
     if ($isOwner) {
         $navigationSections[] = [
             'label' => __('navigation.management'),
             'links' => [
-                ['tenant.show', ['tenant.show'], __('tenant.navigation_label'), 'tenant'],
-                ['tenant.settings.edit', ['tenant.settings.*'], __('tenant_settings.title'), 'settings'],
-                ['staff.index', ['staff.*'], __('tenant.manage_staff'), 'staff'],
-                ['assignments.index', ['assignments.*'], __('tenant.manage_assignments'), 'permissions'],
-                ['roles.index', ['roles.*'], __('roles.navigation_label'), 'roles'],
+                // Organization is the single destination for tenant identity and defaults.
+                ['tenant.settings.edit', ['tenant.settings.*', 'tenant.show'], __('navigation.organization'), 'tenant'],
+                // Staff, roles, and branch access are one task; the legacy routes remain deep-linkable.
+                ['staff.index', ['staff.*', 'assignments.*', 'roles.*'], __('navigation.staff_access'), 'staff'],
                 ['branches.manage', ['branches.manage', 'branches.store', 'branches.status', 'branches.settings*'], __('tenant.manage_branches'), 'manage-branches'],
                 ['audit.index', ['audit.*'], __('tenant.view_audit'), 'audit'],
             ],
@@ -37,7 +42,7 @@
     $targetLanguage = $targetLocale === 'ar' ? __('Arabic') : __('English');
 @endphp
 
-<aside class="fixed inset-y-0 start-0 z-40 hidden w-[248px] flex-col border-e border-[var(--pn-border)] bg-[var(--pn-surface)] lg:flex">
+<aside class="fixed inset-y-0 start-0 z-40 hidden w-[248px] flex-col overflow-hidden border-e border-[var(--pn-border)] bg-[var(--pn-surface)] lg:flex" data-pn-sidebar>
     <a class="flex h-16 items-center gap-3 border-b border-[var(--pn-border)] px-5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--pn-focus)]" href="{{ route('dashboard') }}">
         <span class="grid size-9 place-items-center rounded-[10px] bg-[var(--pn-primary)] font-bold text-[var(--pn-surface)]" aria-hidden="true">P</span>
         <span>
@@ -45,10 +50,10 @@
             <small class="mt-1 block text-xs text-[var(--pn-ink-muted)]">{{ __('navigation.venue_operations') }}</small>
         </span>
     </a>
-    <nav class="min-h-0 flex-1 overflow-y-auto px-3 py-5" aria-label="{{ __('navigation.primary') }}">
+    <nav class="min-h-0 flex-1 overflow-y-auto px-3 py-5" data-pn-sidebar-scroll aria-label="{{ __('navigation.primary') }}">
         @include('partials.navigation-links', ['sections' => $navigationSections])
     </nav>
-    <div class="border-t border-[var(--pn-border)] p-4">
+    <div class="shrink-0 border-t border-[var(--pn-border)] bg-[var(--pn-surface)] p-4" data-pn-sidebar-footer>
         <p class="truncate text-sm font-semibold">{{ $navigationTenant?->name }}</p>
         <p class="mt-1 truncate text-xs text-[var(--pn-ink-muted)]">{{ __('navigation.tenant_context') }}</p>
     </div>
@@ -56,25 +61,28 @@
 
 <header class="fixed inset-x-0 top-0 z-30 h-16 border-b border-[var(--pn-border)] bg-[var(--pn-surface)] lg:start-[248px]">
     <div class="flex h-full items-center gap-3 px-4 sm:px-6">
-        <details class="group lg:hidden">
-            <summary class="pn-drawer-toggle grid size-11 cursor-pointer list-none place-items-center rounded-[10px] border border-[var(--pn-border)] hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" aria-label="{{ __('navigation.open_menu') }}">
+        <div class="lg:hidden">
+            <button class="grid size-11 place-items-center rounded-[10px] border border-[var(--pn-border)] hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="button" data-pn-menu-open aria-controls="pn-mobile-menu" aria-label="{{ __('navigation.open_menu') }}">
                 <svg class="size-5" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-            </summary>
-            <div class="fixed inset-x-0 bottom-0 top-16 z-40 bg-[rgb(23_38_43_/_0.36)]">
-                <div class="h-full w-[min(320px,88vw)] overflow-y-auto border-e border-[var(--pn-border)] bg-[var(--pn-surface)] p-4 shadow-[0_12px_32px_rgb(23_38_43_/_0.12)]">
-                    <div class="mb-5 flex items-center gap-3 border-b border-[var(--pn-border)] pb-4">
+            </button>
+            <dialog class="fixed start-0 top-0 m-0 h-dvh max-h-none w-[min(320px,88vw)] max-w-none overflow-y-auto border-0 border-e border-[var(--pn-border)] bg-[var(--pn-surface)] p-4 text-[var(--pn-ink)] shadow-[0_12px_32px_rgb(23_38_43_/_0.12)] backdrop:bg-[rgb(23_38_43_/_0.48)]" id="pn-mobile-menu" data-pn-menu>
+                    <div class="mb-5 flex items-center justify-between gap-3 border-b border-[var(--pn-border)] pb-4">
+                        <div class="flex min-w-0 items-center gap-3">
                         <span class="grid size-9 place-items-center rounded-[10px] bg-[var(--pn-primary)] font-bold text-[var(--pn-surface)]" aria-hidden="true">P</span>
                         <div class="min-w-0">
                             <strong class="block">PlayNexus</strong>
                             <span class="block truncate text-xs text-[var(--pn-ink-muted)]">{{ $navigationTenant?->name }}</span>
                         </div>
+                        </div>
+                        <button class="grid size-11 shrink-0 place-items-center rounded-[10px] border border-[var(--pn-border)] hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="button" data-pn-menu-close aria-label="{{ __('navigation.close_menu') }}">
+                            <svg class="size-5" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                        </button>
                     </div>
                     <nav aria-label="{{ __('navigation.mobile') }}">
                         @include('partials.navigation-links', ['sections' => $navigationSections])
                     </nav>
-                </div>
-            </div>
-        </details>
+            </dialog>
+        </div>
 
         <a class="font-bold text-[var(--pn-primary)] lg:hidden" href="{{ route('dashboard') }}">PlayNexus</a>
 

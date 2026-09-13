@@ -7,6 +7,8 @@
         $relationshipTypes = __('families.relationship_types');
         $familyChildren = collect($children ?? []);
         $oldFormContext = old('form_context');
+        $guardianFormOpen = $errors->hasAny(['guardian_name', 'phone', 'email', 'preferred_locale']);
+        $childCreateFormOpen = $oldFormContext === 'child-create';
     @endphp
 
     <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
@@ -74,16 +76,18 @@
             </dl>
         </section>
 
-        <div class="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
+        <div class="mt-8 grid items-start gap-8 {{ $canCreateChild ? 'lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]' : '' }}">
             <div class="space-y-8">
-                <section class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" aria-labelledby="guardian-edit-heading">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
+                @if ($canUpdateGuardian)
+                <details class="group rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" aria-labelledby="guardian-edit-heading" @if ($guardianFormOpen) open @endif>
+                    <summary class="flex min-h-11 cursor-pointer list-none flex-wrap items-start justify-between gap-3 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--pn-focus)]">
                         <div>
                             <h2 class="text-lg font-bold" id="guardian-edit-heading">{{ __('families.edit_guardian_heading') }}</h2>
                             <p class="mt-1 text-sm text-[var(--pn-ink-muted)]" id="guardian-edit-help">{{ __('families.edit_guardian_description') }}</p>
                         </div>
                         <span class="rounded-full border border-[var(--pn-border)] px-3 py-1 text-xs font-semibold text-[var(--pn-ink-muted)]"><bdi dir="ltr">v{{ $guardian->lock_version }}</bdi></span>
-                    </div>
+                        <span aria-hidden="true" class="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+                    </summary>
 
                     <form class="mt-6 space-y-5" method="POST" action="{{ route('families.update', $guardian) }}" aria-describedby="{{ $errors->any() ? 'family-profile-errors guardian-edit-help' : 'guardian-edit-help' }}">
                         @csrf
@@ -129,7 +133,8 @@
                             <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-5 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('families.save_guardian') }}</button>
                         </div>
                     </form>
-                </section>
+                </details>
+                @endif
 
                 <section aria-labelledby="children-heading">
                     <div class="flex flex-wrap items-end justify-between gap-3">
@@ -164,7 +169,14 @@
                                         <span class="rounded-full border border-[var(--pn-border)] px-3 py-1 text-sm font-semibold">{{ $relationshipTypes[$relationship] ?? $relationship }}</span>
                                     </div>
 
-                                    <form class="mt-5 space-y-5 border-t border-[var(--pn-border)] pt-5" method="POST" action="{{ route('families.children.update', [$guardian, $child]) }}" aria-describedby="{{ $errors->any() ? 'family-profile-errors child-edit-help-'.$child->id : 'child-edit-help-'.$child->id }}">
+                                    @if ($canUpdateChild)
+                                    <details class="group mt-5 border-t border-[var(--pn-border)] pt-5" @if ($isChildFormContext) open @endif>
+                                        <summary class="flex min-h-11 cursor-pointer list-none flex-wrap items-center justify-between gap-3 font-semibold focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--pn-focus)]">
+                                            <span>{{ __('families.edit_child') }}</span>
+                                            <span class="text-sm font-normal text-[var(--pn-ink-muted)]">{{ __('families.edit_child_description') }}</span>
+                                            <span aria-hidden="true" class="text-lg leading-none transition-transform group-open:rotate-45">+</span>
+                                        </summary>
+                                    <form class="mt-4 space-y-5" method="POST" action="{{ route('families.children.update', [$guardian, $child]) }}" aria-describedby="{{ $errors->any() ? 'family-profile-errors child-edit-help-'.$child->id : 'child-edit-help-'.$child->id }}">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="form_context" value="{{ $childFormContext }}">
@@ -189,11 +201,105 @@
                                                     @enderror
                                                 @endif
                                             </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold" for="child-{{ $child->id }}-emergency-name">{{ __('families.emergency_contact_name_label') }}</label>
+                                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="child-{{ $child->id }}-emergency-name" name="emergency_contact_name" type="text" value="{{ $isChildFormContext ? old('emergency_contact_name', $child->emergency_contact_name) : $child->emergency_contact_name }}" maxlength="190">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold" for="child-{{ $child->id }}-emergency-phone">{{ __('families.emergency_contact_phone_label') }}</label>
+                                                <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="child-{{ $child->id }}-emergency-phone" name="emergency_contact_phone" type="tel" value="{{ $isChildFormContext ? old('emergency_contact_phone', $child->emergency_contact_phone_e164) : $child->emergency_contact_phone_e164 }}" maxlength="30" inputmode="tel" dir="ltr">
+                                            </div>
+                                            <div class="sm:col-span-2">
+                                                <label class="block text-sm font-semibold" for="child-{{ $child->id }}-safety">{{ __('families.safety_notes_label') }}</label>
+                                                <textarea class="mt-2 min-h-24 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 py-2 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="child-{{ $child->id }}-safety" name="safety_notes" maxlength="1000">{{ $isChildFormContext ? old('safety_notes', $child->safety_notes_encrypted) : $child->safety_notes_encrypted }}</textarea>
+                                            </div>
                                         </div>
                                         <div class="flex justify-end">
                                             <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('families.save_child') }}</button>
                                         </div>
                                     </form>
+                                    </details>
+                                    @endif
+
+                                    @if ($canManageConsent && data_get($consentStatuses, $child->id.'.child_data') === 'granted')
+                                        <form class="mt-4 border-t border-[var(--pn-border)] pt-4" method="POST" action="{{ route('families.children.consent.withdraw', [$guardian, $child]) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="consent_type" value="child_data">
+                                            <input type="hidden" name="expected_version" value="{{ $child->lock_version }}">
+                                            <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--pn-danger)] px-4 font-semibold text-[var(--pn-danger)] hover:bg-[var(--pn-danger-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('families.withdraw_child_data_consent') }}</button>
+                                            <p class="mt-2 text-sm text-[var(--pn-ink-muted)]">{{ __('families.withdraw_child_data_consent_help') }}</p>
+                                        </form>
+                                    @endif
+
+                                    @if ($loop->first && $canManageConsent && data_get($consentStatuses, $child->id.'.marketing') === 'granted')
+                                        <form class="mt-4" method="POST" action="{{ route('families.children.consent.withdraw', [$guardian, $child]) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="consent_type" value="marketing">
+                                            <input type="hidden" name="expected_version" value="{{ $child->lock_version }}">
+                                            <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('families.withdraw_marketing_consent') }}</button>
+                                        </form>
+                                    @endif
+
+                                    @if ($canManageRelationships)
+                                        <section class="mt-4 border-t border-[var(--pn-border)] pt-4" aria-labelledby="relationships-{{ $child->id }}">
+                                            <h4 class="font-bold" id="relationships-{{ $child->id }}">{{ __('families.relationships_heading') }}</h4>
+                                            <ul class="mt-3 space-y-2">
+                                                @foreach ($relationships->get($child->id, collect()) as $relationshipRow)
+                                                    <li class="flex flex-wrap items-center justify-between gap-3 rounded-[10px] bg-[var(--pn-surface-subtle)] p-3 text-sm">
+                                                        <span>
+                                                            <strong>{{ $relationshipRow->full_name }}</strong>
+                                                            <span class="ms-2 text-[var(--pn-ink-muted)]" dir="ltr">{{ \App\Support\PhoneNormalizer::mask($relationshipRow->phone_e164) }}</span>
+                                                            <span class="ms-2">{{ $relationshipTypes[$relationshipRow->relationship_type] ?? $relationshipRow->relationship_type }}</span>
+                                                        </span>
+                                                        @if ($relationshipRow->is_active)
+                                                            <form method="POST" action="{{ route('families.relationships.revoke', [$guardian, $child, $relationshipRow->guardian_id]) }}">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <input type="hidden" name="expected_version" value="{{ $child->lock_version }}">
+                                                                <button class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-danger)] px-3 font-semibold text-[var(--pn-danger)] hover:bg-[var(--pn-danger-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('families.revoke_relationship') }}</button>
+                                                            </form>
+                                                        @else
+                                                            <span class="font-semibold text-[var(--pn-ink-muted)]">{{ __('families.relationship_revoked_state') }}</span>
+                                                        @endif
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+
+                                            <form class="mt-4 grid gap-3 sm:grid-cols-2" method="POST" action="{{ route('families.relationships.store', [$guardian, $child]) }}">
+                                                @csrf
+                                                <input type="hidden" name="expected_version" value="{{ $child->lock_version }}">
+                                                <div class="sm:col-span-2">
+                                                    <label class="block text-sm font-semibold" for="relationship-{{ $child->id }}-phone">{{ __('families.related_guardian_phone') }}</label>
+                                                    <input class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="relationship-{{ $child->id }}-phone" name="guardian_phone" type="tel" inputmode="tel" dir="ltr" maxlength="30" required>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold" for="relationship-{{ $child->id }}-type">{{ __('families.relationship_type_label') }}</label>
+                                                    <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="relationship-{{ $child->id }}-type" name="relationship_type" required>
+                                                        @foreach (__('families.all_relationship_types') as $value => $label)
+                                                            <option value="{{ $value }}">{{ $label }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold" for="relationship-{{ $child->id }}-verification">{{ __('families.verification_method') }}</label>
+                                                    <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="relationship-{{ $child->id }}-verification" name="verification_method" required>
+                                                        <option value="registered_phone_last_four">{{ __('families.verification_phone') }}</option>
+                                                    </select>
+                                                </div>
+                                                <div class="sm:col-span-2">
+                                                    <label class="block text-sm font-semibold" for="relationship-{{ $child->id }}-verification-value">{{ __('families.verification_value') }}</label>
+                                                    <input class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="relationship-{{ $child->id }}-verification-value" name="verification_value" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required dir="ltr">
+                                                </div>
+                                                <label class="flex min-h-11 items-center gap-3 sm:col-span-2">
+                                                    <input class="size-5 accent-[var(--pn-primary)]" name="can_check_out" type="checkbox" value="1">
+                                                    <span class="font-semibold">{{ __('families.can_check_out') }}</span>
+                                                </label>
+                                                <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] sm:col-span-2" type="submit">{{ __('families.save_relationship') }}</button>
+                                            </form>
+                                        </section>
+                                    @endif
                                 </article>
                             @endforeach
                         </div>
@@ -201,15 +307,19 @@
                 </section>
             </div>
 
+            @if ($canCreateChild)
             <aside class="lg:sticky lg:top-24" aria-labelledby="add-child-heading">
                 <section class="rounded-[14px] border border-[var(--pn-border-strong)] bg-[var(--pn-primary-soft)] p-5 sm:p-6">
                     <h2 class="text-lg font-bold" id="add-child-heading">{{ __('families.add_child_heading') }}</h2>
                     <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]" id="add-child-help">{{ __('families.add_child_description') }}</p>
 
+                    <details class="group mt-5" @if ($childCreateFormOpen) open @endif>
+                        <summary class="inline-flex min-h-11 cursor-pointer list-none items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2"><span>{{ __('families.add_child') }}</span><span aria-hidden="true" class="ms-2 text-lg leading-none transition-transform group-open:rotate-45">+</span></summary>
                     <form class="mt-6 space-y-5" method="POST" action="{{ route('families.children.store', $guardian) }}" aria-describedby="{{ $errors->any() ? 'family-profile-errors add-child-help' : 'add-child-help' }}">
                         @csrf
                         <input type="hidden" name="form_context" value="child-create">
                         <input type="hidden" name="expected_version" value="{{ $guardian->lock_version }}">
+                        <input type="hidden" name="notice_version" value="{{ $noticeVersion }}">
                         <div>
                             <label class="block text-sm font-semibold" for="new-child-name">{{ __('families.child_name_label') }}</label>
                             <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-name" name="child_name" type="text" value="{{ $oldFormContext === 'child-create' ? old('child_name') : '' }}" autocomplete="off" maxlength="190" required @if ($oldFormContext === 'child-create' && $errors->has('child_name')) aria-invalid="true" aria-describedby="new-child-name-error" @endif>
@@ -241,10 +351,32 @@
                                 <p class="mt-1 text-sm text-[var(--pn-danger)]" id="new-child-relationship-error">{{ $message }}</p>
                             @enderror
                         </div>
+                        <div>
+                            <label class="block text-sm font-semibold" for="new-child-emergency-name">{{ __('families.emergency_contact_name_label') }}</label>
+                            <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-emergency-name" name="emergency_contact_name" type="text" value="{{ $oldFormContext === 'child-create' ? old('emergency_contact_name') : '' }}" maxlength="190">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold" for="new-child-emergency-phone">{{ __('families.emergency_contact_phone_label') }}</label>
+                            <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-emergency-phone" name="emergency_contact_phone" type="tel" value="{{ $oldFormContext === 'child-create' ? old('emergency_contact_phone') : '' }}" maxlength="30" inputmode="tel" dir="ltr">
+                            <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('families.emergency_contact_help') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold" for="new-child-safety">{{ __('families.safety_notes_label') }}</label>
+                            <textarea class="mt-2 min-h-24 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 py-2 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="new-child-safety" name="safety_notes" maxlength="1000">{{ $oldFormContext === 'child-create' ? old('safety_notes') : '' }}</textarea>
+                        </div>
+                        <label class="flex cursor-pointer items-start gap-3 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-3">
+                            <input class="mt-1 size-5 shrink-0 accent-[var(--pn-primary)]" name="child_data_consent" type="checkbox" value="1" @checked($oldFormContext === 'child-create' && old('child_data_consent')) required>
+                            <span>
+                                <strong class="block">{{ __('families.child_data_consent_label') }}</strong>
+                                <span class="mt-1 block text-sm text-[var(--pn-ink-muted)]">{{ __('families.child_data_consent_help') }}</span>
+                            </span>
+                        </label>
                         <button class="inline-flex min-h-11 w-full items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-5 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('families.add_child') }}</button>
                     </form>
+                    </details>
                 </section>
             </aside>
+            @endif
         </div>
     </main>
 @endsection

@@ -3,9 +3,13 @@
 @section('title', __('families.create_title').' · PlayNexus')
 
 @section('content')
+    @php
+        $familyIndexQuery = filled($search ?? null) ? ['q' => $search] : [];
+    @endphp
+
     <main class="mx-auto min-h-screen max-w-4xl px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
-            <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('families.index') }}">{{ __('families.back_to_families') }}</a>
+            <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('families.index', $familyIndexQuery) }}">{{ __('families.back_to_families') }}</a>
             <p class="mt-5 text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant->name }}</p>
             <h1 class="mt-1 text-2xl font-bold">{{ __('families.create_title') }}</h1>
             <p class="mt-1 max-w-2xl text-sm text-[var(--pn-ink-muted)]">{{ __('families.create_description') }}</p>
@@ -32,6 +36,7 @@
 
             <form class="mt-6 space-y-8" method="POST" action="{{ route('families.store') }}" aria-describedby="{{ $errors->any() ? 'family-form-errors' : 'family-form-heading' }}">
                 @csrf
+                <input type="hidden" name="notice_version" value="{{ $noticeVersion }}">
 
                 <fieldset class="space-y-5">
                     <legend class="text-base font-bold">{{ __('families.guardian_section') }}</legend>
@@ -105,11 +110,52 @@
                                 <p class="mt-1 text-sm text-[var(--pn-danger)]" id="relationship-type-error">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold" for="emergency-contact-name">{{ __('families.emergency_contact_name_label') }}</label>
+                            <input class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="emergency-contact-name" name="emergency_contact_name" type="text" value="{{ old('emergency_contact_name') }}" maxlength="190" aria-describedby="emergency-contact-help">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold" for="emergency-contact-phone">{{ __('families.emergency_contact_phone_label') }}</label>
+                            <input class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="emergency-contact-phone" name="emergency_contact_phone" type="tel" value="{{ old('emergency_contact_phone') }}" maxlength="30" inputmode="tel" dir="ltr" aria-describedby="emergency-contact-help">
+                        </div>
+                        <p class="sm:col-span-2 -mt-3 text-sm text-[var(--pn-ink-muted)]" id="emergency-contact-help">{{ __('families.emergency_contact_help') }}</p>
+
+                        @if ($canManageSafety)
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-semibold" for="safety-notes">{{ __('families.safety_notes_label') }}</label>
+                                <textarea class="mt-1 min-h-24 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 py-2 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="safety-notes" name="safety_notes" maxlength="1000" aria-describedby="safety-notes-help">{{ old('safety_notes') }}</textarea>
+                                <p class="mt-1 text-sm text-[var(--pn-ink-muted)]" id="safety-notes-help">{{ __('families.safety_notes_help') }}</p>
+                            </div>
+                        @endif
                     </div>
                 </fieldset>
 
+                <fieldset class="space-y-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-4">
+                    <legend class="px-1 text-base font-bold">{{ __('families.privacy_heading') }}</legend>
+                    <p class="text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('families.privacy_notice') }}</p>
+                    <p class="text-xs text-[var(--pn-ink-muted)]">{{ __('families.notice_version', ['version' => $noticeVersion]) }}</p>
+
+                    <label class="flex cursor-pointer items-start gap-3 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-3">
+                        <input class="mt-1 size-5 shrink-0 accent-[var(--pn-primary)]" name="child_data_consent" type="checkbox" value="1" @checked(old('child_data_consent')) required>
+                        <span>
+                            <strong class="block">{{ __('families.child_data_consent_label') }}</strong>
+                            <span class="mt-1 block text-sm text-[var(--pn-ink-muted)]">{{ __('families.child_data_consent_help') }}</span>
+                        </span>
+                    </label>
+
+                    <label class="flex cursor-pointer items-start gap-3 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-3">
+                        <input class="mt-1 size-5 shrink-0 accent-[var(--pn-primary)]" name="marketing_consent" type="checkbox" value="1" @checked(old('marketing_consent'))>
+                        <span>
+                            <strong class="block">{{ __('families.marketing_consent_label') }}</strong>
+                            <span class="mt-1 block text-sm text-[var(--pn-ink-muted)]">{{ __('families.marketing_consent_help') }}</span>
+                        </span>
+                    </label>
+                </fieldset>
+
                 <div class="flex flex-wrap items-center justify-end gap-3 border-t border-[var(--pn-border)] pt-6">
-                    <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('families.index') }}">{{ __('families.back_to_families') }}</a>
+                    <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('families.index', $familyIndexQuery) }}">{{ __('families.back_to_families') }}</a>
                     <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-5 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('families.save') }}</button>
                 </div>
             </form>

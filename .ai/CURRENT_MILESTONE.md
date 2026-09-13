@@ -1,5 +1,41 @@
 # Current Milestone
 
+## 2026-09-13 M3 LOCALLY ACCEPTED; M4 NOT STARTED
+
+M3 now includes a deterministic read-only estimate for each Active session from its immutable pricing snapshot and one server clock. Fixed duration plus grace, rounded-up overtime units, and branch-snapshotted inclusive/exclusive tax use integer minor units and half-up rounding. The bilingual surface labels the value as an as-of estimate and never persists it or presents checkout/payment as complete. Malformed snapshots fail closed.
+
+Three `gpt-5.6-luna` / `xhigh` workers delivered calculator, boundary tests, and bilingual copy; coordinator review integrated the view and corrected fail-closed handling. Focused quote/session checks pass 18 / 177. Full PHP 8.4 and 8.5 SQLite pass 279 of 281 / 2,387 with two MySQL-only skips; MySQL 8.4.11 passes 281 / 2,434. Authenticated Edge QA passes Arabic/English, Owner/Cashier, mobile/tablet/desktop, exact 14% display fixture, no overflow, and no browser errors.
+
+M3 is locally accepted, not production-released. Per the product owner's stop instruction, M4 has not started. OQ-12 guardian verification is already approved; OQ-19 station/payment ownership remains open. Final checkout, guardian release, payment, receipt, pause/extension/adjustment, alerts, and refund execution remain unimplemented.
+
+## 2026-09-13 check-in/session stage CLOSED
+
+IMPLEMENTED / LOCALLY ACCEPTED: atomic idempotent ticket-backed check-in, one Active play session with immutable pricing/time facts, tenant-wide Active/Paused child uniqueness, hard branch capacity, append-only session/scan/audit evidence and a bilingual masked live board. Owner/assigned Manager/Reception may check in; Cashier is read-only. Full MySQL passes 272 / 2,385, SQLite and PHP 8.5 pass 270 of 272 / 2,338 with two MySQL-only skips, true concurrency passes 2 / 47, and authenticated responsive Edge QA passes. Existing port 8206 was untouched.
+
+This closes the bounded check-in/session stage, not production readiness or checkout/finance. M4 did not start. If the owner explicitly resumes it, first freeze the smallest checkout/time-and-charge contract and OQ-19 station ownership before implementing any release verification, final charge, payment or refund behavior.
+
+## 2026-09-13 historical ticket-only engineering acceptance
+
+IMPLEMENTED / M3 PARTIAL: three user-requested Luna/xhigh workers delivered UI, focused tests and independent review, followed by coordinator integration. The slice includes immutable branch ticket types, dated issuance with frozen integer money/time facts, encrypted opaque QR, idempotent validation, permanent holder lock after the first accepted scan, audited pre-scan correction, manager/owner unused-ticket cancellation and immutable reprint. Full MySQL passes 262 / 2,233; SQLite passes 261 / 2,210 with one MySQL-only skip. Scoped authenticated headless Edge visual/QR/print acceptance passes. See `.ai/TEST_RESULTS.md` for exact evidence.
+
+At this ticket-only checkpoint, validation was not check-in, consumption or session creation; the current section above records the later accepted implementation. Cancellation still does not post a refund. OQ-09 refund execution and approved tax-total examples remain separate gates. The existing port 8206 runtime/database was not migrated or restarted; apply both current M3 migrations to the explicitly selected runtime database before using these slices there. Task-local QA is not production approval.
+
+## 2026-09-13 M3 ticket decision closure
+
+OQ-18 is approved for Egypt. The next bounded M3 implementation may add branch/service-date-scoped ticket types and issuance, QR validation, pre-scan assignment correction, permanent transfer lock on first successful scan, unused-ticket cancellation/refund eligibility with manager/owner approval, and atomic idempotent ticket consumption plus check-in. OQ-09 still governs payment method, refund window, and reversal execution, while approved finance tax examples remain required before calculator/checkout acceptance.
+
+## 2026-09-13 Egypt M2 engineering closure
+
+The approved Egypt family contract is implemented and has full SQLite/MySQL regression evidence at 241 tests / 1,997 assertions. The visible flow includes explicit Arabic-first child-data consent, a separate optional unchecked marketing choice, emergency contact, restricted encrypted safety notes, and verified relationship lifecycle controls. Tenant uniqueness, hard reuse, role/scope denials, append-only evidence, withdrawal behavior, and the final-guardian invariant are enforced in code and tests.
+
+M2 is **IMPLEMENTED / RELEASE PARTIAL**: real browser acceptance is still unavailable, and production remains gated on Legal/DPO approval of the deployed privacy notice and processor/transfer/licensing details. Visit history and retention execution wait for M3 session/last-visit data under the approved dependency waiver. These gates do not reopen the product decisions or authorize unrelated M3 expansion.
+
+## 2026-09-12 M2 remediation checkpoint
+
+M1 remains closed. The approved M2 family slices are hardened: family permissions are action-specific, Cashier responses are server-masked and read-only after initial registration, search excludes inactive guardians/children, and the responsive application shell/assignment workflow has been improved without adding a new design-system dependency. Branch creation is retry-safe through a tenant-scoped idempotency key, and JSON failures expose a stable request ID.
+
+Automated acceptance is current on both SQLite and isolated MySQL 8.4.11/InnoDB at 234 tests / 1,943 assertions. The Egypt M2 product decisions are now approved: tenant-unique normalized phone with hard reuse, versioned legal-guardian child-data consent, separate optional marketing consent, three-year default retention, required emergency contact, restricted encrypted safety notes, verified relationship lifecycle/last-guardian invariant, visit-history dependency waiver, and incident deferral. M2 stays **IN PROGRESS** until this new contract is implemented/tested and browser acceptance plus production Legal/DPO review are complete. No additional M3 behavior is authorized.
+
 ## 2026-09-12 M2 started — family registry first slice
 
 M1 remains closed. M2 starts with a bounded staff-assisted family registry: current-tenant search by normalized guardian phone or child name, and atomic creation of one guardian, one child, and one active relationship. Same-tenant phone matches block a second record and return the existing-family path until OQ-17 chooses merge/create-with-approval behavior; cross-tenant matches are never disclosed. Consent events, safety notes/photos, family editing, history, check-in, and M2 closure remain outside this first wave until their approved contracts are ready.
@@ -14,7 +50,7 @@ T36 backend authorization/commands, T37 bilingual family-profile UI, and T38 adv
 
 ## 2026-09-12 M3 first slice — fixed-duration pricing configuration
 
-Create and list immutable branch pricing rules using the approved OQ-16 shape: integer EGP amounts, fixed package duration, 600-second grace, 1,800-second rounded-up overtime units, and selected-branch tax snapshot. No default business prices are seeded. Ticket types/QR are excluded pending OQ-18; calculation, check-in, sessions, extensions, retirement, and M3 closure remain later.
+Create and list immutable branch pricing rules using the approved OQ-16 shape: integer EGP amounts, fixed package duration, 600-second grace, 1,800-second rounded-up overtime units, and selected-branch tax snapshot. No default business prices are seeded. This historical slice excluded ticket types/QR; OQ-18 was subsequently approved in the top current-milestone entry. Calculation, ticket implementation, check-in, sessions, extensions, retirement, and M3 closure remain later.
 
 T39 pricing data/integrity, T40 scoped backend/audit, and T41 bilingual UI are integrated and centrally reviewed. Automated security and money-conversion checks pass. Browser acceptance is blocked by `User unavailable`; fresh isolated MySQL evidence and later pricing version/retirement/calculation work remain open. Ticket types stay blocked by OQ-18.
 

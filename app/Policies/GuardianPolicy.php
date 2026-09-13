@@ -9,39 +9,76 @@ use Illuminate\Support\Facades\DB;
 
 class GuardianPolicy
 {
-    private const ROLES = [
+    private const VIEW_ROLES = [
         'branch_manager',
         'reception_staff',
         'reception',
         'cashier',
     ];
 
+    private const MANAGE_ROLES = [
+        'branch_manager',
+        'reception_staff',
+        'reception',
+    ];
+
     public function viewAny(User $user): bool
     {
-        return $this->canAccess($user);
+        return $this->hasEligibleRole($user, self::VIEW_ROLES);
     }
 
     public function create(User $user): bool
     {
-        return $this->canAccess($user);
+        return $this->hasEligibleRole($user, self::VIEW_ROLES);
+    }
+
+    public function manageSensitiveRegistration(User $user): bool
+    {
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES);
     }
 
     public function view(User $user, Guardian $guardian): bool
     {
-        return $this->canAccess($user, $guardian);
+        return $this->hasEligibleRole($user, self::VIEW_ROLES, $guardian);
     }
 
     public function update(User $user, Guardian $guardian): bool
     {
-        return $this->canAccess($user, $guardian);
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES, $guardian);
     }
 
-    public function manageChildren(User $user, Guardian $guardian): bool
+    public function createChild(User $user, Guardian $guardian): bool
     {
-        return $this->canAccess($user, $guardian);
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES, $guardian);
     }
 
-    private function canAccess(User $user, ?Guardian $guardian = null): bool
+    public function updateChild(User $user, Guardian $guardian): bool
+    {
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES, $guardian);
+    }
+
+    public function manageRelationships(User $user, Guardian $guardian): bool
+    {
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES, $guardian);
+    }
+
+    public function manageConsent(User $user, Guardian $guardian): bool
+    {
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES, $guardian);
+    }
+
+    public function manageSafetyData(User $user, Guardian $guardian): bool
+    {
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES, $guardian);
+    }
+
+    public function viewSensitiveData(User $user, Guardian $guardian): bool
+    {
+        return $this->hasEligibleRole($user, self::MANAGE_ROLES, $guardian);
+    }
+
+    /** @param list<string> $roles */
+    private function hasEligibleRole(User $user, array $roles, ?Guardian $guardian = null): bool
     {
         $freshUser = User::query()
             ->whereKey($user->getAuthIdentifier())
@@ -81,7 +118,7 @@ class GuardianPolicy
             ->where('branch_user.user_id', $freshUser->getKey())
             ->where('branch_user.is_active', true)
             ->where('branches.is_active', true)
-            ->whereIn('branch_user.role', self::ROLES)
+            ->whereIn('branch_user.role', $roles)
             ->exists();
     }
 }

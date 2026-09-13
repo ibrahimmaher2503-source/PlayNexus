@@ -1,5 +1,9 @@
 # PlayNexus Software Requirements Specification (SRS)
 
+## 2026-09-13 implemented M3 subset
+
+The current Laravel implementation satisfies the bounded arrival portion of FR-SES-001, FR-SES-002 and FR-SES-014 plus the read-only display portion of FR-TIM-001/003/007: an authorized ticket-backed request atomically consumes once, creates one Active session with server UTC timing and immutable price/time facts, blocks a duplicate tenant-wide Active/Paused child and hard branch capacity, and appends correlated session/scan/audit evidence. The scoped masked live board supports branch/family/status filtering, 25-row pagination and an exact non-persisted as-of estimate using the approved grace/overtime/tax boundaries. Pause/resume/extend/adjust/cancel, persisted checkout quote/completion, release verification, final calculation, payment and refund requirements remain unimplemented.
+
 **Document version:** 1.1  
 **Status:** Draft for technical and product approval  
 **Product release:** Phase 1 / MVP  
@@ -218,12 +222,12 @@ Game Operator is retained in the long-term role model but has no game-management
 
 | ID | Requirement | Priority | Verification / acceptance |
 |---|---|---|---|
-| FR-TKT-001 | Authorized staff shall issue a ticket belonging to the current tenant/branch with type, validity, price/rule reference, status, and a non-guessable unique QR payload. | Must | Ticket and QR are created once; collision/duplicate identifier test fails safely; payload does not reveal sensitive child data. |
+| FR-TKT-001 | Authorized staff shall issue a ticket belonging to the current tenant/branch and a branch-local service date with type, validity, price/rule reference, holder/child binding where used, status, and a non-guessable unique QR payload. | Must | Ticket and QR are created once; branch/service-date bounds are immutable; collision/duplicate identifier test fails safely; payload does not reveal sensitive child data. |
 | FR-TKT-002 | The system shall render the QR for on-screen display and browser-compatible printing. | Must | A supported scanner/camera reads the printed and displayed test QR and resolves it through the validation interface. |
-| FR-TKT-003 | Authorized staff shall validate/scan a ticket and receive a result of valid or a specific staff-safe reason such as expired, cancelled, consumed, wrong branch/policy, or not found. | Must | Test ticket in each state produces the expected result without exposing cross-tenant data. |
+| FR-TKT-003 | Authorized staff shall validate/scan a ticket and receive a result of valid or a specific staff-safe reason such as expired, cancelled, consumed, wrong branch, wrong service date/policy, or not found. The first successful scan permanently locks holder/child assignment; failed scans do not. | Must | State/scope/date tests produce the expected safe result; post-scan reassignment is rejected without cross-tenant disclosure. |
 | FR-TKT-004 | Every scan/validation attempt shall record tenant, branch, ticket when identifiable, actor/device context available to the application, time, and result. | Must | Scan history contains successful and failed known-ticket attempts; unknown payload logging is privacy-safe. |
 | FR-TKT-005 | When a ticket authorizes check-in, its consumption and session creation shall occur atomically and idempotently. | Must | Concurrent scan/check-in attempts create at most one session and one consumption event. |
-| FR-TKT-006 | Authorized staff shall cancel an unused ticket with a reason; expired, cancelled, or consumed tickets shall not authorize check-in. | Must | State tests deny check-in; cancellation event is audited and associated refund policy is not inferred automatically. |
+| FR-TKT-006 | Authorized staff shall cancel an unused ticket with a reason; expired, cancelled, or consumed tickets shall not authorize check-in. A ticket is refund-eligible only while Issued with no successful scan, consumption, or linked session, and refund requires in-scope Branch Manager/Tenant Owner approval and audit. | Must | State tests deny check-in/refund after use; cancellation is audited; any paid refund creates a linked immutable reversal under OQ-09 rather than rewriting the ticket or payment. |
 | FR-TKT-007 | Authorized staff shall reprint a ticket without changing its identity, validity, price, consumption state, or QR payload, and the reprint shall be audited. | Must | Before/after comparison is identical except reprint audit/metadata. |
 | FR-TKT-008 | A scheduled process or validation read shall treat a ticket past its validity end as Expired even if physical status maintenance is delayed. | Must | A controlled-clock test rejects a past-validity ticket without needing a prior batch job. |
 
@@ -570,11 +574,11 @@ The BRD decision log OQ-01 through OQ-24 is authoritative. OQ-15 through OQ-22 o
 | ID | Clarification needed | Affected requirements |
 |---|---|---|
 | OQ-15 | Store child date of birth, declared age, year/month only, or a jurisdiction-dependent combination? Define age-band calculation and correction policy. | FR-CUS-004, FR-RPT-002, DATA-PII-001 |
-| OQ-16 | Define the exact supported pricing patterns and worked examples: fixed-duration, per-minute/hour, grace, ceiling/floor, overage, pause, extension, and tax order. | FR-TIM-001 through FR-TIM-009 |
-| OQ-17 | Define duplicate guardian policy: warn-only, supervisor-confirmed duplicate creation, merge, or hard unique normalized phone. | FR-CUS-002 |
-| OQ-18 | Define whether a ticket is branch-specific, tenant-wide, transferable, date-specific, and refundable after issue. | FR-TKT-001, FR-TKT-003, FR-TKT-006 |
+| OQ-16 | **Resolved for the read-only estimate:** fixed-duration snapshot; 600-second included grace; first later second rounds up to one 1,800-second overtime unit; integer minor-unit half-up tax using the snapshotted inclusive/exclusive mode. Checkout/discount/extension/payment fixtures remain later gates. | FR-TIM-001 through FR-TIM-009 |
+| OQ-17 | **Resolved:** tenant-unique normalized phone; use existing family on match; no create-anyway or automated merge in MVP. | FR-CUS-002 |
+| OQ-18 | **Resolved for Egypt MVP:** ticket is branch-specific and branch-local-service-date-bound; audited holder correction is allowed only before the first successful scan, after which assignment is immutable; refund eligibility ends at the first successful scan/use and requires in-scope manager/owner approval, reason, audit, and linked reversal when paid. OQ-09 retains refund window/method/execution. | FR-TKT-001, FR-TKT-003, FR-TKT-006 |
 | OQ-19 | Define whether checkout and payment are one station/role or reception and cashier handoff; define unpaid exception policy. | FR-SES-007 through FR-SES-010, FR-POS-006 |
-| OQ-20 | Define exact incident categories, severities, transition/reopen rules, visibility, retention, and escalation procedure. | FR-SAF-003 through FR-SAF-006 |
+| OQ-20 | **Deferred:** no incident-management module in M2; restricted encrypted child safety notes remain in scope. | FR-SAF-003 through FR-SAF-006 |
 | OQ-21 | Define normal and peak load, standard report range, API pagination/date caps, and data-volume horizon. | NFR-PERF-001 through NFR-PERF-003, INT-API-004 |
 | OQ-22 | Define session inactivity/absolute timeout, credential policy, authorization cache/revocation interval, audit/log retention, and rate limits. | FR-AUT, SEC-AUT, SEC-RATE, DATA-AUD |
 | OQ-23 | Confirm branded SaaS only for MVP or approve any white-label capability. | Scope only; no white-label MVP requirements exist unless an approved change is issued. |
@@ -595,3 +599,14 @@ The BRD decision log OQ-01 through OQ-24 is authoritative. OQ-15 through OQ-22 o
 - OQ-08: receipts use a unique branch-scoped display number in the form `BRANCH-YYYY-000001`; numbers are never reused, and voiding preserves the record and reason. Receipt content includes seller/branch, timestamp, receipt number, service, quantity, prices, discount, tax, total, payment method, actor, and verification QR.
 - OQ-12: checkout verification uses the session/ticket QR plus confirmation of the registered guardian phone last four digits or a handoff code; failed verification blocks checkout. Manager override is reason-required, permission-checked, single-use, and audited.
 - OQ-16: fixed-duration packages are the MVP pricing model; 10-minute grace; overtime rounds up in 30-minute units; pause is deferred; extension is a package or 30-minute unit; money is integer piastres; tax is branch-configurable; checkout snapshots inputs and calculation lines.
+
+## Approved Egypt M2 decision amendment — 2026-09-12
+
+- OQ-07/M2 consent: an Arabic-first privacy notice is distinct from consent. Child-data processing requires explicit written/electronic consent by an active legal guardian for every child under 18; choices are unbundled and never preselected. Every grant/withdrawal is append-only, versioned, attributable, UTC-timestamped, and correlated to tenant/branch/request. Marketing consent is optional, separate, and immediately withdrawable.
+- Retention: operational family data remains while active and for three years after the last visit or closure, then is anonymized/deleted unless a documented legal/financial/safety/complaint/litigation hold applies. The production notice must state the actual period/criteria, controller/DPO contacts, rights, recipients/processors, transfers, and complaint route.
+- OQ-17: normalized phone is unique per tenant. A match reuses the existing family; no duplicate override or automated merge exists in MVP. Cross-tenant matches are never disclosed.
+- Emergency/safety: an active child has an emergency-contact name and normalized phone; optional safety notes are capped, encrypted, need-to-know, and excluded from ordinary logs/exports. Photos are deferred.
+- Relationships: `mother`, `father`, and `legal_guardian` may consent; `authorized_pickup` and `other` may not. Checkout capability is explicit. Link/reactivate/revoke is verified, transactional, and audited, and the final active checkout-capable legal guardian cannot be revoked.
+- OQ-18/M3 tickets: every ticket is tenant/branch scoped and tied to a service date interpreted in the branch time zone. Only a successful scan locks its holder/child binding. Refund eligibility requires an unused Issued ticket, manager/owner approval, reason, and audit; OQ-09 still determines refund timing and financial execution.
+- Visit history: contract is read-only, tenant-scoped, newest-first, 25 per page for Owner/Manager/Reception, with operational timing/status and masked references only. Delivery waits for M3 session records and is an accepted M2 dependency waiver.
+- OQ-20: the incident module is deferred; this does not defer the M2 emergency contact or restricted safety notes.

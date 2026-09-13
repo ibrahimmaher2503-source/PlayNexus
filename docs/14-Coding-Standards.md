@@ -1,5 +1,9 @@
 # Coding Standards
 
+## 2026-09-13 implementation note
+
+The check-in/session slice follows the existing Laravel controller/policy/Eloquent/transaction patterns, shared ticket eligibility guard, composite tenant constraints, integer money/UTC storage and bilingual Blade/Tailwind tokens. The read-only estimate adds one final pure calculator using bounded integer operations and standard date interfaces; it adds no repository, interface, package or persistence layer. The tenant transaction lock is the deliberately simple MVP concurrency ceiling; change it only with measured throughput evidence and replacement race tests.
+
 ## PHP and Laravel
 
 - Follow the selected Laravel release conventions and PSR-12-compatible formatting.
@@ -25,4 +29,3 @@
 - Add one focused test for each risky rule or regression.
 - Name tests by behavior and outcome.
 - Never log passwords, tokens, child photos, full sensitive profiles, or payment secrets.
-
