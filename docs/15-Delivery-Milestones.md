@@ -24,7 +24,7 @@ Pricing rules, ticket types, QR/barcode token, check-in workflow, live session b
 
 ## M4: Time engine and checkout
 
-**Status: NOT STARTED — 2026-09-13.** The product owner stopped before M4. OQ-12 guardian verification is approved; OQ-19 station/payment ownership remains open. Start only after an explicit bounded resume instruction.
+**Status: PARTIAL — 2026-09-13.** OQ-19 is resolved as a reception-to-cashier handoff: Reception/Manager verifies the guardian or records an audited override, freezes the exact server quote, and moves the session to `pending_payment`; Cashier receives the queue for the later M5 matching-payment command. Preparation is idempotent and lock/version guarded. Payment, receipt, child release, refunds, shifts, and the remaining time-engine transitions are not implemented.
 
 Pause/resume/extend/cancel, alerts, guardian verification, final calculation, manager adjustment, concurrency protection, and explainable billing breakdown.
 

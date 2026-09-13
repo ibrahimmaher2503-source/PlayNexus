@@ -1,5 +1,27 @@
 # Test Results
 
+## 2026-09-13 M4 checkout-preparation/OQ-19 focused acceptance
+
+This tests/docs slice adds no production behavior. It records the bounded OQ-19 handoff contract only: Reception/Manager verification and frozen quote preparation into `pending_payment`; Cashier payment posting, final completion, refund, receipt, release, and shifts remain M5/later scope.
+
+| Check | Actual command / result |
+|---|---|
+| Focused checkout preparation | `php artisan test --compact tests/Feature/PlaySessionCheckoutPreparationTest.php` — PASS, 8 tests / 66 assertions; process-local SQLite |
+| Adversarial coverage | PASS: exact frozen quote, mismatch rollback, ineligible/foreign guardian denial, cashier preparation denial, reasoned manager override/audit, stale lock, identical replay, changed replay conflict, and `pending_payment` terminal state |
+| Production change scope | PASS: no application/production files changed by this slice; existing partial M4 production diff was preserved |
+| Full/MySQL/browser | NOT RUN / not claimed; backend implementation remains a separate integration responsibility |
+
+### Central integration evidence
+
+| Check | Actual command / result |
+|---|---|
+| Full process-local SQLite | `php artisan test --compact` — PASS, 293 total / 291 passed / 2 skipped / 2,494 assertions |
+| Frontend build | `npm run build` — PASS; existing optional `fontaine` notice only |
+| Scoped formatting | `php vendor/bin/pint --test` — PASS for the M4 scope |
+| Blade/cache and whitespace | Blade cache/compilation — PASS; `git diff --check` — PASS |
+| Full global formatting | Review only: pre-existing `ordered_imports` issue in `StaffStatusController`, outside M4; no change made |
+| PHP 8.5 / MySQL / browser | Pending; no acceptance claim |
+
 ## 2026-09-13 M3 read-only live-estimate acceptance
 
 Three user-requested `gpt-5.6-luna` / `xhigh` workers delivered the pure quote calculator, exact boundary tests and bilingual copy. Coordinator review integrated the non-mutating Active-session view, invalid-snapshot/timezone fail-closed handling and responsive card layout. This closes local M3 engineering only; it is not checkout, payment, receipt or production acceptance.

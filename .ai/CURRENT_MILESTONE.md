@@ -1,5 +1,11 @@
 # Current Milestone
 
+## 2026-09-13 M4 checkout-preparation slice LOCALLY ACCEPTED; M5 NOT STARTED
+
+OQ-19 is resolved as a reception-to-cashier handoff. Reception/assigned Manager verifies an active checkout-capable guardian by registered-phone last four digits, or a permission-checked manager override with a non-empty reason, then the server calculates and freezes the exact quote and moves the session to `pending_payment`. Cashier cannot prepare checkout; M5 will post one matching payment and atomically complete the session. UUID replays are idempotent, changed replays and stale versions conflict, terminal/ineligible/foreign cases fail safely, and successful preparation is event/audit recorded.
+
+Focused `PlaySessionCheckoutPreparationTest` passes 8 tests / 66 assertions on process-local SQLite. Central integration also passes full process-local SQLite `php artisan test --compact`: 293 total / 291 passed / 2 skipped / 2,494 assertions; `npm run build`, scoped Pint, Blade cache/compilation, and `git diff --check` pass (build has the existing optional `fontaine` notice). Full global Pint only exposed a pre-existing `ordered_imports` issue in `StaffStatusController`, outside M4 and not modified. This is not full M4 or production acceptance: PHP 8.5, isolated MySQL, browser, payment, refund, receipt, child release, shift, pause/extension/adjustment gates remain pending.
+
 ## 2026-09-13 M3 LOCALLY ACCEPTED; M4 NOT STARTED
 
 M3 now includes a deterministic read-only estimate for each Active session from its immutable pricing snapshot and one server clock. Fixed duration plus grace, rounded-up overtime units, and branch-snapshotted inclusive/exclusive tax use integer minor units and half-up rounding. The bilingual surface labels the value as an as-of estimate and never persists it or presents checkout/payment as complete. Malformed snapshots fail closed.

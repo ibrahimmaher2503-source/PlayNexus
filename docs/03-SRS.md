@@ -2,7 +2,7 @@
 
 ## 2026-09-13 implemented M3 subset
 
-The current Laravel implementation satisfies the bounded arrival portion of FR-SES-001, FR-SES-002 and FR-SES-014 plus the read-only display portion of FR-TIM-001/003/007: an authorized ticket-backed request atomically consumes once, creates one Active session with server UTC timing and immutable price/time facts, blocks a duplicate tenant-wide Active/Paused child and hard branch capacity, and appends correlated session/scan/audit evidence. The scoped masked live board supports branch/family/status filtering, 25-row pagination and an exact non-persisted as-of estimate using the approved grace/overtime/tax boundaries. Pause/resume/extend/adjust/cancel, persisted checkout quote/completion, release verification, final calculation, payment and refund requirements remain unimplemented.
+The current Laravel implementation satisfies the bounded arrival portion of FR-SES-001, FR-SES-002 and FR-SES-014 plus the read-only display portion of FR-TIM-001/003/007. It also implements the first OQ-19 checkout-preparation boundary: authorized Reception/Manager staff verify an eligible guardian or audited manager override, calculate from immutable session facts, freeze the quote, and move the session to `pending_payment` for the Cashier queue with idempotent replay. Pause/resume/extend/adjust, payment posting, receipt/refund execution, child release, and final Completed checkout remain unimplemented.
 
 **Document version:** 1.1  
 **Status:** Draft for technical and product approval  
@@ -203,6 +203,8 @@ Game Operator is retained in the long-term role model but has no game-management
 | FR-SES-012 | Authorized staff shall view/search sessions by branch, state, date/time, ticket/QR, parent phone, or child name within their permitted scope. | Must | Each filter returns correct scoped results; combinations and pagination are deterministic. |
 | FR-SES-013 | The active-session view shall show current billable elapsed time, expected end/alert status, and current estimated charge calculated from authoritative stored data. | Must | Refresh after a controlled clock advance shows correct values and does not mutate the final financial snapshot. |
 | FR-SES-014 | Session-changing commands shall use concurrency control so two requests cannot create duplicate transitions, pauses, payments, or checkouts. | Must | Parallel request tests result in one accepted transition and a conflict/idempotent response for the other. |
+
+**M4/OQ-19 bounded preparation contract — 2026-09-13:** Reception (or an authorized Branch Manager) may prepare checkout only for an Active, in-scope session. The server verifies an active same-tenant, checkout-capable, verified guardian by registered-phone last four digits, or accepts a permission-checked manager override with a non-empty reason. It then calculates from immutable session facts, stores the frozen quote and verification evidence, increments the session lock version, appends an audit/event pair, and transitions to `pending_payment`. Cashier cannot prepare checkout; M5 will post one matching payment and atomically complete the session. Identical UUID replays return the original preparation; changed replays, stale locks, ineligible/foreign guardians, and terminal states conflict or fail safely without mutation. Payment, refund, receipt, shift, and child-release execution are outside this slice.
 
 ### 5.6 Smart time and pricing engine
 

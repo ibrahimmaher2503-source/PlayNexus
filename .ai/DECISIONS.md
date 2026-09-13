@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-09-13: Resolve OQ-19 as reception-to-cashier checkout handoff
+
+**Authority:** The product owner approved the bounded station decision so M4 preparation could proceed without expanding into Finance.
+**Decision:** Reception verifies the active checkout-capable guardian using the registered-phone last four digits (or a configured handoff code when that later contract is implemented), calculates from immutable session facts, freezes the exact quote, and transitions the session to `pending_payment` in the Cashier queue. Cashier cannot prepare or alter that handoff; M5 matching payment posting will atomically complete the session. Identical UUID retries return the original preparation, while changed replays conflict. A Branch Manager/Owner may use the dedicated manager override only with permission, a non-empty reason, and audit evidence; recovery is idempotent and bound to the session version.
+**Boundary:** This slice covers preparation, guardian verification, frozen quote, queue state, concurrency/idempotency and audit only. It does not authorize payment, refund, receipt, child-release, shift, pause/extension/adjustment, or final Completed behavior.
+
 ## 2026-09-13: Freeze read-only session estimate arithmetic
 
 **Authority:** The product owner authorized closing the remaining Egypt defaults so delivery could continue; this closes the bounded OQ-16 worked examples for an estimate, not Checkout or Finance approval.

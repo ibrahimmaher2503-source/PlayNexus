@@ -1,5 +1,11 @@
 # Progress
 
+## 2026-09-13 M4 checkout preparation / OQ-19 handoff
+
+- Added focused adversarial coverage for exact frozen quote preparation, last-four mismatch rollback, ineligible/foreign guardians, cashier denial, manager override reason/audit, stale lock, idempotent replay/changed replay conflict, and `pending_payment` terminal behavior.
+- Focused `php artisan test --compact tests/Feature/PlaySessionCheckoutPreparationTest.php` passes 8 tests / 66 assertions on process-local SQLite. No production files were changed in this tests/docs slice.
+- OQ-19 is now documented as reception verification plus frozen quote -> cashier `pending_payment` queue; M5 matching payment atomically completes. Payment/refund/receipt/shift and full M4 remain outside this slice; MySQL/browser/full-suite evidence is not claimed.
+
 ## 2026-09-13 M3 read-only estimate and local closure
 
 - Added one pure integer calculator for immutable session snapshots: fixed duration plus grace, ceil overtime units, inclusive/exclusive half-up tax, negative elapsed clamping, overflow guards, and fail-closed malformed input.

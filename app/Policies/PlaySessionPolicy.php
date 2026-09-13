@@ -23,6 +23,12 @@ class PlaySessionPolicy
         'reception',
     ];
 
+    private const CHECKOUT_ROLES = [
+        'branch_manager',
+        'reception_staff',
+        'reception',
+    ];
+
     public function viewAny(User $user): bool
     {
         [$freshUser, $tenant] = $this->context($user);
@@ -98,6 +104,16 @@ class PlaySessionPolicy
             ->exists();
     }
 
+    public function checkout(User $user, PlaySession $session): bool
+    {
+        return $this->canActOnSession($user, $session, self::CHECKOUT_ROLES);
+    }
+
+    public function overrideCheckout(User $user, PlaySession $session): bool
+    {
+        return $this->canActOnSession($user, $session, ['branch_manager'], ownerAllowed: true);
+    }
+
     /** @return array{?User, ?Tenant} */
     private function context(User $user): array
     {
@@ -132,6 +148,34 @@ class PlaySessionPolicy
             ->where('user_id', $user->getKey())
             ->where('is_active', true)
             ->whereIn('role', self::VIEW_ROLES)
+            ->exists();
+    }
+
+    /** @param array<int, string> $roles */
+    private function canActOnSession(User $user, PlaySession $session, array $roles, bool $ownerAllowed = true): bool
+    {
+        [$freshUser, $tenant] = $this->context($user);
+        $freshSession = $tenant ? PlaySession::query()->whereKey($session->getKey())->where('tenant_id', $tenant->getKey())->first() : null;
+        $branch = $freshSession
+            ? Branch::query()
+                ->whereKey($freshSession->branch_id)
+                ->where('tenant_id', $tenant->getKey())
+                ->where('is_active', true)
+                ->first()
+            : null;
+        if (! $freshUser || ! $tenant || ! $freshSession || ! $branch) {
+            return false;
+        }
+        if ($ownerAllowed && $this->isOwner($freshUser, $tenant)) {
+            return true;
+        }
+
+        return DB::table('branch_user')
+            ->where('tenant_id', $tenant->getKey())
+            ->where('branch_id', $freshSession->branch_id)
+            ->where('user_id', $freshUser->getKey())
+            ->where('is_active', true)
+            ->whereIn('role', $roles)
             ->exists();
     }
 }

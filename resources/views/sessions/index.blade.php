@@ -9,6 +9,7 @@
         $filterQuery = (string) data_get($filters ?? [], 'q', request()->query('q', ''));
         $filterStatus = (string) data_get($filters ?? [], 'status', request()->query('status', 'active'));
         $filterBranchId = (string) request()->query('branch_id', $selectedBranchId ?? '');
+        $checkoutErrorSessionId = (string) old('checkout_session_id', '');
         $selectedBranch = $branchList->firstWhere('id', (int) ($selectedBranchId ?? 0));
         $checkInBranchIds = collect($checkInBranchIds ?? [])->map(static fn (mixed $id): int => (int) $id)->filter(static fn (int $id): bool => $id > 0)->values()->all();
         $canCheckIn = $checkInBranchIds !== [];
@@ -29,6 +30,7 @@
         $statusClasses = [
             'active' => 'border-[var(--pn-success)] bg-[var(--pn-success-soft)] text-[var(--pn-success)]',
             'paused' => 'border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] text-[var(--pn-warning)]',
+            'pending_payment' => 'border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] text-[var(--pn-warning)]',
             'completed' => 'border-[var(--pn-info)] bg-[var(--pn-info-soft)] text-[var(--pn-info)]',
             'cancelled' => 'border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] text-[var(--pn-danger)]',
         ];
@@ -61,7 +63,7 @@
 
         @if ($errors->any())
             <div class="mt-6 rounded-[10px] border border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] p-4 text-[var(--pn-danger)]" id="sessions-errors" role="alert" aria-live="assertive" tabindex="-1" data-pn-focus-on-load>
-                <p class="font-semibold">{{ __('sessions.validation_failed') }}</p>
+                <p class="font-semibold">{{ $checkoutErrorSessionId !== '' ? __('sessions.checkout.validation_failed') : __('sessions.validation_failed') }}</p>
                 <ul class="mt-2 list-disc space-y-1 ps-5">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -265,6 +267,28 @@
                             if ($expectedEndAt instanceof \DateTimeInterface) {
                                 $expectedEndLabel = $expectedEndAt->setTimezone($sessionTimezoneObject)->format('Y-m-d H:i');
                             }
+                            $eligibleGuardians = collect(data_get($session, 'child.guardians', []));
+                            $canCheckout = (bool) data_get($session, 'can_checkout', false);
+                            $canOverrideCheckout = (bool) data_get($session, 'can_override_checkout', false);
+                            $checkoutSessionId = (string) data_get($session, 'id');
+                            $showCheckoutErrors = $checkoutErrorSessionId !== '' && $checkoutErrorSessionId === $checkoutSessionId;
+                            $checkoutIdempotencyKey = $showCheckoutErrors && filled(old('idempotency_key'))
+                                ? (string) old('idempotency_key')
+                                : (string) \Illuminate\Support\Str::uuid();
+                            $checkoutGuardianId = $showCheckoutErrors ? old('guardian_id') : null;
+                            $checkoutLastFour = $showCheckoutErrors ? (string) old('phone_last_four', '') : '';
+                            $checkoutVerificationMethod = $showCheckoutErrors ? (string) old('verification_method', 'phone_last_four') : 'phone_last_four';
+                            $checkoutOverrideReason = $showCheckoutErrors ? (string) old('override_reason', '') : '';
+                            $checkoutSnapshot = data_get($session, 'checkout_snapshot_json');
+                            $pendingAmountMinor = data_get($session, 'checkout_amount_due_minor', data_get($checkoutSnapshot, 'total_minor'));
+                            $pendingCurrency = (string) data_get($checkoutSnapshot, 'currency', '');
+                            $pendingPreparedAt = data_get($session, 'checkout_prepared_at');
+                            $pendingPreparedLabel = $pendingPreparedAt instanceof \DateTimeInterface
+                                ? $pendingPreparedAt->setTimezone($sessionTimezoneObject)->format('Y-m-d H:i')
+                                : __('sessions.not_available');
+                            $pendingAmountLabel = $pendingAmountMinor === null || $pendingCurrency === ''
+                                ? __('sessions.checkout.amount_unavailable')
+                                : $formatMoney($pendingAmountMinor, $pendingCurrency);
                         @endphp
                         <li class="flex min-w-0 flex-col rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm" data-pn-session-card>
                             <div class="flex items-start justify-between gap-3">
@@ -315,6 +339,94 @@
                                         <div><dt class="text-[var(--pn-ink-muted)]">{{ __('sessions.estimate.tax_amount') }}</dt><dd class="mt-1 font-semibold tabular-nums"><bdi dir="ltr">{{ $formatMoney(data_get($estimate, 'tax_minor'), data_get($estimate, 'currency')) }}</bdi></dd></div>
                                     </dl>
                                     <p class="mt-4 border-t border-[var(--pn-border)] pt-3 text-xs font-semibold leading-5 text-[var(--pn-ink-muted)]">{{ __('sessions.estimate.not_final_disclaimer') }}</p>
+                                </section>
+                            @endif
+                            @if ($sessionStatus === 'pending_payment')
+                                <section class="mt-5 rounded-[12px] border-2 border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] p-4" data-pn-checkout-state aria-labelledby="checkout-pending-{{ $checkoutSessionId }}">
+                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <h4 class="font-bold text-[var(--pn-warning)]" id="checkout-pending-{{ $checkoutSessionId }}">{{ __('sessions.checkout.pending_heading') }}</h4>
+                                            <p class="mt-1 text-sm leading-6 text-[var(--pn-ink)]">{{ __('sessions.checkout.pending_description') }}</p>
+                                        </div>
+                                        <div class="shrink-0 text-start">
+                                            <p class="text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.pending_amount') }}</p>
+                                            <p class="mt-1 text-xl font-bold tabular-nums text-[var(--pn-ink)]"><bdi dir="ltr">{{ $pendingAmountLabel }}</bdi></p>
+                                        </div>
+                                    </div>
+                                    <dl class="mt-4 grid gap-3 border-t border-[var(--pn-border)] pt-4 text-sm sm:grid-cols-2">
+                                        <div>
+                                            <dt class="font-semibold text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.pending_prepared_at') }}</dt>
+                                            <dd class="mt-1 tabular-nums"><bdi dir="ltr">{{ $pendingPreparedLabel }}</bdi></dd>
+                                        </div>
+                                        @if ($checkoutGuardian = $eligibleGuardians->firstWhere('id', (int) data_get($session, 'checkout_guardian_id')))
+                                            <div>
+                                                <dt class="font-semibold text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.verified_guardian') }}</dt>
+                                                <dd class="mt-1 truncate font-semibold">{{ $checkoutGuardian->full_name }}</dd>
+                                            </div>
+                                        @endif
+                                    </dl>
+                                    <p class="mt-4 border-t border-[var(--pn-border)] pt-3 text-sm font-semibold leading-6 text-[var(--pn-ink)]">{{ __('sessions.checkout.pending_handoff') }}</p>
+                                </section>
+                            @elseif ($sessionStatus === 'active' && $canCheckout)
+                                <section class="mt-5 rounded-[12px] border border-[var(--pn-primary)] bg-[var(--pn-primary-soft)] p-4" data-pn-checkout aria-labelledby="checkout-heading-{{ $checkoutSessionId }}">
+                                    <div>
+                                        <h4 class="font-bold text-[var(--pn-primary)]" id="checkout-heading-{{ $checkoutSessionId }}">{{ __('sessions.checkout.heading') }}</h4>
+                                        <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.description') }}</p>
+                                    </div>
+                                    <p class="mt-3 rounded-[10px] border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] p-3 text-sm font-semibold leading-6 text-[var(--pn-ink)]" id="checkout-consequence-{{ $checkoutSessionId }}">{{ __('sessions.checkout.consequence') }}</p>
+                                    @if ($eligibleGuardians->isEmpty())
+                                        <p class="mt-4 rounded-[10px] border border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-3 text-sm font-semibold text-[var(--pn-ink-muted)]" role="status">{{ __('sessions.checkout.no_guardians') }}</p>
+                                    @else
+                                        <form class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(9rem,12rem)_minmax(11rem,16rem)_auto] lg:items-end" method="POST" action="{{ route('sessions.checkout.prepare', ['session' => $checkoutSessionId]) }}" data-pn-form data-pn-submit data-pn-checkout-form aria-describedby="checkout-consequence-{{ $checkoutSessionId }}">
+                                            @csrf
+                                            <input type="hidden" name="checkout_session_id" value="{{ $checkoutSessionId }}">
+                                            <input type="hidden" name="expected_lock_version" value="{{ data_get($session, 'lock_version') }}">
+                                            @if ($canOverrideCheckout)
+                                                <div>
+                                                    <label class="block text-sm font-semibold" for="checkout-method-{{ $checkoutSessionId }}">{{ __('sessions.checkout.verification_method_label') }}</label>
+                                                    <select class="mt-2 min-h-12 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="checkout-method-{{ $checkoutSessionId }}" name="verification_method" required @if ($showCheckoutErrors && $errors->has('verification_method')) aria-invalid="true" @endif aria-describedby="checkout-method-hint-{{ $checkoutSessionId }}">
+                                                        <option value="phone_last_four" @selected($checkoutVerificationMethod === 'phone_last_four')>{{ __('sessions.checkout.verification_method_phone_last_four') }}</option>
+                                                        <option value="manager_override" @selected($checkoutVerificationMethod === 'manager_override')>{{ __('sessions.checkout.verification_method_manager_override') }}</option>
+                                                    </select>
+                                                    <p class="mt-1 text-xs leading-5 text-[var(--pn-ink-muted)]" id="checkout-method-hint-{{ $checkoutSessionId }}">{{ __('sessions.checkout.override_warning') }}</p>
+                                                    @if ($showCheckoutErrors && $errors->has('verification_method'))
+                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $errors->first('verification_method') }}</p>
+                                                    @endif
+                                                    <label class="mt-3 block text-sm font-semibold" for="checkout-override-reason-{{ $checkoutSessionId }}">{{ __('sessions.checkout.override_reason_label') }}</label>
+                                                    <input class="mt-2 min-h-12 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="checkout-override-reason-{{ $checkoutSessionId }}" name="override_reason" type="text" value="{{ $checkoutOverrideReason }}" placeholder="{{ __('sessions.checkout.override_reason_placeholder') }}" minlength="10" maxlength="500" autocomplete="off" @if ($showCheckoutErrors && $errors->has('override_reason')) aria-invalid="true" @endif aria-describedby="checkout-override-reason-hint-{{ $checkoutSessionId }}">
+                                                    <p class="mt-1 text-xs leading-5 text-[var(--pn-ink-muted)]" id="checkout-override-reason-hint-{{ $checkoutSessionId }}">{{ __('sessions.checkout.override_reason_hint') }}</p>
+                                                    @if ($showCheckoutErrors && $errors->has('override_reason'))
+                                                        <p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $errors->first('override_reason') }}</p>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <input type="hidden" name="verification_method" value="phone_last_four">
+                                            @endif
+                                            <input type="hidden" name="idempotency_key" value="{{ $checkoutIdempotencyKey }}">
+                                            <div>
+                                                <label class="block text-sm font-semibold" for="checkout-guardian-{{ $checkoutSessionId }}">{{ __('sessions.checkout.guardian_label') }}</label>
+                                                <select class="mt-2 min-h-12 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="checkout-guardian-{{ $checkoutSessionId }}" name="guardian_id" @required(! $canOverrideCheckout) @if ($showCheckoutErrors && $errors->has('guardian_id')) aria-invalid="true" @endif aria-describedby="checkout-guardian-hint-{{ $checkoutSessionId }}">
+                                                    <option value="">{{ __('sessions.checkout.guardian_placeholder') }}</option>
+                                                    @foreach ($eligibleGuardians as $eligibleGuardian)
+                                                        <option value="{{ $eligibleGuardian->id }}" @selected((string) $checkoutGuardianId === (string) $eligibleGuardian->id)>{{ $eligibleGuardian->full_name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <p class="mt-1 text-xs leading-5 text-[var(--pn-ink-muted)]" id="checkout-guardian-hint-{{ $checkoutSessionId }}">{{ __('sessions.checkout.guardian_hint') }}</p>
+                                                @if ($showCheckoutErrors && $errors->has('guardian_id'))
+                                                    <p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $errors->first('guardian_id') }}</p>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold" for="checkout-phone-last-four-{{ $checkoutSessionId }}">{{ __('sessions.checkout.phone_last_four_label') }}</label>
+                                                <input class="mt-2 min-h-12 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 font-mono font-semibold tracking-[0.2em] focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="checkout-phone-last-four-{{ $checkoutSessionId }}" name="phone_last_four" type="text" value="{{ $checkoutLastFour }}" placeholder="{{ __('sessions.checkout.phone_last_four_placeholder') }}" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" @required(! $canOverrideCheckout) @if ($showCheckoutErrors && $errors->has('phone_last_four')) aria-invalid="true" @endif aria-describedby="checkout-phone-last-four-hint-{{ $checkoutSessionId }}">
+                                                <p class="mt-1 text-xs leading-5 text-[var(--pn-ink-muted)]" id="checkout-phone-last-four-hint-{{ $checkoutSessionId }}">{{ __('sessions.checkout.phone_last_four_hint') }}</p>
+                                                @if ($showCheckoutErrors && $errors->has('phone_last_four'))
+                                                    <p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $errors->first('phone_last_four') }}</p>
+                                                @endif
+                                            </div>
+                                            <button class="inline-flex min-h-12 items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-5 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit" data-pn-submit data-pn-loading-label="{{ __('sessions.checkout.loading') }}">{{ __('sessions.checkout.submit') }}</button>
+                                        </form>
+                                    @endif
                                 </section>
                             @endif
                         </li>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Child;
+use App\Models\Guardian;
 use App\Models\PlaySession;
 use App\Models\PlaySessionEvent;
 use App\Models\PricingRule;
@@ -18,6 +19,7 @@ use App\Support\TicketEligibility;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,7 +35,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PlaySessionController extends Controller
 {
-    private const STATUSES = ['active', 'all', 'paused', 'completed', 'cancelled'];
+    private const STATUSES = ['active', 'all', 'paused', 'pending_payment', 'completed', 'cancelled'];
 
     public function index(Request $request): View
     {
@@ -63,6 +65,12 @@ class PlaySessionController extends Controller
             ->with([
                 'branch:id,tenant_id,name,timezone,capacity',
                 'child:id,tenant_id,full_name',
+                'child.guardians' => fn (BelongsToMany $query): BelongsToMany => $query
+                    ->where('guardians.status', 'active')
+                    ->wherePivot('is_active', true)
+                    ->wherePivot('can_check_out', true)
+                    ->wherePivotNotNull('verified_at')
+                    ->orderBy('guardians.full_name'),
                 'guardian:id,tenant_id,full_name',
                 'ticket:id,tenant_id,branch_id,display_code,price_snapshot_json',
             ]);
@@ -92,7 +100,7 @@ class PlaySessionController extends Controller
             ->paginate(25)
             ->withQueryString();
         $serverNow = CarbonImmutable::now('UTC');
-        $sessions->getCollection()->each(static function (PlaySession $session) use ($serverNow): void {
+        $sessions->getCollection()->each(static function (PlaySession $session) use ($serverNow, $actor, $policy): void {
             $estimate = null;
             $snapshot = $session->pricing_snapshot_json;
             if ($session->status === 'active' && $session->started_at !== null && is_array($snapshot)) {
@@ -107,6 +115,8 @@ class PlaySessionController extends Controller
                 }
             }
             $session->setAttribute('live_estimate', $estimate);
+            $session->setAttribute('can_checkout', $session->status === 'active' && $policy->checkout($actor, $session));
+            $session->setAttribute('can_override_checkout', $session->status === 'active' && $policy->overrideCheckout($actor, $session));
         });
 
         $branchOccupancy = [];
@@ -309,6 +319,137 @@ class PlaySessionController extends Controller
         });
 
         return $this->checkInResponse($request, $result);
+    }
+
+    public function prepareCheckout(Request $request, PlaySession $session): JsonResponse|RedirectResponse
+    {
+        [$actor, $tenant] = $this->authorizedContext($request);
+        $request->merge(['idempotency_key' => $request->header('Idempotency-Key', $request->input('idempotency_key'))]);
+        $data = Validator::make($request->all(), [
+            'expected_lock_version' => ['required', 'integer', 'min:1'],
+            'verification_method' => ['required', Rule::in(['phone_last_four', 'manager_override'])],
+            'guardian_id' => ['nullable', 'required_if:verification_method,phone_last_four', 'integer'],
+            'phone_last_four' => ['nullable', 'required_if:verification_method,phone_last_four', 'digits:4'],
+            'override_reason' => ['nullable', 'required_if:verification_method,manager_override', 'string', 'min:10', 'max:500'],
+            'idempotency_key' => ['required', 'uuid'],
+        ])->validate();
+
+        $result = DB::transaction(function () use ($request, $actor, $tenant, $session, $data): array {
+            [$lockedActor, $lockedTenant] = $this->lockedContext($actor, $tenant);
+            $lockedSession = PlaySession::query()
+                ->whereKey($session->getKey())
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            $branch = $this->lockedBranch($lockedTenant, $lockedActor, (int) $lockedSession->branch_id);
+            Gate::forUser($lockedActor)->authorize('checkout', $lockedSession);
+
+            $fingerprint = hash('sha256', json_encode([
+                'session_id' => (int) $lockedSession->getKey(),
+                'expected_lock_version' => (int) $data['expected_lock_version'],
+                'verification_method' => $data['verification_method'],
+                'guardian_id' => isset($data['guardian_id']) ? (int) $data['guardian_id'] : null,
+                'phone_last_four' => $data['phone_last_four'] ?? null,
+                'override_reason' => isset($data['override_reason']) ? trim($data['override_reason']) : null,
+            ], JSON_THROW_ON_ERROR));
+
+            $keyOwner = PlaySession::query()
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->where('checkout_idempotency_key', $data['idempotency_key'])
+                ->lockForUpdate()
+                ->first();
+            if ($keyOwner) {
+                abort_unless($keyOwner->is($lockedSession) && hash_equals((string) $keyOwner->checkout_fingerprint, $fingerprint), 409, __('sessions.checkout.idempotency_conflict'));
+
+                return [$keyOwner, false];
+            }
+
+            abort_if((int) $lockedSession->lock_version !== (int) $data['expected_lock_version'], 409, __('sessions.checkout.stale'));
+            abort_unless($lockedSession->status === 'active', 409, __('sessions.checkout.status_conflict'));
+
+            $guardian = null;
+            $overrideReason = null;
+            if ($data['verification_method'] === 'phone_last_four') {
+                $relationship = DB::table('guardian_child')
+                    ->where('tenant_id', $lockedTenant->getKey())
+                    ->where('guardian_id', (int) $data['guardian_id'])
+                    ->where('child_id', (int) $lockedSession->child_id)
+                    ->where('is_active', true)
+                    ->where('can_check_out', true)
+                    ->whereNotNull('verified_at')
+                    ->lockForUpdate()
+                    ->first();
+                abort_unless($relationship !== null, 404);
+
+                $guardian = Guardian::query()
+                    ->where('guardians.tenant_id', $lockedTenant->getKey())
+                    ->where('guardians.id', (int) $data['guardian_id'])
+                    ->where('guardians.status', 'active')
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                if (! hash_equals(substr($guardian->phone_e164, -4), (string) $data['phone_last_four'])) {
+                    throw ValidationException::withMessages([
+                        'phone_last_four' => __('sessions.checkout.phone_mismatch'),
+                    ]);
+                }
+            } else {
+                Gate::forUser($lockedActor)->authorize('overrideCheckout', $lockedSession);
+                $overrideReason = trim((string) $data['override_reason']);
+            }
+
+            try {
+                $preparedAt = CarbonImmutable::now('UTC');
+                $quote = SessionQuoteCalculator::calculate($lockedSession->pricing_snapshot_json, $lockedSession->started_at, $preparedAt);
+            } catch (InvalidArgumentException) {
+                abort(409, __('sessions.checkout.calculation_failed'));
+            }
+
+            $beforeVersion = (int) $lockedSession->lock_version;
+            $lockedSession->forceFill([
+                'status' => 'pending_payment',
+                'checkout_idempotency_key' => $data['idempotency_key'],
+                'checkout_fingerprint' => $fingerprint,
+                'checkout_guardian_id' => $guardian?->getKey(),
+                'checkout_verification_method' => $data['verification_method'],
+                'checkout_override_reason' => $overrideReason,
+                'checkout_verified_by_user_id' => $lockedActor->getKey(),
+                'checkout_verified_at' => $preparedAt,
+                'checkout_prepared_at' => $preparedAt,
+                'checkout_snapshot_json' => $quote,
+                'checkout_amount_due_minor' => $quote['total_minor'],
+                'lock_version' => $beforeVersion + 1,
+            ])->save();
+
+            PlaySessionEvent::query()->create([
+                'tenant_id' => $lockedTenant->getKey(),
+                'session_id' => $lockedSession->getKey(),
+                'event_type' => 'checkout_prepared',
+                'from_status' => 'active',
+                'to_status' => 'pending_payment',
+                'reason_code' => $data['verification_method'] === 'manager_override' ? 'guardian_manager_override' : 'guardian_verified',
+                'actor_user_id' => $lockedActor->getKey(),
+                'occurred_at' => $preparedAt,
+                'metadata_json' => ['amount_due_minor' => $quote['total_minor'], 'currency' => $quote['currency']],
+                'request_id' => $this->requestId($request),
+            ]);
+            $this->auditCheckout($request, $lockedActor, $lockedTenant, $branch, $lockedSession, $beforeVersion);
+
+            return [$lockedSession, true];
+        });
+
+        [$prepared, $created] = $result;
+        if ($request->expectsJson()) {
+            return response()->json([
+                'session_id' => $prepared->getKey(),
+                'status' => $prepared->status,
+                'amount_due_minor' => $prepared->checkout_amount_due_minor,
+                'currency' => data_get($prepared->checkout_snapshot_json, 'currency'),
+                'created' => $created,
+            ], $created ? 201 : 200);
+        }
+
+        return to_route('sessions.index', ['branch_id' => $prepared->branch_id, 'status' => 'pending_payment'])
+            ->with('success', __('sessions.checkout.prepared'));
     }
 
     /** @return array{User, Tenant} */
@@ -530,6 +671,32 @@ class PlaySessionController extends Controller
                 'ticket_assignment_locked' => true,
                 'session_status' => 'active',
                 'session_id' => (string) $session->getKey(),
+            ], JSON_THROW_ON_ERROR),
+            'request_id' => $this->requestId($request),
+            'occurred_at' => now('UTC'),
+        ]);
+    }
+
+    private function auditCheckout(Request $request, User $actor, Tenant $tenant, Branch $branch, PlaySession $session, int $beforeVersion): void
+    {
+        DB::table('audit_logs')->insert([
+            'tenant_id' => $tenant->getKey(),
+            'branch_id' => $branch->getKey(),
+            'actor_user_id' => $actor->getKey(),
+            'actor_type' => 'user',
+            'action' => 'session.checkout_prepared',
+            'subject_type' => 'play_session',
+            'subject_id' => (string) $session->getKey(),
+            'outcome' => 'success',
+            'reason_code' => $session->checkout_verification_method === 'manager_override' ? 'guardian_manager_override' : 'guardian_verified',
+            'before_json' => json_encode(['status' => 'active', 'lock_version' => $beforeVersion], JSON_THROW_ON_ERROR),
+            'after_json' => json_encode([
+                'status' => 'pending_payment',
+                'lock_version' => $session->lock_version,
+                'amount_due_minor' => $session->checkout_amount_due_minor,
+                'currency' => data_get($session->checkout_snapshot_json, 'currency'),
+                'verification_method' => $session->checkout_verification_method,
+                'guardian_id' => $session->checkout_guardian_id,
             ], JSON_THROW_ON_ERROR),
             'request_id' => $this->requestId($request),
             'occurred_at' => now('UTC'),

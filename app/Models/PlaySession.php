@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlaySession extends Model
 {
+    protected $hidden = [
+        'checkout_idempotency_key',
+        'checkout_fingerprint',
+    ];
+
     protected $fillable = [
         'tenant_id',
         'branch_id',
@@ -22,6 +27,16 @@ class PlaySession extends Model
         'pricing_snapshot_json',
         'created_by_user_id',
         'lock_version',
+        'checkout_idempotency_key',
+        'checkout_fingerprint',
+        'checkout_guardian_id',
+        'checkout_verification_method',
+        'checkout_override_reason',
+        'checkout_verified_by_user_id',
+        'checkout_verified_at',
+        'checkout_prepared_at',
+        'checkout_snapshot_json',
+        'checkout_amount_due_minor',
     ];
 
     protected function casts(): array
@@ -31,6 +46,10 @@ class PlaySession extends Model
             'expected_end_at' => 'immutable_datetime',
             'ended_at' => 'immutable_datetime',
             'pricing_snapshot_json' => 'array',
+            'checkout_verified_at' => 'immutable_datetime',
+            'checkout_prepared_at' => 'immutable_datetime',
+            'checkout_snapshot_json' => 'array',
+            'checkout_amount_due_minor' => 'integer',
             'lock_version' => 'integer',
         ];
     }

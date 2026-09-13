@@ -6,6 +6,10 @@
 
 The read-only live estimate inherits board visibility: Owner, assigned Branch Manager/Reception/Cashier may see it only for sessions already visible in active branch scope. It grants no checkout/payment permission, accepts no client amount, and exposes no additional guardian PII.
 
+## 2026-09-13 OQ-19 checkout preparation boundary
+
+Reception and assigned Branch Managers may prepare checkout for an active in-scope session: the server verifies the linked checkout-capable guardian by registered-phone last four digits, or a Branch Manager/Owner uses the separate manager-override permission with a non-empty reason. Successful preparation freezes the immutable quote, records actor/time/evidence, increments the lock version, and moves the session to `pending_payment` for the Cashier queue. Cashier is denied preparation and may only receive the queue for the later M5 matching-payment command. Replays are idempotent; changed keys, stale locks, foreign/ineligible guardians, and terminal sessions fail without mutation. This slice does not grant payment, refund, receipt, release, or shift permissions.
+
 ## 2026-09-13 ticket lifecycle policy implementation
 
 `TicketPolicy` reuses the current fixed pricing/branch policy: active Tenant Owner, assigned Branch Manager, Reception, and Cashier can issue, validate, reprint, and correct an unused pre-scan ticket in scope. Only Owner/assigned Branch Manager can create immutable ticket types or cancel unused tickets. A custom role with only `branches.view` never gains ticket abilities. Resource queries return 404 for foreign, unassigned, or inactive scope; an active in-scope fixed role missing the manager action receives 403. Fresh authorization is repeated under the existing tenant command lock. Sensitive correction/cancellation require reason, expected version, and atomic audit; no financial refund approval or execution ability is exposed by this subset.
@@ -136,7 +140,7 @@ Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is
 | Guardian-checkout override `sessions.checkout.override` | — | T/A | B/A | R | — | — | — |
 | View session history `sessions.history.view` | support only | T | B | B | B/M | — | O/future |
 
-Reception checkout without override requires an active checkout-capable guardian relationship plus the approved OQ-12 session/ticket QR and registered-phone-last-four or handoff-code evidence. Completion also requires the linked order fully paid, while station/role ownership remains open under OQ-19. M4 is not implemented. Completed/cancelled sessions cannot be edited; corrections are append-only adjustments.
+Reception checkout preparation without override requires an active checkout-capable guardian relationship plus the approved OQ-12 session/ticket QR and registered-phone-last-four evidence. Preparation freezes the quote and enters `pending_payment`; completion still requires the later linked order payment. Completed/cancelled sessions cannot be edited; corrections are append-only adjustments.
 
 **Approved OQ-18 boundary:** issue/scan actions never widen ticket scope beyond its tenant, branch, and service date. Authorized staff may correct holder assignment only before the first successful scan. A refund-eligible ticket must remain unused with no successful scan, consumption, or linked session; Branch Manager or Tenant Owner approval is mandatory and does not replace the separate refund execution permission under OQ-09.
 

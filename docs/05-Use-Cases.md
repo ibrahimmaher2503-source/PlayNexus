@@ -2,7 +2,7 @@
 
 ## 2026-09-13 UC-04 implemented boundary
 
-UC-04 is implemented through ticket-backed check-in and the live board: current authorized scope and family safety are revalidated, one ticket/session commits atomically and idempotently, hard branch capacity and tenant-wide duplicate-child state are enforced, and rejected attempts retain privacy-safe scan evidence without business mutation. The UC-05 read-only monitoring/estimate portion now derives exact grace/overtime/tax values from immutable facts without persistence; pause/resume/extend/adjust/cancel remain unimplemented. Browser acceptance covers Owner and Cashier. UC-06/07 checkout/release and all financial completion remain outside this boundary.
+UC-04 is implemented through ticket-backed check-in and the live board: current authorized scope and family safety are revalidated, one ticket/session commits atomically and idempotently, hard branch capacity and tenant-wide duplicate-child state are enforced, and rejected attempts retain privacy-safe scan evidence without business mutation. The UC-05 read-only monitoring/estimate portion now derives exact grace/overtime/tax values from immutable facts without persistence; pause/resume/extend/adjust/cancel remain unimplemented. The first UC-06/OQ-19 preparation boundary also verifies the guardian (or audited manager override), freezes the quote, and hands the session to the Cashier as `pending_payment`; payment, receipt, release, refund, and shift completion remain outside this boundary.
 
 **Document version:** 1.1  
 **Status:** Draft operational-flow baseline  
@@ -426,6 +426,8 @@ Global constraints for all use cases:
 **Rules:** BR-004, BR-005, BR-006, BR-013, BR-014, BR-016, BR-017, BR-018, BR-019.  
 **Requirement links:** FR-SES-007–011, FR-SES-014, FR-TIM-003–007, FR-POS-002–009, FR-SAF-001–002, FR-NOT-002–006, DATA-FIN-001, DATA-NUM-001, DATA-INT-001.  
 **Story links:** US-SES-007, US-SES-008, US-SES-010, US-POS-002, US-POS-003, US-POS-004, US-NOT-002.
+
+**M4/OQ-19 implemented preparation boundary:** Reception verifies the active checkout-capable guardian with registered-phone last four digits, or a Branch Manager records a permission-checked, reasoned override. The server freezes the exact quote and moves the session to `pending_payment`; Cashier only receives the handoff and cannot prepare it. Identical retries return the original preparation, while changed retries, stale versions, ineligible/foreign guardians, and terminal sessions do not mutate state. M5 payment posting, receipt issuance, child release, refunds, and shifts are excluded.
 
 ## 9. UC-07 — Authorize an exceptional guardian checkout
 

@@ -1,5 +1,13 @@
 # PlayNexus Agent Plan
 
+## 2026-09-13 M4 checkout-preparation slice — OQ-19 accepted
+
+OQ-19 is resolved as a reception-to-cashier handoff. Reception or an assigned Branch Manager verifies an active checkout-capable guardian by registered-phone last four digits, or records a permission-checked manager override with a non-empty reason. The server calculates from immutable session facts, freezes the exact quote, records the verification/event/audit evidence, increments the lock version, and moves the session to `pending_payment` for the Cashier queue. Cashier cannot prepare checkout; M5 matching payment posting will atomically complete the session. Identical UUID retries return the original preparation, while changed replays, stale locks, ineligible/foreign guardians, and terminal sessions fail safely without mutation. This slice excludes payment, refund, receipt, child-release and shift behavior.
+
+**Focused result:** `php artisan test --compact tests/Feature/PlaySessionCheckoutPreparationTest.php` — PASS, 8 tests / 66 assertions on process-local SQLite. Full regression, isolated MySQL and browser acceptance are pending and are not claimed here.
+
+**Central integration result:** Full process-local SQLite `php artisan test --compact` — PASS, 293 total / 291 passed / 2 skipped / 2,494 assertions. `npm run build` — PASS (existing optional `fontaine` notice); scoped Pint, Blade cache/compilation and `git diff --check` — PASS. A full global Pint run only exposed the pre-existing `ordered_imports` issue in `StaffStatusController`, outside M4; it was not modified. PHP 8.5, isolated MySQL and browser acceptance remain pending.
+
 ## 2026-09-13 M3 read-only live quote wave
 
 After accepting ticket-backed check-in, implement the smallest remaining M3 pricing proof without entering M4 checkout: a deterministic read-only live estimate from each Active session's immutable pricing snapshot and server time. Three Luna/xhigh workstreams own the pure calculator, boundary tests, and bilingual copy; the coordinator owns policy/query integration, UI composition, browser/MySQL regression and canonical documentation.

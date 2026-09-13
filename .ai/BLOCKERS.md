@@ -1,10 +1,10 @@
 # Blockers
 
-## 2026-09-13 M3 closed; M4 gates
+## 2026-09-13 M4 preparation accepted; M5 gates
 
 No local engineering blocker remains for M3 pricing, tickets, ticket-backed check-in, hard branch capacity, masked live board or the read-only live estimate. Exact time/tax fixtures, non-mutation, malformed-snapshot recovery, focused/full SQLite, PHP 8.5, full isolated MySQL, true multi-process concurrency and authenticated bilingual responsive Edge QA all pass.
 
-M4 is explicitly not started. OQ-12 guardian verification is approved as QR/session identity plus registered-guardian phone last four digits or handoff code, with a reasoned single-use manager override. OQ-19 station/payment handoff and recovery remains open; OQ-09 continues to gate financial refund execution. Production remains gated by the selected runtime database/migration plan, Legal/DPO approval, deployment security, monitoring and operational drills.
+The first M4 preparation slice is locally accepted by focused SQLite tests (8 tests / 66 assertions): Reception/Manager verification, exact frozen quote, cashier denial, manager override reason/audit, stale lock, idempotent replay/conflict, terminal state, and safe guardian failures. OQ-19 is resolved as reception-to-cashier handoff; M5 still must implement matching payment posting and atomic completion. Full regression, isolated MySQL, browser, payment/refund/receipt/shift, and production acceptance remain open. OQ-09 continues to gate financial refund execution. Production remains gated by the selected runtime database/migration plan, Legal/DPO approval, deployment security, monitoring and operational drills.
 
 ## 2026-09-13 historical ticket-only gates
 
