@@ -586,3 +586,15 @@ Review rejected the worker migration's nonexistent `Blueprint::check` calls befo
 | Runtime boundary | SQLite `:memory:` and array sessions; browser deferred by user; current MySQL migrations and PHP 8.5 unverified |
 
 The independent test slice initially exposed integration mismatches. Coordinator corrected production authorization, data minimization, translation, idempotency form wiring and reason-code UI, then corrected two test fixtures that used Query Builder `whereKey` and stale unhydrated defaults. Platform provisioning proves atomic tenant/invited-owner/ownership/audit creation, normalized idempotent replay, conflicting replay denial, rollback, status locking, audit attribution, and tenant-user isolation.
+
+# 2026-09-13 consolidated main-workspace acceptance
+
+| Check | Result |
+|---|---|
+| Focused consolidated navigation | `php artisan test --compact tests/Feature/OwnerBranchAccessTest.php tests/Feature/TenantOwnerReadTest.php tests/Feature/NavigationUiTest.php` — PASS, 22 tests / 123 assertions |
+| Full regression | `php artisan test --compact` — PASS, 285 tests total / 283 passed / 2 skipped / 2,428 assertions |
+| Frontend | `npm run build` — PASS; optional `fontaine` notice only |
+| Documentation | `python tools/validate_documentation.py` — PASS, 32 Markdown files / 0 errors / 2 existing review-placeholder warnings |
+| Whitespace | `git diff --check` — PASS |
+
+The integration branch was fast-forwarded into `main`. Navigation assertions now match the consolidated Organization and Staff & access destinations; the underlying direct routes remain available and covered separately.

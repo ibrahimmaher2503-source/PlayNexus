@@ -34,7 +34,7 @@ class OwnerBranchAccessTest extends TestCase
         $this->get(route('dashboard'))
             ->assertOk()
             ->assertSee($second->name)
-            ->assertSee(__('Selected'));
+            ->assertSee(__('dashboard.workspace_title'));
 
         $this->getJson('/branches/'.$first->id)
             ->assertOk()

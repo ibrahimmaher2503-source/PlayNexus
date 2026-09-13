@@ -30,12 +30,12 @@ class TenantOwnerReadTest extends TestCase
 
         $this->get(route('dashboard'))
             ->assertOk()
-            ->assertSee(route('tenant.show'), false)
             ->assertSee(route('tenant.settings.edit'), false)
             ->assertSee(route('staff.index'), false)
-            ->assertSee(route('assignments.index'), false)
             ->assertSee(route('branches.manage'), false)
-            ->assertSee(route('audit.index'), false);
+            ->assertSee(route('audit.index'), false)
+            ->assertDontSee(route('assignments.index'), false)
+            ->assertDontSee(route('roles.index'), false);
 
         $this->getJson('/branches/'.$branch->id)->assertOk()->assertJsonPath('id', $branch->id);
     }
