@@ -34,6 +34,10 @@
   - [x] Read-only estimate: approved tax/time fixtures, exact integer boundaries, non-mutation/fail-closed behavior, full MySQL/SQLite/PHP 8.5 and bilingual responsive browser evidence.
   - [x] M3 local closure. Checkout, guardian release and financial workflows remain later; ticket cancellation does not execute a refund.
 - [ ] M4 time engine and checkout.
+  - [x] OQ-19 reception-to-cashier preparation: guardian verification or audited manager override, frozen quote, idempotent `pending_payment` handoff.
+  - [x] Live-session UI: due/overdue labels, fixed 30-minute extension, manager/owner additive adjustment with reason, and cancellation with explicit no-refund consequence.
+  - [x] Pending-payment UI: frozen subtotal/tax/total breakdown with payment, receipt, refund, shift, and child-release controls excluded.
+  - [ ] Final runtime acceptance and remaining checkout/time-engine gates; pause/resume is intentionally excluded from the Egypt MVP.
 - [ ] M5 POS, payment, refund, and receipt.
 - [ ] M6 reports, notifications, hardening, and pilot.
 

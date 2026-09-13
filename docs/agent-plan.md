@@ -1,5 +1,11 @@
 # PlayNexus Agent Plan
 
+## 2026-09-14 M4 lifecycle/time-and-charge implementation — locally accepted
+
+The approved OQ-19 reception-to-cashier handoff is now implemented with the remaining bounded M4 lifecycle controls: server-derived on-time/due/overdue labels; active-session extension only in fixed 30-minute units using immutable snapshot money; Manager/Owner additive, reasoned, append-only charge/time correction; and reasoned, terminal, non-refund cancellation. A frozen quote is prepared only after guardian last-four verification or a permission-checked reasoned Manager/Owner override, then `pending_payment` becomes immutable for this slice. Extension time moves the overtime boundary and its frozen unit amount is charged exactly once.
+
+Every write is tenant/branch scoped, transaction-locked, version-guarded, UUID-idempotent and recorded as session event plus audit evidence. Native HTML actions redirect back to the scoped board; JSON clients receive the structured result. Focused M4 acceptance is PASS on SQLite: 26 passed, 1 explicit MySQL-only concurrency skip, 197 assertions. Scoped Pint, Vite, Blade compilation, route registration, documentation validation and whitespace checks pass. M5 payment/completion, receipt, refund, child release, shifts, pause/resume and provider notifications are excluded. Isolated MySQL 8.4/InnoDB and authenticated browser runtime evidence remain required before calling the milestone runtime-accepted.
+
 ## 2026-09-13 M4 checkout-preparation slice — OQ-19 accepted
 
 OQ-19 is resolved as a reception-to-cashier handoff. Reception or an assigned Branch Manager verifies an active checkout-capable guardian by registered-phone last four digits, or records a permission-checked manager override with a non-empty reason. The server calculates from immutable session facts, freezes the exact quote, records the verification/event/audit evidence, increments the lock version, and moves the session to `pending_payment` for the Cashier queue. Cashier cannot prepare checkout; M5 matching payment posting will atomically complete the session. Identical UUID retries return the original preparation, while changed replays, stale locks, ineligible/foreign guardians, and terminal sessions fail safely without mutation. This slice excludes payment, refund, receipt, child-release and shift behavior.

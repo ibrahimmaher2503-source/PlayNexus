@@ -16,6 +16,9 @@ x-playnexus-implemented-web-ticketing:
     - POST /app/tickets/{ticket}/reprint
     - GET /app/sessions
     - POST /app/sessions/check-in
+    - POST /app/sessions/{session}/extend
+    - POST /app/sessions/{session}/cancel
+    - POST /app/sessions/{session}/adjustments
   specification: ../09-API-Specification.md
   validity: branch-local service_date; immutable UTC half-open operating window and timezone snapshot
   idempotency: issue and validation scan require tenant-actor-scoped UUID and canonical fingerprint
@@ -23,7 +26,7 @@ x-playnexus-implemented-web-ticketing:
   family_guard: verified active checkout-capable relationship; latest granted child_data consent; emergency contact
   qr: opaque random payload encrypted at rest; SHA-256 lookup; local client rendering; non-cacheable authorized artifact
   check_in: authorized ticket-backed consumption plus one Active play session; tenant-wide child uniqueness and hard branch capacity; UUID replay safety
-  exclusions: validation alone does not consume; cancellation is not payment refund; checkout, final charge, payment and refund commands remain planned
+  exclusions: validation alone does not consume; session cancellation is not payment refund; pause/resume and provider notifications are disabled/deferred for Egypt MVP; final charge, payment, receipt and refund commands remain planned
 openapi: 3.1.0
 info:
   title: PlayNexus MVP API

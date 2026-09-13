@@ -4,11 +4,11 @@
 **Source baseline:** PlayNexus PRD v1.0, June 2026  
 **Verified source:** 27,198 bytes; SHA-256 `D9119C1A3325DD8DBF318296EB52DDFF95B064A0C0061EAD96CAAD68D9FEF5D2`  
 **Implementation target:** Laravel web MVP  
-**Status:** M1 locally accepted; Egypt M2 engineering implemented / release partial; M3 pricing, tickets, ticket-backed check-in/live board and read-only estimate locally accepted / release partial
+**Status:** M1 locally accepted; Egypt M2 engineering implemented / release partial; M3 pricing, tickets, ticket-backed check-in/live board and read-only estimate locally accepted / release partial; M4 preparation and session-lifecycle UI implemented / release partial
 
 ## Implementation status — 2026-09-13
 
-M1 access and branch foundation is DONE. The approved Egypt M2 family contract is implemented, including hard duplicate-phone reuse, consent/withdrawal, emergency/safety safeguards and verified relationship lifecycle. M3 is locally accepted with immutable pricing versions, ticket lifecycle, atomic ticket-backed check-in, hard capacity, masked live sessions and an exact non-persisted estimate from immutable pricing/time/tax facts. Full isolated MySQL/SQLite/PHP 8.5 and scoped authenticated Edge acceptance pass. M4 time mutations/final checkout, guardian release, financial workflows and production approval remain open; an estimate is not checkout and cancellation is not a refund. See `.ai/TEST_RESULTS.md` for current evidence.
+M1 access and branch foundation is DONE. The approved Egypt M2 family contract is implemented, including hard duplicate-phone reuse, consent/withdrawal, emergency/safety safeguards and verified relationship lifecycle. M3 is locally accepted with immutable pricing versions, ticket lifecycle, atomic ticket-backed check-in, hard capacity, masked live sessions and an exact non-persisted estimate from immutable pricing/time/tax facts. M4 now includes OQ-19 preparation, due/overdue labels, 30-minute extensions, reasoned manager/owner adjustments and cancellation, plus a frozen `pending_payment` invoice view. Full final checkout, payment, receipt, refund, child release, shift and production approval remain open; an estimate is not checkout and cancellation is not a refund. See `.ai/TEST_RESULTS.md` for current evidence.
 
 `docs/` is the single source of truth for product, technical, delivery, and implementation documentation. Do not create parallel summary copies.
 
@@ -57,7 +57,7 @@ Deferred: native apps, online marketplace, AI, advanced loyalty and memberships,
 
 - **Approved:** record-only in-person payments/no online gateway; browser keyboard-input scanners; Egypt/EGP/Africa-Cairo/Arabic-English; online-only operation; branch/year immutable receipt numbering/content; fixed-duration/grace/overtime pricing; QR plus registered-guardian confirmation with audited override; branch-scoped roles/support rules; optional DOB; branded SaaS.
 - **Approved/deferred:** incident management is outside the current MVP family/session boundary; restricted safety notes remain.
-- **Still open:** OQ-04 subscription limits, OQ-05/OQ-13 notification providers and alert policy, OQ-09 refund method/window, OQ-19 checkout/payment station handoff, OQ-21 measurable load, OQ-22 security timings/retention, and OQ-24 cashier shift close.
+- **Still open:** OQ-04 subscription limits, OQ-05/OQ-13 notification providers and alert policy, OQ-09 refund method/window, OQ-21 measurable load, OQ-22 security timings/retention, and OQ-24 cashier shift close. OQ-19 station ownership is resolved for the preparation handoff; matching payment/completion remains M5.
 
 Unresolved items are labeled assumptions; they are not hidden product commitments.
 

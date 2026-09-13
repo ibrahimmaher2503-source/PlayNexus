@@ -31,6 +31,7 @@ Route::middleware(['auth', 'tenant.access'])->group(function (): void {
     require __DIR__.'/pricing.php';
     require __DIR__.'/tickets.php';
     require __DIR__.'/play-sessions.php';
+    require __DIR__.'/play-session-adjustments.php';
     Route::get('/app', [BranchContextController::class, 'index'])->name('dashboard');
     Route::get('/app/tenant', [TenantReadController::class, 'show'])->name('tenant.show');
     Route::post('/branch-context/{branch}', [BranchContextController::class, 'store'])->name('branch-context.store');

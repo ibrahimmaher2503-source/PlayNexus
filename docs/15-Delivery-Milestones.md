@@ -24,9 +24,9 @@ Pricing rules, ticket types, QR/barcode token, check-in workflow, live session b
 
 ## M4: Time engine and checkout
 
-**Status: PARTIAL — 2026-09-13.** OQ-19 is resolved as a reception-to-cashier handoff: Reception/Manager verifies the guardian or records an audited override, freezes the exact server quote, and moves the session to `pending_payment`; Cashier receives the queue for the later M5 matching-payment command. Preparation is idempotent and lock/version guarded. Payment, receipt, child release, refunds, shifts, and the remaining time-engine transitions are not implemented.
+**Status: PARTIAL — 2026-09-13.** OQ-19 is resolved as a reception-to-cashier handoff: Reception/Manager verifies the guardian or records an audited override, freezes the exact server quote, and moves the session to `pending_payment`; Cashier receives the queue for the later M5 matching-payment command. Preparation is idempotent and lock/version guarded. The live board also supports due/overdue labels, fixed 30-minute extension, manager/owner additive adjustment with reason, and reasoned cancellation with no refund. Payment, receipt, child release, refunds, shifts, pause/resume, provider notifications, and final completion are not implemented.
 
-Pause/resume/extend/cancel, alerts, guardian verification, final calculation, manager adjustment, concurrency protection, and explainable billing breakdown.
+Remaining M4 work is limited to final integration/acceptance of the time-engine and checkout boundaries. Pause/resume is intentionally excluded from the Egypt MVP; provider alerts/notifications, payment, receipts, refunds, shifts, and child release belong to later scopes.
 
 ## M5: POS, payment, refund, and receipt
 

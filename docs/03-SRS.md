@@ -1,8 +1,8 @@
 # PlayNexus Software Requirements Specification (SRS)
 
-## 2026-09-13 implemented M3 subset
+## 2026-09-13 implemented M4 operational subset
 
-The current Laravel implementation satisfies the bounded arrival portion of FR-SES-001, FR-SES-002 and FR-SES-014 plus the read-only display portion of FR-TIM-001/003/007. It also implements the first OQ-19 checkout-preparation boundary: authorized Reception/Manager staff verify an eligible guardian or audited manager override, calculate from immutable session facts, freeze the quote, and move the session to `pending_payment` for the Cashier queue with idempotent replay. Pause/resume/extend/adjust, payment posting, receipt/refund execution, child release, and final Completed checkout remain unimplemented.
+The current Laravel implementation satisfies the bounded arrival portion of FR-SES-001, FR-SES-002 and FR-SES-014 plus the read-only display portion of FR-TIM-001/003/007. It also implements the first OQ-19 checkout-preparation boundary: authorized Reception/Manager staff verify an eligible guardian or audited manager override, calculate from immutable session facts, freeze the quote, and move the session to `pending_payment` for the Cashier queue with idempotent replay. The live board now exposes active-session extension in fixed 30-minute units, manager/owner additive time or signed amount adjustment with a reason, cancellation with a reason and explicit no-refund consequence, and server-derived due/overdue labels. Pause/resume is deliberately unavailable in the Egypt MVP. Payment posting, receipt/refund execution, child release, and final Completed checkout remain unimplemented.
 
 **Document version:** 1.1  
 **Status:** Draft for technical and product approval  

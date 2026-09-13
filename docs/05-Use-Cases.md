@@ -1,8 +1,8 @@
 # PlayNexus MVP Use Cases
 
-## 2026-09-13 UC-04 implemented boundary
+## 2026-09-13 UC-05/M4 implemented boundary
 
-UC-04 is implemented through ticket-backed check-in and the live board: current authorized scope and family safety are revalidated, one ticket/session commits atomically and idempotently, hard branch capacity and tenant-wide duplicate-child state are enforced, and rejected attempts retain privacy-safe scan evidence without business mutation. The UC-05 read-only monitoring/estimate portion now derives exact grace/overtime/tax values from immutable facts without persistence; pause/resume/extend/adjust/cancel remain unimplemented. The first UC-06/OQ-19 preparation boundary also verifies the guardian (or audited manager override), freezes the quote, and hands the session to the Cashier as `pending_payment`; payment, receipt, release, refund, and shift completion remain outside this boundary.
+UC-04 is implemented through ticket-backed check-in and the live board: current authorized scope and family safety are revalidated, one ticket/session commits atomically and idempotently, hard branch capacity and tenant-wide duplicate-child state are enforced, and rejected attempts retain privacy-safe scan evidence without business mutation. The UC-05 board now derives exact grace/overtime/tax values from immutable facts without persistence, offers fixed 30-minute extensions, exposes due/overdue labels, and supports reasoned manager/owner additive adjustments and cancellation. Pause/resume is not part of the Egypt MVP. The first UC-06/OQ-19 preparation boundary verifies the guardian (or audited manager override), freezes the quote, and hands the session to the Cashier as `pending_payment`; payment, receipt, release, refund, notifications, and shift completion remain outside this boundary.
 
 **Document version:** 1.1  
 **Status:** Draft operational-flow baseline  

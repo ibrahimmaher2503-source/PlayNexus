@@ -289,6 +289,31 @@
                             $pendingAmountLabel = $pendingAmountMinor === null || $pendingCurrency === ''
                                 ? __('sessions.checkout.amount_unavailable')
                                 : $formatMoney($pendingAmountMinor, $pendingCurrency);
+                            $dueState = 'stopped';
+                            $dueStateClass = 'border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] text-[var(--pn-ink-muted)]';
+                            if (in_array($sessionStatus, ['active', 'paused'], true) && $expectedEndAt instanceof \DateTimeInterface) {
+                                $dueState = $serverClock->greaterThan($expectedEndAt) ? 'overdue' : ($serverClock->greaterThanOrEqualTo($expectedEndAt) ? 'due' : 'on_time');
+                                $dueStateClass = match ($dueState) {
+                                    'overdue' => 'border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] text-[var(--pn-danger)]',
+                                    'due' => 'border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] text-[var(--pn-warning)]',
+                                    default => 'border-[var(--pn-success)] bg-[var(--pn-success-soft)] text-[var(--pn-success)]',
+                                };
+                            }
+                            $pendingSnapshot = is_array($checkoutSnapshot) ? $checkoutSnapshot : [];
+                            $pendingSubtotalLabel = data_get($pendingSnapshot, 'subtotal_minor') === null || $pendingCurrency === ''
+                                ? __('sessions.checkout.amount_unavailable')
+                                : $formatMoney(data_get($pendingSnapshot, 'subtotal_minor'), $pendingCurrency);
+                            $pendingTaxLabel = data_get($pendingSnapshot, 'tax_minor') === null || $pendingCurrency === ''
+                                ? __('sessions.checkout.amount_unavailable')
+                                : $formatMoney(data_get($pendingSnapshot, 'tax_minor'), $pendingCurrency);
+                            $pendingTotalLabel = data_get($pendingSnapshot, 'total_minor') === null || $pendingCurrency === ''
+                                ? $pendingAmountLabel
+                                : $formatMoney(data_get($pendingSnapshot, 'total_minor'), $pendingCurrency);
+                            $canExtend = $sessionStatus === 'active' && $canCheckout;
+                            $canManageSession = $sessionStatus === 'active' && $canOverrideCheckout;
+                            $sessionExtendKey = (string) \Illuminate\Support\Str::uuid();
+                            $sessionAdjustmentKey = (string) \Illuminate\Support\Str::uuid();
+                            $sessionCancelKey = (string) \Illuminate\Support\Str::uuid();
                         @endphp
                         <li class="flex min-w-0 flex-col rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm" data-pn-session-card>
                             <div class="flex items-start justify-between gap-3">
@@ -297,7 +322,14 @@
                                     <h3 class="mt-1 truncate text-lg font-bold">{{ $childName }}</h3>
                                     <p class="mt-1 truncate text-sm text-[var(--pn-ink-muted)]">{{ __('sessions.guardian') }}: {{ $guardianName }}</p>
                                 </div>
-                                <span class="inline-flex min-h-8 shrink-0 items-center rounded-full border px-3 text-sm font-semibold {{ $sessionStatusClass }}">{{ $sessionStatusLabel }}</span>
+                                <div class="flex shrink-0 flex-col items-end gap-2">
+                                    <span class="inline-flex min-h-8 items-center rounded-full border px-3 text-sm font-semibold {{ $sessionStatusClass }}">{{ $sessionStatusLabel }}</span>
+                                    @if ($dueState !== 'stopped')
+                                        <span class="inline-flex min-h-7 items-center rounded-full border px-2.5 text-xs font-semibold {{ $dueStateClass }}" data-pn-due-indicator data-due-state="{{ $dueState }}" aria-label="{{ __('sessions.due_states.'.$dueState) }}">
+                                            {{ __('sessions.due_states.'.$dueState) }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                             <dl class="mt-5 grid gap-3 border-t border-[var(--pn-border)] pt-4 text-sm sm:grid-cols-2">
                                 <div class="min-w-0">
@@ -341,6 +373,79 @@
                                     <p class="mt-4 border-t border-[var(--pn-border)] pt-3 text-xs font-semibold leading-5 text-[var(--pn-ink-muted)]">{{ __('sessions.estimate.not_final_disclaimer') }}</p>
                                 </section>
                             @endif
+                            @if ($sessionStatus === 'active' && ($canExtend || $canManageSession))
+                                <section class="mt-5 border-t border-[var(--pn-border)] pt-5" data-pn-session-actions aria-labelledby="session-actions-{{ $checkoutSessionId }}">
+                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                        <div>
+                                            <h4 class="font-bold" id="session-actions-{{ $checkoutSessionId }}">{{ __('sessions.actions.heading') }}</h4>
+                                            <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('sessions.actions.description') }}</p>
+                                        </div>
+                                        <span class="inline-flex min-h-7 items-center rounded-full border border-[var(--pn-border-strong)] bg-[var(--pn-surface-subtle)] px-2.5 text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('sessions.actions.no_pause') }}</span>
+                                    </div>
+                                    <div class="mt-4 grid gap-4 xl:grid-cols-2">
+                                        @if ($canExtend)
+                                            <form class="rounded-[12px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-4" method="POST" action="{{ route('sessions.extend', ['session' => $checkoutSessionId]) }}" data-pn-form data-pn-session-extend aria-describedby="session-extend-consequence-{{ $checkoutSessionId }}">
+                                                @csrf
+                                                <input type="hidden" name="expected_lock_version" value="{{ data_get($session, 'lock_version') }}">
+                                                <input type="hidden" name="idempotency_key" value="{{ $sessionExtendKey }}">
+                                                <h5 class="font-bold">{{ __('sessions.actions.extend_heading') }}</h5>
+                                                <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]" id="session-extend-consequence-{{ $checkoutSessionId }}">{{ __('sessions.actions.extend_description') }}</p>
+                                                <div class="mt-4 flex flex-wrap items-end gap-3">
+                                                    <div class="min-w-44 flex-1">
+                                                        <label class="block text-sm font-semibold" for="session-extend-units-{{ $checkoutSessionId }}">{{ __('sessions.actions.extension_label') }}</label>
+                                                        <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="session-extend-units-{{ $checkoutSessionId }}" name="extension_units" required>
+                                                            <option value="1">{{ __('sessions.actions.extension_option', ['minutes' => 30]) }}</option>
+                                                            <option value="2">{{ __('sessions.actions.extension_option', ['minutes' => 60]) }}</option>
+                                                            <option value="3">{{ __('sessions.actions.extension_option', ['minutes' => 90]) }}</option>
+                                                        </select>
+                                                    </div>
+                                                    <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit" data-pn-submit data-pn-loading-label="{{ __('sessions.actions.extend_loading') }}">{{ __('sessions.actions.extend_submit') }}</button>
+                                                </div>
+                                            </form>
+                                        @endif
+                                        @if ($canManageSession)
+                                            <details class="rounded-[12px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-4" data-pn-session-adjustment>
+                                                <summary class="cursor-pointer font-bold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]">{{ __('sessions.actions.adjust_heading') }}</summary>
+                                                <p class="mt-2 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('sessions.actions.adjust_description') }}</p>
+                                                <form class="mt-4 grid gap-4 sm:grid-cols-2" method="POST" action="{{ route('sessions.adjustments.store', ['session' => $checkoutSessionId]) }}" data-pn-form aria-describedby="session-adjustment-reason-hint-{{ $checkoutSessionId }}">
+                                                    @csrf
+                                                    <input type="hidden" name="expected_lock_version" value="{{ data_get($session, 'lock_version') }}">
+                                                    <input type="hidden" name="idempotency_key" value="{{ $sessionAdjustmentKey }}">
+                                                    <div>
+                                                        <label class="block text-sm font-semibold" for="session-adjust-extension-{{ $checkoutSessionId }}">{{ __('sessions.actions.extension_units_label') }}</label>
+                                                        <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="session-adjust-extension-{{ $checkoutSessionId }}" name="extension_units" type="number" min="0" max="48" value="0" inputmode="numeric">
+                                                        <p class="mt-1 text-xs text-[var(--pn-ink-muted)]">{{ __('sessions.actions.extension_units_hint') }}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-sm font-semibold" for="session-adjust-amount-{{ $checkoutSessionId }}">{{ __('sessions.actions.adjustment_minor_label') }}</label>
+                                                        <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 tabular-nums focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="session-adjust-amount-{{ $checkoutSessionId }}" name="adjustment_minor" type="number" min="-99999999900" max="99999999900" value="0" inputmode="numeric">
+                                                        <p class="mt-1 text-xs text-[var(--pn-ink-muted)]">{{ __('sessions.actions.adjustment_minor_hint') }}</p>
+                                                    </div>
+                                                    <div class="sm:col-span-2">
+                                                        <label class="block text-sm font-semibold" for="session-adjust-reason-{{ $checkoutSessionId }}">{{ __('sessions.actions.reason_label') }}</label>
+                                                        <textarea class="mt-2 min-h-24 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 py-2 focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="session-adjust-reason-{{ $checkoutSessionId }}" name="reason" minlength="1" maxlength="500" required aria-describedby="session-adjustment-reason-hint-{{ $checkoutSessionId }}"></textarea>
+                                                        <p class="mt-1 text-xs text-[var(--pn-ink-muted)]" id="session-adjustment-reason-hint-{{ $checkoutSessionId }}">{{ __('sessions.actions.reason_hint') }}</p>
+                                                    </div>
+                                                    <button class="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-primary)] hover:bg-[var(--pn-primary-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2 sm:col-span-2 sm:justify-self-start" type="submit" data-pn-submit data-pn-loading-label="{{ __('sessions.actions.adjust_loading') }}">{{ __('sessions.actions.adjust_submit') }}</button>
+                                                </form>
+                                            </details>
+                                            <details class="rounded-[12px] border border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] p-4" data-pn-session-cancel>
+                                                <summary class="cursor-pointer font-bold text-[var(--pn-danger)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]">{{ __('sessions.actions.cancel_heading') }}</summary>
+                                                <p class="mt-2 text-sm leading-6 text-[var(--pn-ink)]">{{ __('sessions.actions.cancel_consequence') }}</p>
+                                                <form class="mt-4" method="POST" action="{{ route('sessions.cancel', ['session' => $checkoutSessionId]) }}" data-pn-form data-confirm="{{ __('sessions.actions.cancel_confirm', ['child' => $childName]) }}" aria-describedby="session-cancel-reason-hint-{{ $checkoutSessionId }}">
+                                                    @csrf
+                                                    <input type="hidden" name="expected_lock_version" value="{{ data_get($session, 'lock_version') }}">
+                                                    <input type="hidden" name="idempotency_key" value="{{ $sessionCancelKey }}">
+                                                    <label class="block text-sm font-semibold" for="session-cancel-reason-{{ $checkoutSessionId }}">{{ __('sessions.actions.reason_label') }}</label>
+                                                    <textarea class="mt-2 min-h-24 w-full rounded-[10px] border border-[var(--pn-danger)] bg-[var(--pn-surface)] px-3 py-2 focus:border-[var(--pn-danger)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="session-cancel-reason-{{ $checkoutSessionId }}" name="reason" minlength="1" maxlength="500" required aria-describedby="session-cancel-reason-hint-{{ $checkoutSessionId }}"></textarea>
+                                                    <p class="mt-1 text-xs text-[var(--pn-ink-muted)]" id="session-cancel-reason-hint-{{ $checkoutSessionId }}">{{ __('sessions.actions.cancel_reason_hint') }}</p>
+                                                    <button class="mt-3 inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--pn-danger)] px-4 font-semibold text-[var(--pn-danger)] hover:bg-[var(--pn-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit" data-pn-submit data-pn-loading-label="{{ __('sessions.actions.cancel_loading') }}">{{ __('sessions.actions.cancel_submit') }}</button>
+                                                </form>
+                                            </details>
+                                        @endif
+                                    </div>
+                                </section>
+                            @endif
                             @if ($sessionStatus === 'pending_payment')
                                 <section class="mt-5 rounded-[12px] border-2 border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] p-4" data-pn-checkout-state aria-labelledby="checkout-pending-{{ $checkoutSessionId }}">
                                     <div class="flex flex-wrap items-start justify-between gap-3">
@@ -365,6 +470,15 @@
                                             </div>
                                         @endif
                                     </dl>
+                                    <div class="mt-4 border-t border-[var(--pn-border)] pt-4" data-pn-frozen-invoice>
+                                        <h5 class="font-bold">{{ __('sessions.checkout.frozen_invoice_heading') }}</h5>
+                                        <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                                            <div><dt class="text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.subtotal') }}</dt><dd class="mt-1 font-semibold tabular-nums"><bdi dir="ltr">{{ $pendingSubtotalLabel }}</bdi></dd></div>
+                                            <div><dt class="text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.tax') }}</dt><dd class="mt-1 font-semibold tabular-nums"><bdi dir="ltr">{{ $pendingTaxLabel }}</bdi></dd></div>
+                                            <div><dt class="text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.total') }}</dt><dd class="mt-1 font-semibold tabular-nums"><bdi dir="ltr">{{ $pendingTotalLabel }}</bdi></dd></div>
+                                        </dl>
+                                        <p class="mt-3 text-xs font-semibold leading-5 text-[var(--pn-ink-muted)]">{{ __('sessions.checkout.frozen_invoice_hint') }}</p>
+                                    </div>
                                     <p class="mt-4 border-t border-[var(--pn-border)] pt-3 text-sm font-semibold leading-6 text-[var(--pn-ink)]">{{ __('sessions.checkout.pending_handoff') }}</p>
                                 </section>
                             @elseif ($sessionStatus === 'active' && $canCheckout)

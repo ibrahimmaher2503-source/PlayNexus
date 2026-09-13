@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Child;
 use App\Models\Guardian;
 use App\Models\PlaySession;
+use App\Models\PlaySessionAdjustment;
 use App\Models\PlaySessionEvent;
 use App\Models\PricingRule;
 use App\Models\Tenant;
@@ -73,6 +74,7 @@ class PlaySessionController extends Controller
                     ->orderBy('guardians.full_name'),
                 'guardian:id,tenant_id,full_name',
                 'ticket:id,tenant_id,branch_id,display_code,price_snapshot_json',
+                'adjustments:id,session_id,extension_units,adjustment_minor',
             ]);
 
         if ($selectedBranchId !== null) {
@@ -109,6 +111,10 @@ class PlaySessionController extends Controller
                         $snapshot,
                         $session->started_at,
                         $serverNow,
+                        $session->adjustments->map(static fn (PlaySessionAdjustment $adjustment): array => [
+                            'extension_units' => $adjustment->extension_units,
+                            'adjustment_minor' => $adjustment->adjustment_minor,
+                        ])->all(),
                     );
                 } catch (InvalidArgumentException) {
                     // A malformed immutable snapshot must never produce a financial estimate.
@@ -399,7 +405,12 @@ class PlaySessionController extends Controller
 
             try {
                 $preparedAt = CarbonImmutable::now('UTC');
-                $quote = SessionQuoteCalculator::calculate($lockedSession->pricing_snapshot_json, $lockedSession->started_at, $preparedAt);
+                $adjustments = $lockedSession->adjustments()->get(['extension_units', 'adjustment_minor'])
+                    ->map(static fn ($adjustment): array => [
+                        'extension_units' => (int) $adjustment->extension_units,
+                        'adjustment_minor' => (int) $adjustment->adjustment_minor,
+                    ])->all();
+                $quote = SessionQuoteCalculator::calculate($lockedSession->pricing_snapshot_json, $lockedSession->started_at, $preparedAt, $adjustments);
             } catch (InvalidArgumentException) {
                 abort(409, __('sessions.checkout.calculation_failed'));
             }

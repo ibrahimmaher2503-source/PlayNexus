@@ -1,5 +1,11 @@
 # Blockers
 
+## 2026-09-14 M4 runtime-evidence gates
+
+M4 implementation is locally accepted: lifecycle HTML posts now redirect correctly, independent idempotency keys prevent cross-action replay conflicts, and the quote calculator moves the overtime boundary when extensions are applied. Focused SQLite coverage is 26 passed plus one explicit MySQL-only concurrency skip (197 assertions); scoped Pint, Vite, Blade, routes, documentation and whitespace checks pass.
+
+The remaining acceptance gates are runtime-only: the isolated MySQL 8.4/InnoDB listener at `127.0.0.1:33417` is not running, so lock/concurrency evidence has not been refreshed; the available local browser runtime redirects to sign-in and no synthetic QA identity was provided, so authenticated visual click-through is not claimed. M5 payment/completion, receipt, refund, child release, shifts, pause/resume and provider notifications remain explicitly out of scope.
+
 ## 2026-09-13 M4 preparation accepted; M5 gates
 
 No local engineering blocker remains for M3 pricing, tickets, ticket-backed check-in, hard branch capacity, masked live board or the read-only live estimate. Exact time/tax fixtures, non-mutation, malformed-snapshot recovery, focused/full SQLite, PHP 8.5, full isolated MySQL, true multi-process concurrency and authenticated bilingual responsive Edge QA all pass.

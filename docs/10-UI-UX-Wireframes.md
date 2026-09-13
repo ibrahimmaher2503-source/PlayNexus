@@ -1,5 +1,7 @@
 # PlayNexus UI/UX Wireframes
 
+**2026-09-13 M4 surface implemented:** `/app/sessions` adds explicit due/overdue labels, active-session 30-minute extension, manager/owner additive adjustment, and reasoned cancellation with no-refund consequence. `pending_payment` cards show a frozen subtotal/tax/total breakdown and explicitly exclude payment, receipt, refund, shift, and child-release controls. Pausing is labelled unavailable for the Egypt MVP. Arabic RTL/English LTR and 44px keyboard/touch controls remain part of the surface contract; provider notifications are deferred.
+
 **Implemented live estimate — 2026-09-13:** Active session cards include a calm bordered estimate panel with server as-of time, base/grace/overtime/net/tax/total lines and an explicit non-final/no-checkout/no-payment notice. It is readable in Arabic RTL and English LTR on mobile, tablet and desktop; two-column desktop cards prevent the breakdown becoming cramped. Cashier can read but receives no mutation control. Invalid snapshots omit the panel instead of displaying guessed money.
 
 ## 2026-09-13 implemented check-in and live-session surface

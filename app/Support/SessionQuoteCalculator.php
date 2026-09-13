@@ -7,6 +7,8 @@ use InvalidArgumentException;
 
 final class SessionQuoteCalculator
 {
+    private const EXTENSION_UNIT_SECONDS = 1800;
+
     // ponytail: one-year source snapshot ceiling; raise only with matching pricing validation.
     private const MAX_SECONDS = 31_536_000;
 
@@ -15,9 +17,10 @@ final class SessionQuoteCalculator
 
     /**
      * @param  array<string, mixed>  $snapshot
-     * @return array{elapsed_seconds:int, included_seconds:int, overtime_seconds:int, overtime_units:int, base_price_minor:int, overtime_price_minor:int, subtotal_minor:int, net_minor:int, tax_minor:int, total_minor:int, tax_rate_bps:int, tax_mode:string, currency:string}
+     * @param  array<int, array<string, mixed>>  $adjustments
+     * @return array<string, int|string>
      */
-    public static function calculate(array $snapshot, DateTimeInterface $startedAt, DateTimeInterface $asOf): array
+    public static function calculate(array $snapshot, DateTimeInterface $startedAt, DateTimeInterface $asOf, array $adjustments = []): array
     {
         $baseDuration = self::integer($snapshot, 'base_duration_seconds', 1, self::MAX_SECONDS);
         $grace = self::integer($snapshot, 'grace_period_seconds', 0, self::MAX_SECONDS);
@@ -47,11 +50,20 @@ final class SessionQuoteCalculator
         }
 
         $included = $baseDuration + $grace;
-        $overtimeSeconds = $elapsed > $included ? $elapsed - $included : 0;
+        [$extensionUnits, $adjustmentMinor] = self::adjustments($adjustments);
+        $extensionSeconds = self::multiply($extensionUnits, self::EXTENSION_UNIT_SECONDS);
+        $overtimeBoundary = self::add($included, $extensionSeconds);
+        $overtimeSeconds = $elapsed > $overtimeBoundary ? $elapsed - $overtimeBoundary : 0;
         $overtimeUnits = intdiv($overtimeSeconds, $overtimeUnit)
             + ($overtimeSeconds % $overtimeUnit === 0 ? 0 : 1);
         $overtimeTotal = self::multiply($overtimeUnits, $overtimePrice);
+        $extensionPrice = self::multiply($extensionUnits, $overtimePrice);
         $subtotal = self::add($basePrice, $overtimeTotal);
+        $subtotal = self::add($subtotal, $extensionPrice);
+        $subtotal = self::addSigned($subtotal, $adjustmentMinor);
+        if ($subtotal < 0) {
+            throw new InvalidArgumentException('Adjusted amount is out of bounds.');
+        }
 
         if ($taxMode === 'exclusive') {
             $tax = self::roundHalfUp(self::multiply($subtotal, $taxRate), 10_000);
@@ -63,7 +75,7 @@ final class SessionQuoteCalculator
             $net = $total - $tax;
         }
 
-        return [
+        $quote = [
             'elapsed_seconds' => $elapsed,
             'included_seconds' => $included,
             'overtime_seconds' => $overtimeSeconds,
@@ -78,6 +90,33 @@ final class SessionQuoteCalculator
             'tax_mode' => $taxMode,
             'currency' => $currency,
         ];
+
+        if ($adjustments !== []) {
+            $quote['extension_units'] = $extensionUnits;
+            $quote['extension_seconds'] = $extensionSeconds;
+            $quote['extension_price_minor'] = $extensionPrice;
+            $quote['adjustment_minor'] = $adjustmentMinor;
+        }
+
+        return $quote;
+    }
+
+    /** @param array<int, array<string, mixed>> $adjustments */
+    private static function adjustments(array $adjustments): array
+    {
+        $extensionUnits = 0;
+        $adjustmentMinor = 0;
+        foreach ($adjustments as $adjustment) {
+            $extension = $adjustment['extension_units'] ?? null;
+            $charge = $adjustment['adjustment_minor'] ?? null;
+            if (! is_int($extension) || $extension < 0 || $extension > 48 || ! is_int($charge) || $charge < -99_999_999_900 || $charge > 99_999_999_900) {
+                throw new InvalidArgumentException('Malformed session adjustment.');
+            }
+            $extensionUnits = self::add($extensionUnits, $extension);
+            $adjustmentMinor = self::addSigned($adjustmentMinor, $charge);
+        }
+
+        return [$extensionUnits, $adjustmentMinor];
     }
 
     /** @param array<string, mixed> $snapshot */
@@ -103,6 +142,18 @@ final class SessionQuoteCalculator
     private static function add(int $left, int $right): int
     {
         if ($right > PHP_INT_MAX - $left) {
+            throw new InvalidArgumentException('Pricing amount is out of bounds.');
+        }
+
+        return $left + $right;
+    }
+
+    private static function addSigned(int $left, int $right): int
+    {
+        if ($right > 0 && $left > PHP_INT_MAX - $right) {
+            throw new InvalidArgumentException('Pricing amount is out of bounds.');
+        }
+        if ($right < 0 && $left < PHP_INT_MIN - $right) {
             throw new InvalidArgumentException('Pricing amount is out of bounds.');
         }
 

@@ -8,6 +8,9 @@ The following first-party web routes extend the ticket subset without claiming t
 |---|---|
 | `GET /app/sessions` | Optional accessible `branch_id`, bounded `q` child/guardian/full-phone search and `status`; masked scoped 25-row board, occupancy, branch-local display times and a read-only non-final immutable-snapshot estimate for Active sessions; no-store response and no business mutation |
 | `POST /app/sessions/check-in` | Authorized `branch_id`, opaque/manual ticket `code`, UUID `idempotency_key` (or header); atomically revalidates scope/eligibility/capacity, consumes one ticket and creates one Active session/event/scan/audit |
+| `POST /app/sessions/{session}/extend` | Active-session extension in fixed 30-minute units with expected lock version and UUID idempotency key; updates expected end and records event/audit |
+| `POST /app/sessions/{session}/cancel` | Manager/Owner cancellation with expected lock version, UUID idempotency key, required reason, terminal state and event/audit; no financial refund |
+| `POST /app/sessions/{session}/adjustments` | Manager/Owner additive extension/amount correction with expected lock version, required reason, and before/after quote evidence |
 
 Owner/assigned Branch Manager/Reception may check in; Cashier is board-only. Same UUID and canonical payload returns the existing result, changed reuse conflicts, hidden branch scope returns 404, missing action returns 403, child/capacity conflicts return 409, and ticket eligibility rejections return 422 without business-state mutation. Responses expose session/ticket identifiers and UTC start/expected end only when in scope; no holder phone, QR payload, checkout/final charge, payment or refund is returned. The HTML board's estimate is presentation-only, server-derived and never a persisted checkout quote.
 
@@ -488,7 +491,7 @@ Idempotency-Key: b9ff5132-d11c-4f8a-b8c7-09dd3ef07989
 }
 ```
 
-**OQ-19 remains an explicit open decision.** This planned API does not decide whether Reception posts the payment or hands the draft order to Cashier. It exposes recoverable quote/order, full-payment, and completion commands. `checkout` rejects `amount_due > 0`; a paid-but-not-completed session remains visible and retryable. **OQ-12 is approved but unimplemented:** normal evidence is session/ticket QR plus registered-guardian phone last four digits or a handoff code; manager override uses a bound reasoned single-use approval.
+The planned external API below still does not define the later payment/completion contract. The implemented web boundary resolves OQ-19 as Reception/Manager guardian verification plus frozen quote handoff to the Cashier `pending_payment` queue; Cashier cannot prepare or alter it. Payment, receipt, release, refund, notifications and shift behavior remain later scopes. **OQ-12 is approved for the implemented phone-last-four or audited manager-override preparation path.**
 
 ## 9. Approvals
 

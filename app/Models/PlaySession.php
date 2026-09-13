@@ -37,6 +37,8 @@ class PlaySession extends Model
         'checkout_prepared_at',
         'checkout_snapshot_json',
         'checkout_amount_due_minor',
+        'cancellation_reason',
+        'ended_by_user_id',
     ];
 
     protected function casts(): array
@@ -87,5 +89,10 @@ class PlaySession extends Model
     public function events(): HasMany
     {
         return $this->hasMany(PlaySessionEvent::class, 'session_id');
+    }
+
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(PlaySessionAdjustment::class, 'session_id')->orderBy('id');
     }
 }

@@ -109,6 +109,16 @@ class PlaySessionPolicy
         return $this->canActOnSession($user, $session, self::CHECKOUT_ROLES);
     }
 
+    public function extend(User $user, PlaySession $session): bool
+    {
+        return $this->canActOnSession($user, $session, self::CHECK_IN_ROLES);
+    }
+
+    public function cancel(User $user, PlaySession $session): bool
+    {
+        return $this->canActOnSession($user, $session, ['branch_manager'], ownerAllowed: true);
+    }
+
     public function overrideCheckout(User $user, PlaySession $session): bool
     {
         return $this->canActOnSession($user, $session, ['branch_manager'], ownerAllowed: true);

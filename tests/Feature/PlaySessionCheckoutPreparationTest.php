@@ -114,6 +114,112 @@ class PlaySessionCheckoutPreparationTest extends TestCase
         $this->assertSame($auditCount, DB::table('audit_logs')->where('action', 'session.checkout_prepared')->count());
     }
 
+    public function test_sessions_board_exposes_due_indicator_and_guarded_lifecycle_actions_in_both_locales(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        Carbon::setTestNow($session->expected_end_at);
+
+        $response = $this->actingAs($owner)
+            ->get(route('sessions.index', ['branch_id' => $branch->id]));
+
+        $response
+            ->assertOk()
+            ->assertSee('data-pn-due-indicator', false)
+            ->assertSee(__('sessions.actions.extend_heading'))
+            ->assertSee(route('sessions.extend', ['session' => $session->id]), false)
+            ->assertSee(route('sessions.cancel', ['session' => $session->id]), false)
+            ->assertSee(__('sessions.actions.cancel_consequence'))
+            ->assertDontSee('data-pn-session-pause', false)
+            ->assertDontSee('payment method', false);
+
+        $html = (string) $response->getContent();
+        $keys = [];
+        foreach ([
+            route('sessions.extend', ['session' => $session->id]),
+            route('sessions.adjustments.store', ['session' => $session->id]),
+            route('sessions.cancel', ['session' => $session->id]),
+        ] as $action) {
+            $matched = preg_match('/<form\\b[^>]*action="'.preg_quote($action, '/').'"[^>]*>.*?<input\\b[^>]*name="idempotency_key"[^>]*value="([^"]+)"/s', $html, $matches);
+            $this->assertSame(1, $matched, 'Each lifecycle form must carry its own idempotency key.');
+            $keys[] = $matches[1];
+        }
+        $this->assertSame(3, count(array_unique($keys)), 'Extend, adjustment, and cancel keys must be independent.');
+        foreach ($keys as $key) {
+            $this->assertSame(1, preg_match('/\\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\z/i', $key));
+        }
+
+        $this->withSession(['locale' => 'ar'])
+            ->actingAs($owner)
+            ->get(route('sessions.index', ['branch_id' => $branch->id]))
+            ->assertOk()
+            ->assertSee('dir="rtl"', false)
+            ->assertSee(__('sessions.actions.no_pause'));
+    }
+
+    public function test_pending_payment_board_exposes_frozen_invoice_without_payment_controls(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        Carbon::setTestNow($session->started_at->addSeconds(4201));
+
+        $this->actingAs($owner)
+            ->postJson($this->checkoutUrl($session), $this->checkoutPayload($session, $guardian))
+            ->assertCreated();
+
+        $this->actingAs($owner)
+            ->get(route('sessions.index', ['branch_id' => $branch->id, 'status' => 'pending_payment']))
+            ->assertOk()
+            ->assertSee('data-pn-frozen-invoice', false)
+            ->assertSee(__('sessions.checkout.frozen_invoice_heading'))
+            ->assertSee(__('sessions.checkout.pending_handoff'))
+            ->assertSee('256.50 EGP')
+            ->assertDontSee('name="payment_method"', false)
+            ->assertDontSee('name="amount_received"', false)
+            ->assertDontSee(__('sessions.actions.extend_heading'));
+    }
+
+    public function test_live_estimate_uses_the_same_append_only_adjustments_as_checkout(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        DB::table('play_session_adjustments')->insert([
+            'tenant_id' => $tenant->id,
+            'session_id' => $session->id,
+            'actor_user_id' => $owner->id,
+            'extension_units' => 1,
+            'adjustment_minor' => 0,
+            'reason' => 'Approved extension',
+            'expected_lock_version' => 1,
+            'applied_lock_version' => 2,
+            'request_id' => (string) Str::uuid(),
+            'created_at' => now('UTC'),
+        ]);
+        Carbon::setTestNow($session->started_at->addSeconds(6000));
+
+        $this->actingAs($owner)
+            ->get(route('sessions.index', ['branch_id' => $branch->id]))
+            ->assertOk()
+            ->assertViewHas('sessions', function ($sessions): bool {
+                $estimate = $sessions->getCollection()->first()?->getAttribute('live_estimate');
+
+                $this->assertSame(1, $estimate['extension_units'] ?? null);
+                $this->assertSame(0, $estimate['overtime_units'] ?? null);
+                $this->assertSame(25650, $estimate['total_minor'] ?? null);
+
+                return true;
+            });
+    }
+
     public function test_ineligible_or_foreign_guardian_is_rejected_without_changing_the_session(): void
     {
         [$tenant, $owner] = $this->owner();

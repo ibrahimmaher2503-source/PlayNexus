@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-09-13: Close the Egypt M4 no-pause and notification UI boundary
+
+**Authority:** The product owner resumed the bounded M4 implementation and requested the remaining work be distributed to Luna agents.
+
+**Decision:** Egypt MVP sessions do not support pause/resume. Active sessions may be extended only in fixed 30-minute units. Manager/Owner correction is additive, reasoned, and version-guarded; cancellation is reasoned, terminal, audited, and never a financial refund. The `pending_payment` screen shows the frozen server subtotal, tax, and total, while payment, receipt, refund, shift, child-release, and provider-notification controls remain outside this slice.
+
+**Boundary:** This closes the UI representation of the approved time/session preparation behavior only. Final runtime/browser acceptance and M5 matching payment/completion remain required; notification providers and alert policy remain open for a later decision.
+
 ## 2026-09-13: Resolve OQ-19 as reception-to-cashier checkout handoff
 
 **Authority:** The product owner approved the bounded station decision so M4 preparation could proceed without expanding into Finance.

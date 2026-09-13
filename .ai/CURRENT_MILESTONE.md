@@ -1,5 +1,11 @@
 # Current Milestone
 
+## 2026-09-14 M4 implementation locally accepted; runtime evidence pending
+
+OQ-19 is implemented as the approved Reception-to-Cashier handoff: guardian last-four verification or audited Manager/Owner override freezes an immutable quote and transitions only the active session to `pending_payment`. The same bounded M4 slice adds server-derived on-time/due/overdue state, fixed 30-minute extensions priced from the immutable snapshot, append-only reasoned Manager/Owner adjustments, and reasoned terminal cancellation. An extension moves the overtime boundary as well as adding its frozen unit charge, so it cannot be charged twice. Every mutation uses tenant/branch scope, actor/reason/audit evidence, optimistic versioning and UUID idempotency; active HTML forms redirect safely to the scoped board.
+
+Focused M4 tests pass on process-local SQLite: 26 passed, 1 explicit MySQL-concurrency skip, 197 assertions. Scoped Pint, Blade cache, routes, Vite build, documentation validation and whitespace checks pass. Payment, receipt, refund, child release, shift, pause/resume and provider notifications remain deliberately excluded for M5/later. M4 is code-complete and locally accepted, but isolated MySQL 8.4/InnoDB and authenticated browser runtime evidence remain open because the prior private MySQL listener is not running and the available local browser runtime presents a sign-in page without a synthetic QA identity.
+
 ## 2026-09-13 M4 checkout-preparation slice LOCALLY ACCEPTED; M5 NOT STARTED
 
 OQ-19 is resolved as a reception-to-cashier handoff. Reception/assigned Manager verifies an active checkout-capable guardian by registered-phone last four digits, or a permission-checked manager override with a non-empty reason, then the server calculates and freezes the exact quote and moves the session to `pending_payment`. Cashier cannot prepare checkout; M5 will post one matching payment and atomically complete the session. UUID replays are idempotent, changed replays and stale versions conflict, terminal/ineligible/foreign cases fail safely, and successful preparation is event/audit recorded.

@@ -1,5 +1,19 @@
 # Test Results
 
+## 2026-09-14 M4 lifecycle/time-and-charge integration
+
+| Check | Actual command / result |
+|---|---|
+| Focused M4 | `php artisan test --compact tests/Feature/PlaySessionCheckoutPreparationTest.php tests/Feature/PlaySessionLifecycleTest.php tests/Feature/PlaySessionAdjustmentTest.php tests/Unit/SessionQuoteAdjustmentTest.php` — PASS, 26 passed / 1 explicit MySQL-concurrency skip / 197 assertions; process-local SQLite |
+| Full SQLite regression | `php artisan test --compact` — PASS; process-local SQLite, with MySQL-only concurrency checks explicitly skipped |
+| Lifecycle and money | PASS: 30-minute snapshot-priced extension, included-time boundary moves with the extension, no double overtime charge, signed additive manager adjustment, frozen quote, terminal cancellation and no refund behavior |
+| Isolation and replay | PASS: tenant/branch scope, cashier denial, stale-version conflict, identical UUID replay, changed-key conflict, audit/session-event evidence and `pending_payment` mutation block |
+| UI plumbing | PASS: three distinct UUID keys for extend/adjust/cancel; native HTML extension/cancellation posts redirect to the scoped board; frozen invoice and due-state rendering compile |
+| Build and static gates | `php vendor/bin/pint --test` for M4 scope, `php artisan view:cache`, `php artisan route:list --name=sessions`, `npm run build`, `python tools/validate_documentation.py`, and `git diff --check` — PASS |
+| MySQL/browser | BLOCKED_BY_RUNTIME: no listener at `127.0.0.1:33417`; local browser URL `http://127.0.0.1:8207/app/sessions` redirects to sign-in and no synthetic QA identity is available. No MySQL/browser acceptance is claimed. |
+
+M4 code is locally accepted. Payment/completion, receipt, refund, child release, shift, pause/resume and notification-provider behavior are not M4 functionality.
+
 ## 2026-09-13 M4 checkout-preparation/OQ-19 focused acceptance
 
 This tests/docs slice adds no production behavior. It records the bounded OQ-19 handoff contract only: Reception/Manager verification and frozen quote preparation into `pending_payment`; Cashier payment posting, final completion, refund, receipt, release, and shifts remain M5/later scope.
@@ -620,3 +634,13 @@ The independent test slice initially exposed integration mismatches. Coordinator
 | Whitespace | `git diff --check` — PASS |
 
 The integration branch was fast-forwarded into `main`. Navigation assertions now match the consolidated Organization and Staff & access destinations; the underlying direct routes remain available and covered separately.
+
+# 2026-09-13 M4 lifecycle UI/doc follow-up
+
+| Check | Result |
+|---|---|
+| Focused checkout and lifecycle UI | `php artisan test --compact tests/Feature/PlaySessionCheckoutPreparationTest.php` — PASS, 10 tests / 90 assertions |
+| Blade compilation | `php artisan view:cache` — PASS |
+| Whitespace | `git diff --check` — PASS |
+| Scope | Bilingual due/overdue labels, 30-minute extension, reasoned Manager/Owner adjustment and cancellation, frozen pending-payment invoice breakdown; no payment/receipt/refund/shift/child-release/provider notifications |
+| Runtime/browser boundary | Browser click-through and isolated MySQL remain unverified; lifecycle extend/cancel endpoints currently return JSON for native HTML form posts |
