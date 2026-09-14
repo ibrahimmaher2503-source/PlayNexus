@@ -1,5 +1,17 @@
 # Test Results
 
+## 2026-09-14 M0 repair acceptance
+
+| Check | Actual command / result |
+|---|---|
+| Full SQLite regression | `php artisan test --compact` — PASS, 314 total / 311 passed / 3 skipped / 2,659 assertions |
+| Focused MySQL 8.4 M0 gate | Fresh 21 migrations on isolated MySQL 8.4.11/InnoDB, then `TenantBranchTest` + `M0DemoSeederTest` — PASS, 7 tests / 49 assertions |
+| Seed safety | PASS: stable two-tenant/four-branch/eight-user/eight-assignment counts; production environment refuses the synthetic seed |
+| Setup safety | `tools/ensure-safe-database.php` accepts the project-local SQLite target and requires exact `PLAYNEXUS_DB_TARGET` for MySQL before migration |
+| Toolchain/static | Composer strict validation, global Pint, Vite build, documentation validation and `git diff --check` — PASS; Vite retains only the existing optional `fontaine` notice |
+| Hosted CI | PENDING: `.github/workflows/ci.yml` is implemented but has not been pushed or executed remotely |
+| Diagnostic full MySQL regression | NOT ACCEPTED: 311 passed, 2 failed and 1 error, all in later M4 tests (JSON key order/type expectation and a concurrency lock query); excluded from M0 repair scope and not presented as M0 failure |
+
 ## 2026-09-14 M4 lifecycle/time-and-charge integration
 
 | Check | Actual command / result |

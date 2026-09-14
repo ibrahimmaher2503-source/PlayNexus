@@ -1,5 +1,11 @@
 # Blockers
 
+## 2026-09-14 M0 closure gate
+
+M0 repairs and their local SQLite/MySQL 8.4 equivalents pass. The sole M0 closure blocker is external: `.github/workflows/ci.yml` has not yet run on the hosted provider because this local review did not push. Composer is documented as a workstation prerequisite; strict validation passed through the available local phar.
+
+A diagnostic full MySQL run found two M4 assertion mismatches and one M4 concurrency-test query error. They do not invalidate the focused M0 MySQL gate and were intentionally not repaired during the M0-only review; resolve them when M4 is the approved review scope.
+
 ## 2026-09-14 M4 runtime-evidence gates
 
 M4 implementation is locally accepted: lifecycle HTML posts now redirect correctly, independent idempotency keys prevent cross-action replay conflicts, and the quote calculator moves the overtime boundary when extensions are applied. Focused SQLite coverage is 26 passed plus one explicit MySQL-only concurrency skip (197 assertions); scoped Pint, Vite, Blade, routes, documentation and whitespace checks pass.

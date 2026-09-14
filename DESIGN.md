@@ -180,9 +180,11 @@ Use a 4px base grid with deliberate rhythm.
 
 ### Desktop
 
+- Desktop is the primary operational layout. At 1024px and above, use the full available application workspace; do not render a stretched tablet composition.
 - Persistent side navigation: 248px expanded, 80px collapsed.
 - Top bar: 64px with tenant, branch, current shift context when approved, locale, and user menu.
 - Main content maximum readable width: 1440px, with full-width operational tables when needed.
+- At 1366px, comparison-heavy operational data remains a desktop table. Switch to cards only when columns can no longer remain legible, not from one page-specific breakpoint.
 - Page actions align with the title on wide screens and move below it when space is constrained.
 
 ### Tablet

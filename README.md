@@ -8,12 +8,12 @@ The first release will let a venue configure branches and staff, register guardi
 
 ## Proposed implementation baseline
 
-- PHP 8.5 and Laravel 13 modular monolith, verified against the official support policy on 24 August 2026.
+- PHP 8.4 or 8.5 and Laravel 13 modular monolith, verified against the official support policy on 24 August 2026.
 - Server-rendered Blade UI with Livewire 4 only for high-interaction operational screens, plus Tailwind CSS 4.
 - MySQL 8.4 LTS/InnoDB shared-schema multi-tenancy with mandatory `tenant_id` scoping and database constraints.
 - Session authentication for the web product; Laravel Sanctum for first-party API access.
-- Laravel policies and gates for authorization; database queues initially for receipts and notifications; Pest 5 for focused tests.
-- English and Arabic, LTR and RTL, desktop and tablet first.
+- Laravel policies and gates for authorization; database queues initially for receipts and notifications; PHPUnit 12 for focused tests.
+- English and Arabic, LTR and RTL, with a full-screen desktop workspace as the primary layout and tablet as the compact layout.
 
 Re-check supported patch versions when scaffolding; the major-version rationale and official sources are in the tooling guide.
 
@@ -35,24 +35,19 @@ M1 is complete and M2 Egypt family engineering is implemented with remaining rel
 
 Verified on 12 September 2026: Laravel 13.31.0, PHP 8.4.21 and 8.5.8, Composer 2.10.3, Node 24.15.0, npm 11.12.1, and MySQL 8.4.11/InnoDB. The complete M1 suite passes on SQLite and isolated MySQL; Vite, Pint, dependency audits, documentation validation, and real Arabic/English browser checks also pass.
 
-Install Composer for Windows before setup, then open a new shell and verify it is available. The command below uses the Windows Package Manager's Composer package; it avoids any ignored local tooling.
+Composer is a required prerequisite. Install Composer for Windows before setup, then open a new shell and verify it is available. The command below uses the Windows Package Manager's Composer package; it avoids any ignored local tooling.
 
 ```powershell
 winget install --id Composer.Composer -e
 composer --version
-composer install --no-interaction --prefer-dist --no-progress
-if (-not (Test-Path .env)) { Copy-Item .env.example .env; php artisan key:generate }
-# Configure DB_* in .env for an existing MySQL 8.4 database, then run:
-php artisan migrate
-npm install --ignore-scripts
-npm run build
+composer setup
 php artisan serve
 php artisan test
 vendor/bin/pint --test
 ```
 
-The guarded `.env` command creates a new local environment and key only when `.env` is absent; it never overwrites an existing environment or key. The default route redirects to `/app`. Branch timezone and EGP currency settings are implemented; timestamps remain stored in UTC.
+`composer setup` uses a project-local SQLite file by default and refuses to migrate if `.env` points at an unconfigured or default database. To use MySQL 8.4, set `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` in `.env`, then set `PLAYNEXUS_DB_TARGET` to the exact same intentionally selected database name before rerunning `composer setup`. It never overwrites an existing environment or key. The default route redirects to `/app`. Branch timezone and EGP currency settings are implemented; timestamps remain stored in UTC.
 
-## Next milestone
+## Next review gate
 
-M4 has not started. M3 remains locally accepted while OQ-19 checkout/payment station ownership stays open; resuming M4 requires an explicit bounded contract. Open later-milestone decisions do not reopen accepted M1–M3 work.
+M0 scaffold repairs are locally verified. The next permitted review is M1 only after the hosted M0 workflow passes; later implemented milestones remain outside that review boundary.

@@ -36,6 +36,8 @@ M1 access and branch foundation is DONE. The approved Egypt M2 family contract i
 | 16 | [Implementation Checklist](16-Implementation-Checklist.md) | Product, foundation, MVP, and release tracking |
 | 17 | [Definition of Done](17-Definition-of-Done.md) | Completion gate for every backlog item |
 | 18 | [Security Checklist](18-Security-Checklist.md) | Identity, data, application, and operations controls |
+| 19 | [UX/UI Remediation Plan](19-UX-UI-Remediation-Plan.md) | Canonical desktop and responsive improvement backlog |
+| 20 | [M0 Audit Report](20-M0-Audit-Report.md) | Evidence-led M0 closure review and repair gate |
 | UI | [Design System](../DESIGN.md) | Canonical color, typography, layout, component, RTL, and accessibility rules |
 
 ## Source-of-truth order

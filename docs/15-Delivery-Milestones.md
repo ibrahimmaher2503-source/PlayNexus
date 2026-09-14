@@ -4,6 +4,8 @@
 
 Approve MVP decisions, choose exact supported versions, scaffold Laravel, configure local/CI environments, create tenant/branch/role seed data, and prove tenant isolation with one feature test.
 
+**Status: LOCALLY ACCEPTED / HOSTED CI PENDING — 2026-09-14.** Safe setup, deterministic local-only two-tenant role fixtures, PHP/toolchain alignment, fresh isolated MySQL 8.4 migrations and the SQLite/MySQL M0 gates pass. The first hosted run of `.github/workflows/ci.yml` is the remaining closure item; M1 review does not start before owner acceptance and that green run.
+
 ## M1: Access and branch foundation
 
 Tenant context, branches, staff authentication, role policies, locale/timezone/currency configuration, audit skeleton, and responsive app shell.

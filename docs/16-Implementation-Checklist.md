@@ -10,8 +10,9 @@
 
 - [x] Scaffold the selected Laravel release and record exact setup commands.
 - [ ] Configure environment validation, CI, formatting, error tracking, backups, and secrets.
+  - [x] M0 environment guard, hosted CI definition and formatting gate implemented; hosted execution, error tracking, backups and deployment secrets remain release work.
 - [x] Implement tenant context, branch scope, authentication, policies, and audit correlation.
-- [ ] Seed deterministic demo tenants/branches/users without real child or payment data.
+- [x] Seed deterministic local/testing-only demo tenants/branches/users without real child or payment data.
 
 ## MVP delivery
 

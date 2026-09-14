@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tenant;
 use App\Models\CustomRole;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\UniqueConstraintViolationException;

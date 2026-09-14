@@ -1,5 +1,11 @@
 # Handoff
 
+## 2026-09-14 M0 repair handoff
+
+Continue from this worktree without starting M1 review. The M0 repair set provides guarded setup, deterministic local/testing-only role fixtures and `.github/workflows/ci.yml`. Local acceptance passes: full SQLite 314 total / 311 passed / 3 skipped / 2,659 assertions; focused isolated MySQL 8.4.11 M0 tests 7 / 49 after 21 migrations; Composer validation, Pint, Vite, docs and whitespace all pass. The hosted workflow has not run, so M0 is `LOCALLY_ACCEPTED / HOSTED_CI_PENDING`.
+
+The task-owned MySQL listener on port 33427 must be stopped after evidence capture. A diagnostic full MySQL run exposed three later-M4 test portability failures; keep them separate from M0 and do not repair them until that milestone is in scope.
+
 ## 2026-09-14 M4 local and browser-acceptance handoff
 
 The uncommitted M4 implementation is code-complete and locally accepted. The bilingual session board has server-derived due state, active 30-minute extensions, reasoned append-only Manager/Owner adjustments, terminal non-refund cancellation, and a frozen `pending_payment` subtotal/tax/total. Every action carries an independent UUID; extension time moves the overtime boundary and its frozen charge is applied once. Native HTML lifecycle posts now redirect to the scoped board; JSON clients keep structured responses. Pause/resume, payment/completion, receipt, refund, child release, shifts and provider notifications remain outside M4.

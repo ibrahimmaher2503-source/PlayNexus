@@ -1,5 +1,11 @@
 # PlayNexus Agent Plan
 
+## 2026-09-14 M0 repair wave — local acceptance
+
+Three user-requested `gpt-5.6-luna` / `xhigh` workers owned the CI definition, deterministic demo seed and safe setup/toolchain slices. Coordinator review added the production seed refusal, reconciled the CI shape to run M0 on MySQL plus the full regression on SQLite, corrected the existing import-order formatting gate, and synchronized canonical evidence.
+
+Local outcome: full SQLite PASS at 314 total / 311 passed / 3 skipped / 2,659 assertions; isolated MySQL 8.4.11 M0 PASS at 7 / 49 after 21 migrations and 31 InnoDB tables; Composer strict validation, global Pint, Vite, docs and whitespace PASS. The hosted workflow remains unexecuted. Stop before M1 review until the owner accepts the M0 report and hosted CI is green.
+
 ## 2026-09-14 M4 lifecycle/time-and-charge implementation — browser accepted; MySQL evidence pending
 
 The approved OQ-19 reception-to-cashier handoff is now implemented with the remaining bounded M4 lifecycle controls: server-derived on-time/due/overdue labels; active-session extension only in fixed 30-minute units using immutable snapshot money; Manager/Owner additive, reasoned, append-only charge/time correction; and reasoned, terminal, non-refund cancellation. A frozen quote is prepared only after guardian last-four verification or a permission-checked reasoned Manager/Owner override, then `pending_payment` becomes immutable for this slice. Extension time moves the overtime boundary and its frozen unit amount is charged exactly once.

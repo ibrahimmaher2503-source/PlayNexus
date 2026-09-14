@@ -1,5 +1,11 @@
 # Current Milestone
 
+## 2026-09-14 M0 repair LOCALLY ACCEPTED; hosted CI pending
+
+The bounded M0 audit repairs are implemented: safe project-local SQLite setup with an explicit MySQL target guard, deterministic local/testing-only two-tenant role fixtures, aligned PHP 8.4+/PHPUnit 12 tooling, and a minimal hosted gate for MySQL 8.4 M0 tests plus full SQLite regression, Pint, Vite and documentation. Local SQLite passes 314 total / 311 passed / 3 skipped / 2,659 assertions; the focused isolated MySQL 8.4.11 gate passes 7 tests / 49 assertions after all 21 migrations. Composer validation, Pint, build, docs and whitespace pass.
+
+The first hosted workflow run remains external and pending. A diagnostic full MySQL run also exposed three later-M4 test portability issues; they are recorded but not changed under the M0-only boundary. Do not start M1 review until the owner accepts this M0 report and the hosted gate is green.
+
 ## 2026-09-14 M4 implementation and browser runtime accepted; MySQL evidence pending
 
 OQ-19 is implemented as the approved Reception-to-Cashier handoff: guardian last-four verification or audited Manager/Owner override freezes an immutable quote and transitions only the active session to `pending_payment`. The same bounded M4 slice adds server-derived on-time/due/overdue state, fixed 30-minute extensions priced from the immutable snapshot, append-only reasoned Manager/Owner adjustments, and reasoned terminal cancellation. An extension moves the overtime boundary as well as adding its frozen unit charge, so it cannot be charged twice. Every mutation uses tenant/branch scope, actor/reason/audit evidence, optimistic versioning and UUID idempotency; active HTML forms redirect safely to the scoped board.

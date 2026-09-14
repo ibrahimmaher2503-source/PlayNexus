@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0"
     },
@@ -33,9 +33,11 @@
     },
     "scripts": {
         "setup": [
-            "composer install",
+            "composer install --no-interaction --prefer-dist --no-progress",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
-            "@php artisan key:generate",
+            "@php tools/ensure-safe-database.php --create-sqlite",
+            "@php artisan config:clear --ansi",
+            "@php -r \"if (preg_match('/^APP_KEY=\\\\s*$/m', file_get_contents('.env'))) { passthru(PHP_BINARY.' artisan key:generate --ansi'); } else { echo 'Application key already set; keeping it.'.PHP_EOL; }\"",
             "@php artisan migrate --force",
             "npm install --ignore-scripts",
             "npm run build"

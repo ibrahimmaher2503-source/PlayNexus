@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-14 M0 scaffold repair
+
+- Added a minimal hosted M0 gate, safe database-target validation, a project-local SQLite default and deterministic local/testing-only tenant/branch/role fixtures.
+- Aligned the PHP requirement and PHPUnit documentation, refreshed the lock, and made the full-screen desktop contract canonical without changing later-milestone UI.
+- Local M0 evidence passes on SQLite and isolated MySQL 8.4.11; full SQLite, global Pint, Vite, Composer validation, docs and whitespace pass. Hosted CI execution remains the only M0 closure gate.
+- Diagnostic full MySQL regression found three M4 test portability issues; preserved unchanged because this review is M0-only.
+
 ## 2026-09-14 M4 lifecycle/time-and-charge local acceptance
 
 - Integrated bilingual `/app/sessions` operational controls for due state, fixed 30-minute extension, reasoned Manager/Owner additive adjustment, terminal non-refund cancellation and the immutable `pending_payment` subtotal/tax/total breakdown.
