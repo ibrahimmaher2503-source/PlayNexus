@@ -1,10 +1,10 @@
 # Handoff
 
-## 2026-09-14 M4 local-acceptance handoff
+## 2026-09-14 M4 local and browser-acceptance handoff
 
 The uncommitted M4 implementation is code-complete and locally accepted. The bilingual session board has server-derived due state, active 30-minute extensions, reasoned append-only Manager/Owner adjustments, terminal non-refund cancellation, and a frozen `pending_payment` subtotal/tax/total. Every action carries an independent UUID; extension time moves the overtime boundary and its frozen charge is applied once. Native HTML lifecycle posts now redirect to the scoped board; JSON clients keep structured responses. Pause/resume, payment/completion, receipt, refund, child release, shifts and provider notifications remain outside M4.
 
-Focused M4 command: `php artisan test --compact tests/Feature/PlaySessionCheckoutPreparationTest.php tests/Feature/PlaySessionLifecycleTest.php tests/Feature/PlaySessionAdjustmentTest.php tests/Unit/SessionQuoteAdjustmentTest.php` — PASS, 26 passed / 1 explicit MySQL-only concurrency skip / 197 assertions. Scoped Pint, Vite, Blade cache, route listing, documentation validation and whitespace checks pass. Do not claim runtime acceptance: the isolated MySQL 8.4 listener at `127.0.0.1:33417` is not running, and the available browser runtime requires a sign-in identity not provisioned for QA. No commit or push has been made.
+Focused M4 command: `php artisan test --compact tests/Feature/PlaySessionCheckoutPreparationTest.php tests/Feature/PlaySessionLifecycleTest.php tests/Feature/PlaySessionAdjustmentTest.php tests/Unit/SessionQuoteAdjustmentTest.php` — PASS, 26 passed / 1 explicit MySQL-only concurrency skip / 197 assertions. Scoped Pint, Vite, Blade cache, route listing, documentation validation and whitespace checks pass. Authenticated browser QA also passes on isolated task-local SQLite at `127.0.0.1:8215` with a synthetic Owner: extend to `342.00 EGP`, last-four verification, frozen invoice, `pending_payment`, and English/Arabic desktop rendering. Do not claim MySQL acceptance: the isolated MySQL 8.4 listener at `127.0.0.1:33417` is not running. No shared runtime was migrated or restarted.
 
 ## 2026-09-13 M3 local-closure handoff
 

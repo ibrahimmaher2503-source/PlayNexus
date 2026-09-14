@@ -4,7 +4,7 @@
 
 M4 implementation is locally accepted: lifecycle HTML posts now redirect correctly, independent idempotency keys prevent cross-action replay conflicts, and the quote calculator moves the overtime boundary when extensions are applied. Focused SQLite coverage is 26 passed plus one explicit MySQL-only concurrency skip (197 assertions); scoped Pint, Vite, Blade, routes, documentation and whitespace checks pass.
 
-The remaining acceptance gates are runtime-only: the isolated MySQL 8.4/InnoDB listener at `127.0.0.1:33417` is not running, so lock/concurrency evidence has not been refreshed; the available local browser runtime redirects to sign-in and no synthetic QA identity was provided, so authenticated visual click-through is not claimed. M5 payment/completion, receipt, refund, child release, shifts, pause/resume and provider notifications remain explicitly out of scope.
+The remaining runtime gate is the isolated MySQL 8.4/InnoDB listener at `127.0.0.1:33417`, which is not running, so lock/concurrency evidence has not been refreshed. Authenticated browser acceptance is now PASS on isolated SQLite at `127.0.0.1:8215` with a synthetic Owner: extension, last-four guardian verification, frozen invoice, `pending_payment`, English LTR and Arabic RTL all rendered and behaved as expected. M5 payment/completion, receipt, refund, child release, shifts, pause/resume and provider notifications remain explicitly out of scope.
 
 ## 2026-09-13 M4 preparation accepted; M5 gates
 

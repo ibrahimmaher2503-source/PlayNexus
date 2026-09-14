@@ -1,10 +1,10 @@
 # Current Milestone
 
-## 2026-09-14 M4 implementation locally accepted; runtime evidence pending
+## 2026-09-14 M4 implementation and browser runtime accepted; MySQL evidence pending
 
 OQ-19 is implemented as the approved Reception-to-Cashier handoff: guardian last-four verification or audited Manager/Owner override freezes an immutable quote and transitions only the active session to `pending_payment`. The same bounded M4 slice adds server-derived on-time/due/overdue state, fixed 30-minute extensions priced from the immutable snapshot, append-only reasoned Manager/Owner adjustments, and reasoned terminal cancellation. An extension moves the overtime boundary as well as adding its frozen unit charge, so it cannot be charged twice. Every mutation uses tenant/branch scope, actor/reason/audit evidence, optimistic versioning and UUID idempotency; active HTML forms redirect safely to the scoped board.
 
-Focused M4 tests pass on process-local SQLite: 26 passed, 1 explicit MySQL-concurrency skip, 197 assertions. Scoped Pint, Blade cache, routes, Vite build, documentation validation and whitespace checks pass. Payment, receipt, refund, child release, shift, pause/resume and provider notifications remain deliberately excluded for M5/later. M4 is code-complete and locally accepted, but isolated MySQL 8.4/InnoDB and authenticated browser runtime evidence remain open because the prior private MySQL listener is not running and the available local browser runtime presents a sign-in page without a synthetic QA identity.
+Focused M4 tests pass on process-local SQLite: 26 passed, 1 explicit MySQL-concurrency skip, 197 assertions. Scoped Pint, Blade cache, routes, Vite build, documentation validation and whitespace checks pass. An isolated, authenticated desktop browser run at `127.0.0.1:8215` passes with a synthetic Owner: a 30-minute extension updates the stored expected end and total from `256.50` to `342.00 EGP`, guardian last-four verification freezes that total and sends the session to `pending_payment`, and the English LTR and Arabic RTL screens both render correctly. Payment, receipt, refund, child release, shift, pause/resume and provider notifications remain deliberately excluded for M5/later. The only remaining runtime gate is an isolated MySQL 8.4/InnoDB run; the former private listener is not running.
 
 ## 2026-09-13 M4 checkout-preparation slice LOCALLY ACCEPTED; M5 NOT STARTED
 

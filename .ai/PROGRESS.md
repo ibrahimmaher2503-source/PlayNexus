@@ -4,7 +4,7 @@
 
 - Integrated bilingual `/app/sessions` operational controls for due state, fixed 30-minute extension, reasoned Manager/Owner additive adjustment, terminal non-refund cancellation and the immutable `pending_payment` subtotal/tax/total breakdown.
 - Corrected the integration seam: each operation receives its own UUID; lifecycle HTML posts redirect to the scoped board; extensions move the included-time boundary before overtime is calculated, preventing a double charge.
-- Focused M4 test set: 26 passed, 1 explicit MySQL-only concurrency skip, 197 assertions on SQLite. Scoped Pint, Vite, Blade cache, route list, documentation validation and whitespace checks pass. M4 code is locally accepted; MySQL 8.4/InnoDB and authenticated browser runtime evidence remain open. M5 payment/completion, receipt, refund, release, shift and provider scope is not present.
+- Focused M4 test set: 26 passed, 1 explicit MySQL-only concurrency skip, 197 assertions on SQLite. Scoped Pint, Vite, Blade cache, route list, documentation validation and whitespace checks pass. Authenticated task-local browser QA passes with a synthetic Owner: a 30-minute extension changes `256.50` to `342.00 EGP`, guardian last-four verification freezes the invoice into `pending_payment`, and English LTR/Arabic RTL desktop screens render correctly. MySQL 8.4/InnoDB evidence alone remains open. M5 payment/completion, receipt, refund, release, shift and provider scope is not present.
 
 ## 2026-09-13 M4 checkout preparation / OQ-19 handoff
 

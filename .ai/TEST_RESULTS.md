@@ -10,7 +10,8 @@
 | Isolation and replay | PASS: tenant/branch scope, cashier denial, stale-version conflict, identical UUID replay, changed-key conflict, audit/session-event evidence and `pending_payment` mutation block |
 | UI plumbing | PASS: three distinct UUID keys for extend/adjust/cancel; native HTML extension/cancellation posts redirect to the scoped board; frozen invoice and due-state rendering compile |
 | Build and static gates | `php vendor/bin/pint --test` for M4 scope, `php artisan view:cache`, `php artisan route:list --name=sessions`, `npm run build`, `python tools/validate_documentation.py`, and `git diff --check` — PASS |
-| MySQL/browser | BLOCKED_BY_RUNTIME: no listener at `127.0.0.1:33417`; local browser URL `http://127.0.0.1:8207/app/sessions` redirects to sign-in and no synthetic QA identity is available. No MySQL/browser acceptance is claimed. |
+| Authenticated browser | PASS on task-local SQLite at `http://127.0.0.1:8215`: synthetic Owner sign-in, active board, 30-minute extension (`256.50` to `342.00 EGP`), eligible guardian last-four verification, frozen invoice and `pending_payment`; reviewed in English LTR and Arabic RTL desktop UI. No user account, shared runtime or production data was used. |
+| MySQL 8.4/InnoDB | BLOCKED_BY_ENVIRONMENT: no MySQL 8.4 binary, Docker runtime or listener at `127.0.0.1:33417`; only XAMPP MariaDB is present and is not accepted as MySQL evidence. |
 
 M4 code is locally accepted. Payment/completion, receipt, refund, child release, shift, pause/resume and notification-provider behavior are not M4 functionality.
 
