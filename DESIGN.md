@@ -1,9 +1,29 @@
 # PlayNexus Design System
 
-**Status:** Draft implementation baseline pending brand approval  
+## 2026-09-15 application shell redesign
+
+The venue shell now uses one permission-aware, task-first sidebar grouped into Operations, Sales & tickets, Insights and Management. Desktop keeps a 248px information-rich state and a persistent 80px icon rail; tablet/mobile use the native modal drawer. The current branch, branch-local time, notification shortcut, tenant and signed-in role remain visible without competing with the work surface. The same structure mirrors in Arabic RTL, preserves 44px targets and visible focus, and uses the existing petrol-teal/cool-mineral tokens without a new component library.
+
+## 2026-09-15 M6 application
+
+Reports and operational-notification history reuse the full-screen desktop shell, petrol-teal/cool-mineral tokens, compact responsive tables, native date/select controls, minimum 44px targets, visible focus, semantic text plus color, server-rendered empty/validation/denied states, and logical RTL/LTR spacing. No new design system or frontend dependency was introduced.
+
+**Status:** M1 interface baseline implemented; brand approval still pending
 **Register:** Product interface  
 **Primary surfaces:** Reception, cashier, branch operations, management  
-**Implementation target:** Laravel Blade, Livewire, Tailwind CSS 4
+**Implemented stack:** Laravel Blade, small vanilla JavaScript enhancements, Tailwind CSS 4; Livewire is not installed and remains optional only if a measured interaction later requires it.
+
+**Desktop and Arabic closure — 2026-09-14:** Operational pages consistently use a 1440px desktop canvas; sparse boards expand through adaptive columns and ticket data stays tabular at desktop widths. Eleven authenticated Arabic RTL pages were checked at 1920×1080 with no horizontal page overflow or raw translation keys. Copy uses concise Modern Standard Arabic familiar to Egyptian staff, avoids dialect and backend vocabulary, and states the action or consequence directly.
+
+**M1 acceptance — 2026-09-12:** The shared authenticated navigation, tenant settings, semantic state tokens, skip link, 44px controls, Arabic RTL/English LTR behavior, tablet overflow behavior, and reduced-motion fallback were checked in the real browser. No console warnings or errors were present in the accepted journey.
+
+**Application shell follow-up — 2026-09-12:** Authenticated tenant pages now use the specified 248px desktop sidebar, 64px top bar, and sub-1024px navigation drawer. The shell keeps branch, locale, user, and sign-out context in one consistent location; navigation remains permission-aware and uses only implemented routes.
+
+**Ticket surface — 2026-09-13:** The implemented ticket-only page prioritizes keyboard/manual scan validation, explicit branch/date/family context and native lifecycle disclosures. The same ticket table becomes labeled cards on narrower screens, preserving actions without horizontal scrolling. Local square QR rendering and scoped single-page A5 output include status/holder-lock facts; cancellation explicitly does not refund money. Authenticated Arabic/English headless-browser mobile/desktop/tablet evidence is recorded in `.ai/TEST_RESULTS.md`; sessions and checkout are not implied.
+
+**Check-in/live-session surface — 2026-09-13:** The implemented session page leads with branch/capacity context, then a compact server-filtered board and a visually distinct ticket consume-and-start action for authorized staff. Cashier receives an explicit read-only state. Session cards keep child, guardian, branch, state, ticket, branch-local start/expected end and elapsed time scannable on desktop, tablet and mobile without a wide table. Success/conflict/denial copy states whether anything changed; no money or checkout promise appears. Authenticated Arabic/English responsive Edge evidence is in `.ai/TEST_RESULTS.md`.
+
+**Read-only estimate follow-up — 2026-09-13:** Active session cards now add one quiet teal estimate panel with a prominent total, compact base/grace/overtime/tax details, server as-of time and an explicit non-final/no-checkout/no-payment notice. Desktop uses at most two cards per row so money labels stay readable; mobile remains a single linear card. No new component library or decorative pattern was added.
 
 ## 1. Design direction
 
@@ -170,9 +190,11 @@ Use a 4px base grid with deliberate rhythm.
 
 ### Desktop
 
+- Desktop is the primary operational layout. At 1024px and above, use the full available application workspace; do not render a stretched tablet composition.
 - Persistent side navigation: 248px expanded, 80px collapsed.
 - Top bar: 64px with tenant, branch, current shift context when approved, locale, and user menu.
 - Main content maximum readable width: 1440px, with full-width operational tables when needed.
+- At 1366px, comparison-heavy operational data remains a desktop table. Switch to cards only when columns can no longer remain legible, not from one page-specific breakpoint.
 - Page actions align with the title on wide screens and move below it when space is constrained.
 
 ### Tablet
@@ -257,7 +279,7 @@ Build a small reusable Blade/Livewire vocabulary. Every interactive component re
 
 - Prioritize child name, elapsed/remaining time, state, guardian, and next permitted action.
 - Ending-soon and overdue states use label, icon, and color.
-- Pause, resume, extend, adjust, cancel, and checkout must be permission and state aware.
+- Extend, adjust, cancel, and checkout must be permission and state aware; pause/resume is excluded from the Egypt MVP.
 - Avoid a dashboard-card layout; use a scan-friendly operational board or table.
 
 ### Checkout

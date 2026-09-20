@@ -1,5 +1,58 @@
 # PlayNexus REST API Specification
 
+## 2026-09-15 contract boundary
+
+The implemented product is the session-authenticated `/app` web contract listed in the dated sections below and in Laravel routes. The `/api/v1` paths, Sanctum bearer security, ULID schemas, pause operations, and provider callbacks in the remainder of this document are an unpublished target contract, not implemented routes. Its acceptance checklist validates that target only and must not be used to claim current `/api/v1` availability.
+
+## 2026-09-15 M6 first-party web contract
+
+The implemented first-party routes are `GET /app/reports/{revenue|attendance|sessions|staff}`, `GET /app/reports/{type}/export`, `GET /app/notifications`, `GET /app/audit`, and `GET /app/audit/export`. They use the authenticated tenant session and accessible branch set. CSV is non-PII, synchronous, streamed in bounded chunks, and uses the same validated filters as the visible report. The provider-neutral database transport implements intent/attempt acceptance only; the provider callback and arbitrary/manual-send REST endpoints below remain planned and unavailable until OQ-05/OQ-13 approval.
+
+## 2026-09-15 M5 first-party remediation contract
+
+| First-party route | Contract |
+|---|---|
+| `POST /app/pos/orders` | Active scoped payment-capable staff create a server-priced persisted draft with `branch_id`, UUID `idempotency_key`, and `items` containing kind, product/ticket-type identifier and quantity. Ticket lines additionally require active guardian/child assignment and service date. Client commercial amounts are prohibited; identical creation replay must reuse the draft. |
+| `POST /app/pos/orders/{order}/payments` | Exact cash posting with `expected_order_lock_version`, `amount_minor`, `currency=EGP`, UUID `idempotency_key`, optional `approval_id`. Approval belongs to this locked order and is consumed within the same payment/receipt/ticket transaction. Replays return original facts; mismatches conflict. |
+
+The current implementation is session-authenticated under `/app`, not an implemented external `/api/v1` service. Approved M5 cash posting is atomic with order/payment/receipt and, for the frozen session handoff, session completion. Refund policy is now approved: full cash only, original branch, same branch-local date, separate Manager/Owner approval; requester cannot approve. Shift/drawer and provider resend/delivery remain deferred. These later decisions supersede older pending OQ-09 and separate station-completion assumptions below.
+
+Registered receipt boundary: `GET /app/orders/{order}/receipt` (`receipts.show`) retrieves immutable issued commercial facts and separate current refund annotation; `POST /app/orders/{order}/receipt/reprint` (`receipts.reprint`) audits reprint without allocating a payment or new number. Browser HTML/QR/print acceptance must be recorded separately from JSON response tests. A route labelled resend must not imply email/SMS/provider delivery in the cash pilot.
+
+Discount request/review routes live at `/app/orders/{order}/discount-approvals` and `/app/discount-approvals/{approval}/approve|reject`. Approval binds a reviewable server-derived persisted cart snapshot, exact discount and current version. Only payment may consume it atomically; a standalone consume command must not change financial facts. Ordinary POS draft/payment and ticket-sale acceptance remain incomplete until their registered routes, durable replay, tests and visible cashier controls have been centrally verified. Quote calculation alone does not create an order or payment.
+
+## 2026-09-13 implemented session-authenticated check-in subset
+
+The following first-party web routes extend the ticket subset without claiming the planned external `/api/v1` operations:
+
+| Web route | Implemented input/behavior |
+|---|---|
+| `GET /app/sessions` | Optional accessible `branch_id`, bounded `q` child/guardian/full-phone search and `status`; masked scoped 25-row board, occupancy, branch-local display times and a read-only non-final immutable-snapshot estimate for Active sessions; no-store response and no business mutation |
+| `POST /app/sessions/check-in` | Authorized `branch_id`, opaque/manual ticket `code`, UUID `idempotency_key` (or header); atomically revalidates scope/eligibility/capacity, consumes one ticket and creates one Active session/event/scan/audit |
+| `POST /app/sessions/{session}/extend` | Active-session extension in fixed 30-minute units with expected lock version and UUID idempotency key; updates expected end and records event/audit |
+| `POST /app/sessions/{session}/cancel` | Manager/Owner cancellation with expected lock version, UUID idempotency key, required reason, terminal state and event/audit; no financial refund |
+| `POST /app/sessions/{session}/adjustments` | Manager/Owner additive extension/amount correction with expected lock version, required reason, and before/after quote evidence |
+
+Owner/assigned Branch Manager/Reception may check in; Cashier is board-only. Same UUID and canonical payload returns the existing result, changed reuse conflicts, hidden branch scope returns 404, missing action returns 403, child/capacity conflicts return 409, and ticket eligibility rejections return 422 without business-state mutation. Responses expose session/ticket identifiers and UTC start/expected end only when in scope; no holder phone, QR payload, checkout/final charge, payment or refund is returned. The HTML board's estimate is presentation-only, server-derived and never a persisted checkout quote.
+
+## 2026-09-13 implemented session-authenticated ticket subset
+
+The `/api/v1` contract below remains the planned external API. Current Laravel ticket commands are first-party `/app` routes under authentication, active tenant access, CSRF, fresh fixed-role policies, and non-cacheable QR responses. IDs in this implemented subset are bigint, not proposed ULIDs. Tenant, price, tax, validity, holder lock, and request correlation are derived server-side.
+
+| Web route | Implemented input/behavior |
+|---|---|
+| `GET /app/tickets` | Optional authorized `branch_id` and bounded `family_q`; latest 75 scoped tickets, masked verified active family choices, bounded scan history |
+| `POST /app/ticket-types` | Manager: `branch_id`, active `pricing_rule_id`, `code`, `name`; immutable server-derived single-use price/type |
+| `POST /app/tickets` | `branch_id`, `ticket_type_id`, `guardian_id`, `child_id`, branch-local `service_date`, UUID `idempotency_key` (or header); native forms may use `family_assignment=guardian_id:child_id`; encrypted opaque payload returned to authorized issuer |
+| `POST /app/tickets/scan` | Authorized branch, opaque QR or manual display `code`, UUID key; validation only, staff-safe accepted/rejected result, 120/minute throttle; permanent holder lock on first accepted scan |
+| `PATCH /app/tickets/{ticket}/assignment` | Active verified family IDs/pair, `reason` in `guardian_request,staff_correction`, `expected_version`; only Issued/no successful scan/use |
+| `POST /app/tickets/{ticket}/cancel` | Manager: `reason` in `customer_request,duplicate_issue,staff_error`, `expected_version`; unused/unscanned cancellation only; `financial_refund_processed=false` |
+| `POST /app/tickets/{ticket}/reprint` | `expected_version`; same immutable QR/ID/price/date/state plus audit event; each successful request is a reprint event |
+
+Issue/scan changed-payload retry returns 409, stale mutations return 409, validation returns 422, hidden scope returns 404, and missing in-scope action returns 403. A wrong-branch scan is logged but returns no ticket ID or holder details. Current verified checkout-capable relationship, latest granted child-data consent, and emergency contact are required for issue/reassignment/accepted validation. Operating validity uses the stored timezone/window snapshot and an exclusive close boundary. The validation route neither consumes the ticket nor creates a session; the separately documented check-in route now performs that atomic command. Payment and action-bound refund approval/reversal remain outside this implementation under finance gates.
+
+An active ticket type owns its immutable price and source pricing version. Later pricing-rule replacement does not reprice or strand that type: issuance continues to snapshot its retained historical source version. A manager creates a new type/code for a different price. Type creation requires a current active pricing rule; changing/retiring ticket types is not an implemented command. Consent is the existing child-wide latest grant/withdrawal record; revoking holder access is checked separately and does not silently manufacture consent withdrawal.
+
 **Document ID:** PN-API-001  
 **Status:** Draft MVP contract pending stakeholder decisions and contract validation  
 **Base path:** `/api/v1`  
@@ -10,7 +63,7 @@
 
 The REST API supports approved PlayNexus clients and future integrations without forcing the Laravel web UI to become an API client. The first-party Blade/Livewire application uses secure session-authenticated web routes. API clients use Laravel Sanctum bearer tokens.
 
-The API covers the MVP operational core: authentication/password reset, tenant/branch/staff administration, guardian/child registration, tickets, sessions, approvals, POS/payment/refund/receipt records, operational notifications, reports, and audit access. The request shapes implement the full-payment/full-refund planning assumptions ASM-08/ASM-10 pending OQ-09; they are not a hidden finance approval. Basic-incident routes are a conditional contract section and must stay disabled unless OQ-20 is approved. Games/queues/participation, cashier shifts, online payment processing, parent self-service, birthday bookings, memberships, loyalty, marketing campaigns, and payment webhooks are deferred. An authenticated notification-delivery callback is included only to distinguish `sent` from provider-confirmed `delivered`.
+The API covers the MVP operational core: authentication/password reset, tenant/branch/staff administration, guardian/child registration, tickets, sessions, approvals, POS/payment/refund/receipt records, operational notifications, reports, and audit access. The request shapes reflect the approved exact-payment and full-refund baseline under OQ-09. Basic-incident routes are a historical proposed contract and remain disabled under approved OQ-20. Games/queues/participation, cashier shifts, online payment processing, parent self-service, birthday bookings, memberships, loyalty, marketing campaigns, and payment webhooks are deferred. A notification-delivery callback remains conditional on DEC-NOT-04 and may never be used to claim delivery without verified provider evidence.
 
 ## 2. General conventions
 
@@ -235,18 +288,20 @@ Staff creation accepts name, normalized unique email, optional phone, allowed ro
 | Method/path | Permission | Notes |
 |---|---|---|
 | `GET /guardians?search=` | `customers.search` | possible matches, masked by role |
-| `POST /guardians` | `guardians.create` | duplicate behavior remains provisional pending OQ-17 |
+| `POST /guardians` | `guardians.create` | same-tenant normalized-phone matches hard-reuse the existing family; foreign-tenant matches stay undisclosed |
 | `GET /guardians/{guardian_id}` | `guardians.view` | scoped customer detail |
 | `PATCH /guardians/{guardian_id}` | `guardians.update` | `If-Match`; consent fields require consent ability |
 | `POST /guardians/{guardian_id}/children` | `children.manage` | creates child and active relationship atomically |
-| `POST /guardians/{guardian_id}/relationships` | `relationships.manage` | link existing child after verification |
+| `PATCH /guardians/{guardian_id}/children/{child_id}/consent` | `guardians.consent.manage` | append-only child-data or marketing withdrawal; withdrawing child-data consent restricts the child |
+| `POST /guardians/{guardian_id}/relationships` | `relationships.manage` | link/reactivate an existing same-tenant guardian after registered-phone last-four verification |
+| `DELETE /guardians/{guardian_id}/children/{child_id}/relationships/{related_guardian_id}` | `relationships.manage` | revoke an active link; the final consent-capable checkout guardian cannot be removed |
 | `GET /children?search=` | `customers.search` | name/allowed identifiers only |
 | `GET /children/{child_id}` | `children.view` | masked fields by role |
 | `PATCH /children/{child_id}` | `children.manage` | `If-Match` |
 
 Create guardian and child:
 
-OQ-15 (DOB/age representation) and OQ-17 (duplicate handling) remain open. The current fields/examples are proposed contract shapes, not an approved legal/product choice; freeze and migration generation are blocked until those decisions close.
+OQ-15 and OQ-17 are closed. DOB remains optional, age is derived when present, and a same-tenant normalized-phone match reuses the existing family. Active child creation requires explicit versioned legal-guardian consent and an emergency contact; marketing remains a separate optional choice.
 
 ```http
 POST /api/v1/guardians
@@ -288,7 +343,13 @@ Idempotency-Key: 4b3081f3-3a0b-4cb8-b3f3-2a1be3f86867
   "can_check_out": true,
   "is_primary": true,
   "emergency_contact_name": "Ahmed Samir",
-  "emergency_contact_phone_e164": "+201001112233"
+  "emergency_contact_phone_e164": "+201001112233",
+  "child_data_consent": {
+    "accepted": true,
+    "notice_version": "egypt-family-v1-2026-09-12",
+    "locale": "ar",
+    "method": "electronic"
+  }
 }
 ```
 
@@ -301,10 +362,10 @@ Idempotency-Key: 4b3081f3-3a0b-4cb8-b3f3-2a1be3f86867
 | `GET /ticket-types?branch_id=` | `ticket_types.view` | sellable active ticket types |
 | `POST /ticket-types` | `ticket_types.manage` | create a manager-controlled ticket type tied to an eligible pricing rule |
 | `PATCH /ticket-types/{ticket_type_id}` | `ticket_types.manage` | `If-Match`; update display/validity policy or retire future sales without repricing issued tickets |
-| `POST /tickets` | `tickets.issue` | key required; returns QR payload once and printable display code |
+| `POST /tickets` | `tickets.issue` | key required; branch and branch-local `service_date` required; returns QR payload once and printable display code |
 | `GET /tickets/{ticket_id}` | `tickets.scan` or view ability | never returns reusable raw code to unauthorized roles |
-| `POST /tickets/scan` | `tickets.scan` | key required; logs accepted and rejected scans |
-| `POST /tickets/{ticket_id}/cancel` | `tickets.cancel` + approval where policy requires | `If-Match`, reason, approval ID |
+| `POST /tickets/scan` | `tickets.scan` | key required; logs accepted/rejected scans; first accepted scan permanently locks holder assignment |
+| `POST /tickets/{ticket_id}/cancel` | `tickets.cancel` + manager/owner approval for refund eligibility | `If-Match`, reason, approval ID; scanned/consumed/session-linked tickets cannot be refunded |
 | `POST /tickets/{ticket_id}/reprint` | `tickets.reprint` | key + `If-Match`; same ID/QR/validity/price/state, new audit event only |
 
 Issue response excerpt:
@@ -317,6 +378,7 @@ Issue response excerpt:
     "status": "issued",
     "display_code": "PN-8F4K2M",
     "qr_payload": "pnx_opaque_payload_returned_once",
+    "service_date": "2026-08-24",
     "valid_from": "2026-08-24T10:15:00Z",
     "valid_until": "2026-08-24T14:15:00Z",
     "lock_version": 1
@@ -450,7 +512,7 @@ Idempotency-Key: b9ff5132-d11c-4f8a-b8c7-09dd3ef07989
 }
 ```
 
-**OQ-19 remains an explicit open decision.** This API does not decide whether Reception posts the payment or hands the draft order to Cashier. It exposes recoverable quote/order, full-payment, and completion commands. `checkout` rejects `amount_due > 0`; a paid-but-not-completed session remains visible and retryable. **OQ-12 also remains open:** `verification_method` is a proposed placeholder constrained at implementation to the Safety/Legal-approved allowlist; manager override uses a bound approval.
+The planned external API below remains distinct from the implemented first-party web contract. The web contract resolves OQ-19 through Reception/Manager verification and a frozen `pending_payment` handoff, then M5 atomically posts the exact cash payment, receipt and session completion. M5 also implements ordinary cash orders, discount approval, immutable receipt retrieval/reprint and approved full same-day refunds. Provider delivery, shifts and external `/api/v1` publication remain later scopes.
 
 ## 9. Approvals
 
@@ -575,7 +637,7 @@ Execute refund:
 
 The refund endpoint never accepts an amount or currency. It derives and reverses the one full posted payment, rejects a second refund, and returns an immutable posted refund plus `order.status=refunded`. Partial payments, split tender, partial refunds, shifts, and cash-drawer balancing return no route/capability in MVP.
 
-## 11. Basic incidents — conditional on OQ-20
+## 11. Basic incidents — deferred by OQ-20
 
 Games, queues, participation, and game-capacity routes are not registered in MVP. The incident routes below are proposed for implementation only if Product/Safety/Legal approve OQ-20; otherwise they are not registered or granted.
 
@@ -671,7 +733,7 @@ Online-payment webhooks remain future scope. The MVP notification-status callbac
 
 ## 18. Contract acceptance checklist
 
-- `contracts/openapi.yaml` parses as OpenAPI 3.1 and contains all implemented MVP routes.
+- `contracts/openapi.yaml` parses as OpenAPI 3.1 and labels the unpublished external target separately from the implemented `/app` route inventory.
 - Every operation has a unique `operationId`, security declaration, permission mapping, request validation, success schema, and shared problem responses.
 - Tenant-owned request schemas contain no writable `tenant_id`.
 - All critical create/money/state commands require `Idempotency-Key`.
@@ -679,3 +741,9 @@ Online-payment webhooks remain future scope. The MVP notification-status callbac
 - Examples use valid enum values, ULID shapes, UTC timestamps, and minor-unit money.
 - Cross-tenant and unassigned-branch tests return `404`.
 - Error codes and enum values remain synchronized with application enums and `07-Database-ERD.md`.
+
+## Approved MVP decision amendment — 2026-09-10
+
+- Receipt responses expose an immutable branch-scoped display number (`BRANCH-YYYY-000001`) and void status/reason; no delete operation exists.
+- Checkout requests require QR/session identity and guardian confirmation (`registered_phone_last4` or `handoff_code`); failed confirmation returns a stable blocked-verification problem. Manager override requires a bound approval/reason and is idempotent.
+- Quote/checkout uses fixed-duration packages, 600-second grace, 1800-second overtime units, no pause in MVP, integer minor-unit money, configurable branch tax, and server calculation snapshots.

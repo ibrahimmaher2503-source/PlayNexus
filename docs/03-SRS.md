@@ -1,5 +1,19 @@
 # PlayNexus Software Requirements Specification (SRS)
 
+## 2026-09-15 implemented M6 engineering subset
+
+FR-RPT-001–007 are implemented as authenticated server-rendered revenue, attendance, session and staff-activity reports with explicit tenant/accessible-branch scope, per-branch local-day to half-open UTC conversion, a 31-day synchronous cap, allowlisted sorting, 25-row pagination and filter-identical non-PII CSV for Owner/Manager. Revenue uses only committed orders, posted payments and executed refunds; session/attendance use committed session facts; staff activity uses append-only audit rows. FR-RPT-008 remains optional beyond this CSV.
+
+FR-NOT-001–007 are implemented for a provider-neutral local/database acceptance transport: persisted encrypted/masked intent, payload/template/version/locale, append-only attempts, scheduler collection, queued processing, duplicate-job idempotency, three-attempt cap and truthful `sent` without claiming `delivered`. OQ-05/OQ-13 channel and retry behavior is approved; real channels/providers/callbacks await DEC-NOT-01–04. OQ-20 incidents remain absent by approved deferment. The bounded performance/recovery defaults and external pilot gates are recorded in `22-M6-Operations-Runbook.md`.
+
+## 2026-09-15 implemented M5 financial subset
+
+The current Laravel implementation includes the accepted M4 handoff and the bounded M5 cash pilot: server-priced ordinary orders, exact cash settlement of verified `pending_payment` sessions, payload-bound discount approval, immutable numbered browser receipts, transaction lookup and one approved full same-day cash refund. Shifts, split/partial tender or refund, provider delivery and production release controls remain excluded. Local SQLite, authenticated bilingual desktop, isolated MySQL 8.4.11/InnoDB, and real duplicate settlement/refund contention pass.
+
+## 2026-09-15 current Egypt session contract
+
+Pause/resume is deferred from the approved Egypt MVP. The implemented lifecycle is `active` → `pending_payment` → `completed`, or `active` → `cancelled`, with explicit extension and additive adjustment commands. Paused-state requirements and examples retained below are historical source/target material and are superseded for this release; they must not be implemented or exposed without a new scope decision.
+
 **Document version:** 1.1  
 **Status:** Draft for technical and product approval  
 **Product release:** Phase 1 / MVP  
@@ -10,7 +24,7 @@
 
 This SRS defines the externally observable behavior and quality constraints of the PlayNexus MVP. Each requirement has a stable, unique identifier and a verification statement. These identifiers are referenced by user stories, use cases, architecture, database, API, permission, UI/UX, and test documents.
 
-Unresolved product choices are referenced as `OQ-nn` from the BRD. A requirement marked **Conditional** is not authorized for MVP implementation until its named decision is approved.
+Historical product questions are referenced as `OQ-nn` from the BRD. Current decision state is controlled by `.ai/DECISION_REGISTER.md`; a preserved proposal does not override a later approval or deferment.
 
 ## 2. Scope baseline
 
@@ -23,12 +37,12 @@ Unresolved product choices are referenced as `OQ-nn` from the BRD. A requirement
 - Basic catalog, POS order, discount, tax, payment recording, refund recording, and digital receipts.
 - Revenue, attendance, session-history, and staff-activity reports.
 - Session-ending and receipt notifications with attempt logging.
-- Audit events and manual overrides; basic incident records are **Conditional/Proposed pending OQ-20**.
+- Audit events and manual overrides; basic incident records are **deferred from Egypt V1 by approved OQ-20**.
 - English/Arabic-ready localization, regional currency/tax/time-zone configuration, security, availability, backup, and observability.
 
 ### 2.2 Excluded subsystems
 
-Native apps; parent login/self-service; online booking and birthday packages; memberships, loyalty, wallet, and gift cards; campaigns and advanced CRM; game/queue/slot management; inventory and HR; split tender; offline synchronization; advanced BI/export; online gateway capture unless OQ-01 is approved; proprietary wristband/kiosk integration unless OQ-02 is approved; marketplace, franchise, AI, and white-label delivery.
+Native apps; parent login/self-service; online booking and birthday packages; memberships, loyalty, wallet, and gift cards; campaigns and advanced CRM; game/queue/slot management; inventory and HR; split tender; offline synchronization; advanced BI/export; online gateway capture under approved OQ-01 deferment; proprietary wristband/kiosk SDK integration beyond the approved OQ-02 browser-scanner baseline; marketplace, franchise, AI, white-label delivery, cashier shifts under OQ-24, and incidents under OQ-20.
 
 ## 3. Requirement conventions
 
@@ -81,7 +95,7 @@ Priority is the proposed delivery criticality after a requirement is approved; i
 | FR-RPT | Source FR-010, PRD-MVP-010, reporting section | Core reports source-mapped; extra dimensions are Proposed where noted in the PRD baseline |
 | FR-NOT | PRD-MVP-011 and Notifications module | Source-mapped for session-ending/receipt only; campaigns are Deferred |
 | FR-AUD | PRD-MVP-010, Security/Safety NFR/modules | Source-mapped for staff activity and sensitive-action accountability; detailed event schema is Derived |
-| FR-SAF-003–006 | Safety module and Game Operator role, but absent from the Phase 1 MVP list | **Conditional/Proposed pending OQ-20** |
+| FR-SAF-003–006 | Safety module and Game Operator role, but absent from the Phase 1 MVP list | **Deferred from Egypt V1 by approved OQ-20** |
 | NFR/SEC/DATA/INT/LOC detail | Source NFR categories and API/data overview | Source-mapped where the source is explicit; measurable/control detail is Derived and approved at G1/G2 |
 
 Source FR-011 (memberships/loyalty) and FR-012 (parent mobile app/marketplace) are future requirements and have no MVP detailed FR family.
@@ -91,13 +105,13 @@ Source FR-011 (memberships/loyalty) and FR-012 (parent mobile app/marketplace) a
 | Proposed item | Draft position | Approval dependency |
 |---|---|---|
 | PROP-SRS-001 | Staff password reset is included as a normal secure account-recovery control. | Product/Security approval; FR-AUT-004–005 |
-| PROP-SRS-002 | Payment capture is recording-only, with no gateway or raw card data. | ASM-02; OQ-01 |
-| PROP-SRS-003 | One payment settles a basic order; split/partial tender is deferred. | ASM-08 |
-| PROP-SRS-004 | Refund design is full-only for planning; refund policy is not approved. | ASM-10; OQ-09 |
-| PROP-SRS-005 | Incident records enter MVP only if Product/Safety approves them. | ASM-11; OQ-20 |
-| PROP-SRS-006 | The 2-second/5-second source targets are measured at the 95th percentile. | OQ-21; NFR-PERF-001–002 |
+| PROP-SRS-002 | **Approved:** payment capture is recording-only, with no gateway or raw card data. | OQ-01 |
+| PROP-SRS-003 | **Approved:** one exact cash payment settles a basic order; split/partial tender is deferred. | OQ-01; M5 decision |
+| PROP-SRS-004 | **Approved:** one full same-day cash refund under the OQ-09 controls. | OQ-09 |
+| PROP-SRS-005 | **Deferred:** incident records do not enter Egypt V1. | OQ-20 |
+| PROP-SRS-006 | **Superseded:** approved OQ-21 defines p95 targets directly; the production workload fixture remains release evidence. | OQ-21; NFR-PERF-001–002 |
 | PROP-SRS-007 | Accessibility criteria, idempotency, atomicity, append-only finance/audit, and correlation IDs are derived quality/safety controls. | Architecture, Security, QA approval at G2 |
-| PROP-SRS-008 | No cashier-shift feature is specified in the current SRS; the PRD POS module's “daily shift close” is unresolved. | OQ-24; add requirements/stories/API/data/tests only if approved |
+| PROP-SRS-008 | **Deferred:** no cashier-shift/drawer feature is specified for Egypt V1. | OQ-24; later expansion requires a new contract |
 
 ### 3.6 Source business-rule crosswalk
 
@@ -149,7 +163,7 @@ Game Operator is retained in the long-term role model but has no game-management
 | FR-TEN-003 | A Tenant Owner shall be able to view and update the tenant business profile within the fields permitted by policy. | Must | Saved values are returned on reload, are tenant-scoped, validated, and audited when sensitive. |
 | FR-TEN-004 | A Tenant Owner shall be able to create and update branches belonging to the tenant. | Must | Every branch stores the current tenant identifier; cross-tenant identifiers are rejected; required fields are validated. |
 | FR-TEN-005 | Branch configuration shall include name, address/location text, active status, opening hours, capacity, time zone, currency, tax settings, receipt settings, and permitted payment methods. | Must | A complete valid configuration can be saved; invalid time-zone/currency/tax values are rejected with field-level errors. |
-| FR-TEN-006 | Authorized users shall activate/deactivate a branch with a reason. Deactivation shall prevent new sessions and new POS orders but shall not delete historical data. | Must | New check-in/order is denied for an inactive branch; historical records/reports remain readable to authorized users; action is audited. |
+| FR-TEN-006 | Authorized users shall activate/deactivate a branch with an audited reason code. The M1 administration UI derives that code from the action instead of asking the owner to choose it. Deactivation shall prevent new sessions and new POS orders but shall not delete historical data. | Must | New check-in/order is denied for an inactive branch; historical records/reports remain readable to authorized users; action is audited with `access_review`. |
 | FR-TEN-007 | The system shall show branch-local operational dates/times derived from stored UTC timestamps and the configured branch time zone. | Must | Known UTC boundary examples, including date changes and daylight-offset changes where applicable, render correctly. |
 | FR-TEN-008 | A Tenant Owner shall be able to view all branches and their active status; a branch-scoped user shall see only assigned branches. | Must | Matrix tests prove all-tenant visibility for owner and assigned-only visibility for scoped roles. |
 | FR-TEN-009 | The system shall prevent changing a branch currency after posted financial records exist unless an explicitly authorized migration process is approved. | Must | Direct update is rejected after a posted transaction; no historical amount is reinterpreted. |
@@ -158,13 +172,14 @@ Game Operator is retained in the long-term role model but has no game-management
 
 | ID | Requirement | Priority | Verification / acceptance |
 |---|---|---|---|
-| FR-RBAC-001 | An authorized user shall create/invite a staff user inside the current tenant and assign one or more approved role/branch scopes. | Must | Created staff is tenant-owned; invalid/cross-tenant branch assignment fails; invitation is logged. |
+| FR-RBAC-001 | An authorized user shall create a staff user inside the current tenant and assign one or more approved role/branch scopes. | Must | Created staff is active and tenant-owned, receives a generated unknown password for later reset, invalid/cross-tenant branch assignment fails, and creation is logged. |
 | FR-RBAC-002 | An authorized user shall change role/branch assignments and suspend/reactivate staff within permitted scope. | Must | Changes take effect within the documented authorization-cache interval and are audited with before/after assignments. |
 | FR-RBAC-003 | Every protected UI route, API action, background job, report, and file access shall enforce authenticated tenant scope, branch scope, and required permission server-side. | Must | Positive and negative permission tests cover each protected operation; URL/body identifier tampering cannot widen access. |
-| FR-RBAC-004 | The MVP shall provide named permission keys at least for tenant settings, branch settings, staff management, family records, check-in, pause/resume, session cancellation, time adjustment, checkout, checkout override, ticket issue/cancel/reprint/scan, POS sale, discount, discount approval, payment, refund, reports, and audit view; incident keys apply only if OQ-20 approves that module. | Must | The approved matrix maps every in-scope protected action to a permission key and automated tests demonstrate enforcement. |
+| FR-RBAC-004 | The MVP shall provide named permission keys at least for tenant settings, branch settings, staff management, family records, check-in, session extension, session cancellation, time adjustment, checkout, checkout override, ticket issue/cancel/reprint/scan, POS sale, discount, discount approval, payment, refund, reports, and audit view; pause/resume is deferred and incident keys apply only if OQ-20 approves that module. | Must | The approved matrix maps every in-scope protected action to a permission key and automated tests demonstrate enforcement. |
 | FR-RBAC-005 | Where policy requires approval, the requesting actor and approving actor shall both be retained; self-approval shall be allowed or denied according to the approved permission matrix. | Must | Threshold/override tests require an approver; the result stores both identities and fails if policy forbids self-approval. |
 | FR-RBAC-006 | Suspension of a staff user shall not delete or anonymize that user's historical operational or audit attribution. | Must | Historical records continue to show a stable user reference/display label after suspension. |
 | FR-RBAC-007 | Super Admin support access to tenant data shall be denied by default except for explicitly approved functions under OQ-14 and shall always be audited. | Must | Unapproved support access returns forbidden; any approved support action emits a privileged-access event. |
+| FR-RBAC-008 | A Tenant Owner may create tenant-specific roles and control only permission keys already enforced by the implemented application. | Must | The current slice exposes `branches.view` only; tenant isolation, stale-write conflict handling, audit, assignment, grant and revocation are covered by automated tests. |
 
 ### 5.4 Guardian and child registration
 
@@ -185,44 +200,46 @@ Game Operator is retained in the long-term role model but has no game-management
 | ID | Requirement | Priority | Verification / acceptance |
 |---|---|---|---|
 | FR-SES-001 | Authorized reception staff shall create an Active session for one child at one active branch using either a valid ticket or a selected active pricing rule. | Must | Successful check-in stores tenant, branch, child, initiator, rule/ticket, server start time, and Active status atomically. |
-| FR-SES-002 | The system shall reject check-in when required data is missing, the branch is inactive, the rule is inactive, the ticket is invalid, or the child already has an Active/Paused session in the tenant. | Must | One negative test per condition returns a conflict/validation result and creates no partial session/ticket consumption. |
-| FR-SES-003 | Authorized staff shall pause an Active session using an allowed pause type and reason; the system shall start a pause interval at server time. | Must | Active becomes Paused; one open pause interval exists; action/actor/type/reason/time are retained. |
-| FR-SES-004 | Authorized staff shall resume a Paused session; the system shall close the open pause interval using server time. | Must | Paused becomes Active; pause end is at/after start; a second resume fails without changing data. |
-| FR-SES-005 | Authorized staff shall extend an Active or Paused session using an allowed extension option or approved manual value. | Must | Extension and incremental price are previewed, accepted once, stored, and included in the calculation/audit. |
-| FR-SES-006 | Authorized staff shall cancel an Active or Paused session only with a reason and, where configured, manager approval. | Must | Session becomes Cancelled; open pause is safely closed; reason/approval are retained; terminal state rejects later operational transitions. |
-| FR-SES-007 | Authorized staff shall request a checkout quote that shows elapsed time, included/excluded pause time, extensions, rounding, base/overage charge, discounts/tax where applicable, payments, and amount due. | Must | Worked examples approved in DEP-01 reproduce the displayed breakdown and total. |
+| FR-SES-002 | The system shall reject check-in when required data is missing, the branch is inactive, the rule is inactive, the ticket is invalid, or the child already has an Active session in the tenant. | Must | One negative test per condition returns a conflict/validation result and creates no partial session/ticket consumption. |
+| FR-SES-003 | **Deferred for the Egypt MVP:** pause commands are not offered or accepted; a later scope change must define pause types, reasons, intervals, and billing treatment. | Deferred | No pause route, permission, table, or state is implemented. |
+| FR-SES-004 | **Deferred for the Egypt MVP:** resume commands are not offered or accepted; a later scope change must define the paused-state contract. | Deferred | No resume route, permission, table, or state is implemented. |
+| FR-SES-005 | Authorized staff shall extend an Active session using an allowed fixed option or approved manual value. | Must | Extension and incremental price are previewed, accepted once, stored, and included in the calculation/audit. |
+| FR-SES-006 | Authorized staff shall cancel an Active session only with a reason and, where configured, manager approval. | Must | Session becomes Cancelled; reason/approval are retained; terminal state rejects later operational transitions. |
+| FR-SES-007 | Authorized staff shall request a checkout quote that shows elapsed time, extensions, rounding, base/overage charge, discounts/tax where applicable, payments, and amount due. | Must | Worked examples approved in DEP-01 reproduce the displayed breakdown and total; no pause line is expected in the Egypt MVP. |
 | FR-SES-008 | Checkout shall require selection/verification of an active guardian linked to the child or an authorized manager override with reason. | Must | Checkout completion is rejected until one of the two records exists; saved verification identifies guardian/method/actor/time or approver/reason. |
 | FR-SES-009 | The system shall not mark a session Completed while a required amount remains due unless an authorized payment exception policy is explicitly configured. | Must | With amount due, completion fails; after a matching posted payment it succeeds; exception behavior is absent unless approved. |
 | FR-SES-010 | Completing checkout shall atomically store server end time, final immutable calculation snapshot, guardian verification/override, and Completed state. | Must | Failure rolls back all completion changes; retry is idempotent and returns the already-completed result rather than duplicating financial/receipt records. |
 | FR-SES-011 | Completed and Cancelled sessions shall be terminal. Corrections shall be represented by authorized adjustment records rather than rewriting historical events. | Must | Transition/update attempts fail; an approved adjustment preserves original and revised values, actor, approver, reason, and time. |
 | FR-SES-012 | Authorized staff shall view/search sessions by branch, state, date/time, ticket/QR, parent phone, or child name within their permitted scope. | Must | Each filter returns correct scoped results; combinations and pagination are deterministic. |
 | FR-SES-013 | The active-session view shall show current billable elapsed time, expected end/alert status, and current estimated charge calculated from authoritative stored data. | Must | Refresh after a controlled clock advance shows correct values and does not mutate the final financial snapshot. |
-| FR-SES-014 | Session-changing commands shall use concurrency control so two requests cannot create duplicate transitions, pauses, payments, or checkouts. | Must | Parallel request tests result in one accepted transition and a conflict/idempotent response for the other. |
+| FR-SES-014 | Session-changing commands shall use concurrency control so two requests cannot create duplicate transitions, extensions, payments, or checkouts. | Must | Parallel request tests result in one accepted transition and a conflict/idempotent response for the other. |
+
+**M4/OQ-19 bounded preparation contract — 2026-09-13:** Reception (or an authorized Branch Manager) may prepare checkout only for an Active, in-scope session. The server verifies an active same-tenant, checkout-capable, verified guardian by registered-phone last four digits, or accepts a permission-checked manager override with a non-empty reason. It then calculates from immutable session facts, stores the frozen quote and verification evidence, increments the session lock version, appends an audit/event pair, and transitions to `pending_payment`. Cashier cannot prepare checkout; M5 will post one matching payment and atomically complete the session. Identical UUID replays return the original preparation; changed replays, stale locks, ineligible/foreign guardians, and terminal states conflict or fail safely without mutation. Payment, refund, receipt, shift, and child-release execution are outside this slice.
 
 ### 5.6 Smart time and pricing engine
 
 | ID | Requirement | Priority | Verification / acceptance |
 |---|---|---|---|
-| FR-TIM-001 | Authorized users shall configure branch pricing rules with name, active dates/status, base duration/price or rate, overage/extension rules, rounding mode/increment, tax treatment, permitted pause behavior, and alert lead time as applicable. | Must | Valid rule saves; incomplete/inconsistent rule is rejected; activation is audited. |
+| FR-TIM-001 | Authorized users shall configure branch pricing rules with name, active dates/status, base duration/price or rate, overage/extension rules, rounding mode/increment, tax treatment, and alert lead time as applicable. Pause behavior is deferred in the Egypt MVP. | Must | Valid rule saves; incomplete/inconsistent rule is rejected; activation is audited. |
 | FR-TIM-002 | A pricing rule change shall create a new effective version or snapshot and shall not change the calculation semantics of an existing session/order. | Must | A session created before the change retains its original worked result; a later session uses the new version. |
-| FR-TIM-003 | The time engine shall calculate total elapsed duration from server start/end (or calculation time), total recorded pause duration, excluded approved pause duration, and billable duration. | Must | Boundary tests for no pause, one pause, multiple pauses, open pause, and non-excludable pause match approved examples. |
+| FR-TIM-003 | The time engine shall calculate elapsed and billable duration from server start/end (or calculation time), extensions, and approved adjustments. Pause intervals are deferred in the Egypt MVP. | Must | Boundary tests for grace, overtime, extension, and adjustment match approved examples; pause examples remain historical only. |
 | FR-TIM-004 | The time engine shall calculate base, extension, overage, rounding, discount/tax inputs, and final session charge according to the selected versioned rule. | Must | Approved worked examples, including exact boundaries and one-unit-over boundaries, match within currency precision. |
 | FR-TIM-005 | The same stored inputs and rule version shall always produce the same calculation output independent of UI locale. | Must | Recalculation in English/Arabic and on separate application instances produces the same numeric result and component codes. |
 | FR-TIM-006 | The system shall store a structured calculation breakdown and rule-version reference whenever a quote is accepted or a session is completed. | Must | Stored snapshot can reproduce every displayed line and does not change after later configuration edits. |
 | FR-TIM-007 | Manual time or price adjustment shall require explicit permission, reason, old/new values, and any configured approval; it shall never edit source timestamps invisibly. | Must | Unauthorized/no-reason request fails; authorized adjustment is shown in quote/report/audit. |
-| FR-TIM-008 | The system shall determine the session-ending alert due time from the active rule, extension, and applicable pause behavior, and shall reschedule it after relevant session changes. | Must | Controlled-clock tests prove one current alert schedule; stale schedules do not send duplicate alerts after pause/extension/cancel/complete. |
+| FR-TIM-008 | The system shall determine the session-ending alert due time from the active rule and extension, and shall reschedule it after relevant session changes. | Must | Controlled-clock tests prove one current alert schedule; stale schedules do not send duplicate alerts after extension/cancel/complete. |
 | FR-TIM-009 | Time calculations shall use an integer duration unit and monetary minor units or an equivalent decimal representation that avoids binary floating-point rounding errors. | Must | Repeated arithmetic and boundary test dataset shows no fractional-cent drift. |
 
 ### 5.7 Ticketing and QR
 
 | ID | Requirement | Priority | Verification / acceptance |
 |---|---|---|---|
-| FR-TKT-001 | Authorized staff shall issue a ticket belonging to the current tenant/branch with type, validity, price/rule reference, status, and a non-guessable unique QR payload. | Must | Ticket and QR are created once; collision/duplicate identifier test fails safely; payload does not reveal sensitive child data. |
+| FR-TKT-001 | Authorized staff shall issue a ticket belonging to the current tenant/branch and a branch-local service date with type, validity, price/rule reference, holder/child binding where used, status, and a non-guessable unique QR payload. | Must | Ticket and QR are created once; branch/service-date bounds are immutable; collision/duplicate identifier test fails safely; payload does not reveal sensitive child data. |
 | FR-TKT-002 | The system shall render the QR for on-screen display and browser-compatible printing. | Must | A supported scanner/camera reads the printed and displayed test QR and resolves it through the validation interface. |
-| FR-TKT-003 | Authorized staff shall validate/scan a ticket and receive a result of valid or a specific staff-safe reason such as expired, cancelled, consumed, wrong branch/policy, or not found. | Must | Test ticket in each state produces the expected result without exposing cross-tenant data. |
+| FR-TKT-003 | Authorized staff shall validate/scan a ticket and receive a result of valid or a specific staff-safe reason such as expired, cancelled, consumed, wrong branch, wrong service date/policy, or not found. The first successful scan permanently locks holder/child assignment; failed scans do not. | Must | State/scope/date tests produce the expected safe result; post-scan reassignment is rejected without cross-tenant disclosure. |
 | FR-TKT-004 | Every scan/validation attempt shall record tenant, branch, ticket when identifiable, actor/device context available to the application, time, and result. | Must | Scan history contains successful and failed known-ticket attempts; unknown payload logging is privacy-safe. |
 | FR-TKT-005 | When a ticket authorizes check-in, its consumption and session creation shall occur atomically and idempotently. | Must | Concurrent scan/check-in attempts create at most one session and one consumption event. |
-| FR-TKT-006 | Authorized staff shall cancel an unused ticket with a reason; expired, cancelled, or consumed tickets shall not authorize check-in. | Must | State tests deny check-in; cancellation event is audited and associated refund policy is not inferred automatically. |
+| FR-TKT-006 | Authorized staff shall cancel an unused ticket with a reason; expired, cancelled, or consumed tickets shall not authorize check-in. A ticket is refund-eligible only while Issued with no successful scan, consumption, or linked session, and refund requires in-scope Branch Manager/Tenant Owner approval and audit. | Must | State tests deny check-in/refund after use; cancellation is audited; any paid refund creates a linked immutable reversal under OQ-09 rather than rewriting the ticket or payment. |
 | FR-TKT-007 | Authorized staff shall reprint a ticket without changing its identity, validity, price, consumption state, or QR payload, and the reprint shall be audited. | Must | Before/after comparison is identical except reprint audit/metadata. |
 | FR-TKT-008 | A scheduled process or validation read shall treat a ticket past its validity end as Expired even if physical status maintenance is delayed. | Must | A controlled-clock test rejects a past-validity ticket without needing a prior batch job. |
 
@@ -242,7 +259,7 @@ Game Operator is retained in the long-term role model but has no game-management
 | FR-POS-010 | An authorized user shall record a refund against an eligible posted payment with reason and configured approval. Refund amount/type/window/method shall follow the approved OQ-09 policy; ASM-10 assumes full-only for planning. | Must with OQ-09 | Refund cannot exceed refundable balance; a policy-valid refund creates a linked negative/reversal record and does not delete the original. |
 | FR-POS-011 | Refunded amounts shall be visible on the order/receipt status and deducted in revenue reporting for the refund posting period according to the approved accounting policy. | Must with OQ-09 | The approved full/partial fixture reconciles order, refund, receipt status, and report for identical filters. |
 | FR-POS-012 | Posted orders, payments, receipts, and refunds shall not be physically deleted or freely edited through the application. | Must | Delete/update attempts are forbidden; correction uses void/refund/adjustment behavior with audit. |
-| FR-POS-013 | **Assumption pending OQ-01/OQ-09:** split payments, partial payments, partial refunds, cash-drawer balancing, inventory depletion, and gateway capture shall not be presented as available MVP functions unless separately approved. | Open Decision | Under ASM-02/ASM-08/ASM-10, UI/API do not advertise or accept these operations; acceptance must be revised if the decisions change. |
+| FR-POS-013 | Split payments, partial payments/refunds, cash-drawer balancing, inventory depletion, and gateway capture shall not be presented as available Egypt MVP functions. | Must | UI/API reject or omit these operations; OQ-01/OQ-09/OQ-24 record the approved cash/full-refund/deferred-shift boundary. |
 
 ### 5.9 Reports
 
@@ -275,10 +292,10 @@ Game Operator is retained in the long-term role model but has no game-management
 |---|---|---|---|
 | FR-SAF-001 | The checkout interface shall present active guardians linked to the child and the approved verification method(s) without exposing unnecessary sensitive data. | Must | Only active same-tenant links appear; masked contact values follow the approved UI policy. |
 | FR-SAF-002 | A checkout override shall require a dedicated permission, manager approval if configured, and a non-empty reason; it shall be highlighted in session history and audit reporting. | Must | Unauthorized/no-reason override fails; authorized case completes and is discoverable by an override filter. |
-| FR-SAF-003 | **Proposed pending OQ-20:** Authorized staff shall create an incident record with branch, child when applicable, session when applicable, category, occurred/reported times, description, severity, reporter, and status. | Conditional | If incident recording is approved for MVP, required fields validate and the saved record is tenant/branch-scoped and audit-attributed. |
-| FR-SAF-004 | **Proposed pending OQ-20:** Authorized staff shall update incident status and add follow-up notes without replacing prior notes or original reported facts. | Conditional | If approved, update appends actor/time note and state transition; original reporter/time/description remain available. |
-| FR-SAF-005 | **Proposed pending OQ-20:** Authorized users shall search incidents by child, date range, branch, staff reporter, severity, and status. | Conditional | If approved, filter tests return only permitted records and preserve chronological event history. |
-| FR-SAF-006 | **Proposed pending OQ-20:** The incident module shall not claim emergency dispatch, medical advice, or regulatory case-management capability. | Conditional | If approved, UI/help text does not represent the feature as an emergency service; operational escalation remains a venue procedure. |
+| FR-SAF-003 | **Deferred by OQ-20:** Authorized staff shall create an incident record with branch, child when applicable, session when applicable, category, occurred/reported times, description, severity, reporter, and status. | Deferred | No Egypt V1 route/table/UI; later reopening requires an approved contract. |
+| FR-SAF-004 | **Deferred by OQ-20:** Authorized staff shall update incident status and add follow-up notes without replacing prior notes or original reported facts. | Deferred | No Egypt V1 behavior; later reopening must preserve append-only facts. |
+| FR-SAF-005 | **Deferred by OQ-20:** Authorized users shall search incidents by child, date range, branch, staff reporter, severity, and status. | Deferred | No Egypt V1 behavior; later reopening must define scope and visibility. |
+| FR-SAF-006 | **Deferred by OQ-20:** The incident module shall not claim emergency dispatch, medical advice, or regulatory case-management capability. | Deferred | No Egypt V1 behavior; this safety boundary remains required if scope is reopened. |
 
 ### 5.12 Audit and accountability
 
@@ -320,22 +337,15 @@ No physical deletion behavior is specified for MVP.
 ### 6.4 Session
 
 ```text
-             pause                 resume
-Active ----------------> Paused ----------------> Active
-   |                        |
-   | complete               | complete (after closing pause)
-   v                        v
-Completed                Completed
-   ^ terminal                ^ terminal
-
-Active -------- cancel ------> Cancelled <------ cancel -------- Paused
-                                  terminal
+Active -------- checkout --------> Pending payment -------- cash settlement --------> Completed
+   |
+   `-------- cancel ---------------------------------------------------------------> Cancelled
 ```
 
 Invariants:
 
-- A child has at most one Active/Paused session in a tenant.
-- Exactly one open pause interval exists only while state is Paused.
+- A child has at most one Active session in a tenant.
+- Pause intervals and paused states are not part of the Egypt MVP.
 - Completed and Cancelled are terminal.
 - Completion includes a final calculation snapshot and checkout verification/override.
 - A failed multi-record operation leaves the prior valid state intact.
@@ -377,7 +387,7 @@ Provider status availability is channel-specific. `Sent` must not be presented a
 
 ### 6.8 Incident
 
-**Proposed pending OQ-20:** draft states are `Open`, `UnderReview`, and `Closed`; categories, transition permissions, any `Resolved` state, and reopen policy require operational approval. State names may be localized, but approved stored codes must remain stable.
+**Deferred by OQ-20:** historical draft states `Open`, `UnderReview`, and `Closed` are not an active contract. Any later reopening must approve categories, states, transition permissions, reopen policy, visibility, escalation, retention, and ownership.
 
 ## 7. Data requirements
 
@@ -412,7 +422,7 @@ Provider status availability is channel-specific. `Sent` must not be presented a
 | POS | Cashier | Touch-friendly catalog/cart, server-calculated totals, approval handoff, payment confirmation. |
 | Checkout | Reception/Cashier according to matrix | Explainable time/charge, amount due, guardian verification, explicit final confirmation. |
 | Reports | Owner/Manager/authorized Finance users | Visible filters/time zone/currency, branch-scope enforcement, drill-through where specified. |
-| Audit / Conditional incidents | Authorized managers/safety users | Audit search and immutable chronology; incident surfaces/protected fields only if OQ-20 approves the module. |
+| Audit / deferred incidents | Authorized managers/safety users | Audit search and immutable chronology; no incident surfaces in Egypt V1 under OQ-20. |
 
 ### 8.2 Application/API interface
 
@@ -437,7 +447,7 @@ Provider status availability is channel-specific. `Sent` must not be presented a
 | ID | Requirement | Priority | Verification / acceptance |
 |---|---|---|---|
 | INT-PAY-001 | Baseline MVP shall record payments but shall not handle raw card data or claim gateway capture. | Must | No raw PAN/CVV fields, logs, or endpoints exist; payment method/reference fields are non-sensitive. |
-| INT-PAY-002 | If OQ-01 approves a gateway, its detailed authorization, callback, reconciliation, failure, refund, security, and certification requirements require an approved SRS/API change before implementation. | Conditional | Change request and approved specification exist before code is released. |
+| INT-PAY-002 | Online gateway capture is deferred by OQ-01; any later provider requires detailed authorization, callback, reconciliation, failure, refund, security, and certification requirements through an approved SRS/API change. | Deferred | Change request and approved specification exist before code is released. |
 
 ### 8.5 QR/scanner/printer hardware
 
@@ -542,7 +552,7 @@ Provider status availability is channel-specific. `Sent` must not be presented a
 | Tenant/branch | tenant created/status changed, branch created/config changed/status changed |
 | Access | user invited/status changed, role/scope assigned/revoked, privileged support access, sensitive denial |
 | Family | guardian/child created, consent changed, safety note changed, guardian link activated/deactivated |
-| Session | checked in, paused, resumed, extended, cancelled, quote accepted, checkout verified/overridden, completed, adjusted |
+| Session | checked in, extended, cancelled, quote accepted, checkout verified/overridden, completed, adjusted |
 | Ticket | issued, validation/scan result, consumed, cancelled, reprinted, expired when materialized |
 | Finance | order posted/voided, discount applied/approved, payment posted, receipt issued/retrieved/resent, refund posted |
 | Safety | checkout verification/override; incident events only if OQ-20 approves the incident module |
@@ -562,29 +572,46 @@ Requirement verification uses:
 
 Every Source-Must and approved derived-Must requirement shall map to at least one test case before Gate G3. Conditional/Open-Decision requirements do not become release gates until the decision is recorded; if approved, they receive the same traceability and evidence.
 
-## 15. Open specification items
+## 15. Decision references and remaining sub-decisions
 
-The BRD decision log OQ-01 through OQ-24 is authoritative. OQ-15 through OQ-22 originated as SRS clarification and are repeated below for requirement-level impact; repetition is not approval.
+The BRD decision log and `.ai/DECISIONS.md` are authoritative. The rows below preserve requirement impact; they are not evidence that an approved decision remains open. Exact provider/procurement inputs, absolute session timeout, rate-limit values, audit/log retention and RPO/RTO are tracked as separate canonical items in `.ai/DECISION_REGISTER.md`.
 
 | ID | Clarification needed | Affected requirements |
 |---|---|---|
-| OQ-15 | Store child date of birth, declared age, year/month only, or a jurisdiction-dependent combination? Define age-band calculation and correction policy. | FR-CUS-004, FR-RPT-002, DATA-PII-001 |
-| OQ-16 | Define the exact supported pricing patterns and worked examples: fixed-duration, per-minute/hour, grace, ceiling/floor, overage, pause, extension, and tax order. | FR-TIM-001 through FR-TIM-009 |
-| OQ-17 | Define duplicate guardian policy: warn-only, supervisor-confirmed duplicate creation, merge, or hard unique normalized phone. | FR-CUS-002 |
-| OQ-18 | Define whether a ticket is branch-specific, tenant-wide, transferable, date-specific, and refundable after issue. | FR-TKT-001, FR-TKT-003, FR-TKT-006 |
-| OQ-19 | Define whether checkout and payment are one station/role or reception and cashier handoff; define unpaid exception policy. | FR-SES-007 through FR-SES-010, FR-POS-006 |
-| OQ-20 | Define exact incident categories, severities, transition/reopen rules, visibility, retention, and escalation procedure. | FR-SAF-003 through FR-SAF-006 |
-| OQ-21 | Define normal and peak load, standard report range, API pagination/date caps, and data-volume horizon. | NFR-PERF-001 through NFR-PERF-003, INT-API-004 |
-| OQ-22 | Define session inactivity/absolute timeout, credential policy, authorization cache/revocation interval, audit/log retention, and rate limits. | FR-AUT, SEC-AUT, SEC-RATE, DATA-AUD |
-| OQ-23 | Confirm branded SaaS only for MVP or approve any white-label capability. | Scope only; no white-label MVP requirements exist unless an approved change is issued. |
-| OQ-24 | Confirm whether basic POS includes minimal cashier shift open/close/daily close. | No current detailed SRS requirement; if approved, add FR-POS requirements and linked finance/report/permission behavior. |
+| OQ-15 | **Resolved:** date of birth is optional; collect/use only the precision required for approved age/family-band purposes. | FR-CUS-004, FR-RPT-002, DATA-PII-001 |
+| OQ-16 | **Resolved for the Egypt MVP:** fixed-duration snapshot; 600-second included grace; first later second rounds up to one 1,800-second overtime unit; integer minor-unit half-up tax using the snapshotted inclusive/exclusive mode; pause is deferred. | FR-TIM-001 through FR-TIM-009 |
+| OQ-17 | **Resolved:** tenant-unique normalized phone; use existing family on match; no create-anyway or automated merge in MVP. | FR-CUS-002 |
+| OQ-18 | **Resolved for Egypt MVP:** ticket is branch-specific and branch-local-service-date-bound; audited holder correction is allowed only before the first successful scan, after which assignment is immutable; refund eligibility ends at the first successful scan/use and requires in-scope manager/owner approval, reason, audit, and linked reversal when paid. OQ-09 retains refund window/method/execution. | FR-TKT-001, FR-TKT-003, FR-TKT-006 |
+| OQ-19 | **Resolved:** Reception/Manager verifies and freezes the quote into `pending_payment`; Cashier/authorized transaction actor posts the exact matching payment atomically with completion. No unpaid exception. | FR-SES-007 through FR-SES-010, FR-POS-006 |
+| OQ-20 | **Deferred:** no incident-management module in M2; restricted encrypted child safety notes remain in scope. | FR-SAF-003 through FR-SAF-006 |
+| OQ-21 | **Resolved target baseline:** p95 below 500 ms normal UI/API, below 1 second critical transactions, below 3 seconds standard reports, 99.9% availability, pagination and bounded queries. Environment-specific workload counts remain release-test inputs. | NFR-PERF-001 through NFR-PERF-003, INT-API-004 |
+| OQ-22 | **Resolved security baseline:** 30-minute staff idle, 15-minute privileged idle, minimum 12-character passwords, immediate revocation, throttling, mandatory Super Admin MFA, enforceable Tenant Owner MFA, immutable audit, external secrets and production debug off. Exact absolute timeout, rate values and retention are separately registered decisions. | FR-AUT, SEC-AUT, SEC-RATE, DATA-AUD |
+| OQ-23 | **Resolved:** branded SaaS only for MVP; white-label is deferred. | Scope only; no white-label MVP requirements exist unless an approved change is issued. |
+| OQ-24 | **Deferred:** cashier shift open/close, drawer balancing and variance are not part of the Egypt MVP. | No shift workflow is implemented; payment keeps branch/cashier/server time. |
 
 ## 16. SRS acceptance checklist
 
 - [ ] Product Owner approves all Source-Must and proposed derived-Must behavior and explicit exclusions; no Conditional item is assumed approved.
-- [ ] Operations/Safety approves session states, guardian verification, overrides, and either approves or defers the Conditional incident baseline under OQ-20.
+- [x] Operations/Safety baseline records approved session/guardian behavior and OQ-20 explicitly defers incident management from Egypt V1.
 - [ ] Finance approves pricing examples, discounts, tax, payment, refund, posting-date, and receipt rules.
 - [ ] Security/Privacy approves tenant isolation, access, audit, child data, consent, and retention requirements.
 - [ ] Architecture approves capacity, availability, recovery, integration, and concurrency requirements.
 - [ ] QA confirms every Must requirement is testable and linked to the test strategy.
 - [ ] All Gate G1 questions are decided or formally deferred with accepted impact.
+
+## Approved MVP decision amendment — 2026-09-10
+
+- OQ-08: receipts use a unique branch-scoped display number in the form `BRANCH-YYYY-000001`; numbers are never reused, and voiding preserves the record and reason. Receipt content includes seller/branch, timestamp, receipt number, service, quantity, prices, discount, tax, total, payment method, actor, and verification QR.
+- OQ-12: checkout verification uses the session/ticket QR plus confirmation of the registered guardian phone last four digits or a handoff code; failed verification blocks checkout. Manager override is reason-required, permission-checked, single-use, and audited.
+- OQ-16: fixed-duration packages are the MVP pricing model; 10-minute grace; overtime rounds up in 30-minute units; pause is deferred; extension is a package or 30-minute unit; money is integer piastres; tax is branch-configurable; checkout snapshots inputs and calculation lines.
+
+## Approved Egypt M2 decision amendment — 2026-09-12
+
+- OQ-07/M2 consent: an Arabic-first privacy notice is distinct from consent. Child-data processing requires explicit written/electronic consent by an active legal guardian for every child under 18; choices are unbundled and never preselected. Every grant/withdrawal is append-only, versioned, attributable, UTC-timestamped, and correlated to tenant/branch/request. Marketing consent is optional, separate, and immediately withdrawable.
+- Retention: operational family data remains while active and for three years after the last visit or closure, then is anonymized/deleted unless a documented legal/financial/safety/complaint/litigation hold applies. The production notice must state the actual period/criteria, controller/DPO contacts, rights, recipients/processors, transfers, and complaint route.
+- OQ-17: normalized phone is unique per tenant. A match reuses the existing family; no duplicate override or automated merge exists in MVP. Cross-tenant matches are never disclosed.
+- Emergency/safety: an active child has an emergency-contact name and normalized phone; optional safety notes are capped, encrypted, need-to-know, and excluded from ordinary logs/exports. Photos are deferred.
+- Relationships: `mother`, `father`, and `legal_guardian` may consent; `authorized_pickup` and `other` may not. Checkout capability is explicit. Link/reactivate/revoke is verified, transactional, and audited, and the final active checkout-capable legal guardian cannot be revoked.
+- OQ-18/M3 tickets: every ticket is tenant/branch scoped and tied to a service date interpreted in the branch time zone. Only a successful scan locks its holder/child binding. OQ-09 now limits financial execution to one full same-branch, same-local-business-day cash refund with separate Manager/Owner approval, reason and audit.
+- Visit history: contract is read-only, tenant-scoped, newest-first, 25 per page for Owner/Manager/Reception, with operational timing/status and masked references only. Delivery waits for M3 session records and is an accepted M2 dependency waiver.
+- OQ-20: the incident module is deferred; this does not defer the M2 emergency contact or restricted safety notes.

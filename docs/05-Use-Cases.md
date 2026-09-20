@@ -1,8 +1,16 @@
 # PlayNexus MVP Use Cases
 
-**Document version:** 1.1  
-**Status:** Draft operational-flow baseline  
-**Source:** PlayNexus PRD v1.0, `01-PRD-Baseline.md` v1.1, `02-BRD.md` v1.1, `03-SRS.md` v1.1, and `04-User-Stories.md` v1.1  
+## 2026-09-15 UC-10/UC-11 implemented boundary
+
+UC-10 now has a scoped bilingual desktop surface for revenue reconciliation, attendance, session facts and staff audit activity, plus Owner/Manager CSV using the identical validated filter query. UC-11 now persists and asynchronously processes eligible receipt/session-ending intents through a deterministic database transport. Missing destinations become terminal without affecting core records; duplicate jobs do not add attempts or regress state; provider delivery remains unclaimed and external channels/callbacks remain gated.
+
+## 2026-09-13 UC-05/M4 implemented boundary
+
+UC-04 is implemented through ticket-backed check-in and the live board: current authorized scope and family safety are revalidated, one ticket/session commits atomically and idempotently, hard branch capacity and tenant-wide duplicate-child state are enforced, and rejected attempts retain privacy-safe scan evidence without business mutation. The UC-05 board now derives exact grace/overtime/tax values from immutable facts without persistence, offers fixed 30-minute extensions, exposes due/overdue labels, and supports reasoned manager/owner additive adjustments and cancellation. Pause/resume is not part of the Egypt MVP. The first UC-06/OQ-19 preparation boundary verifies the guardian (or audited manager override), freezes the quote, and hands the session to the Cashier as `pending_payment`; payment, receipt, release, refund, notifications, and shift completion remain outside this boundary.
+
+**Document version:** 1.1
+**Status:** Draft operational-flow baseline
+**Source:** PlayNexus PRD v1.0, `01-PRD-Baseline.md` v1.1, `02-BRD.md` v1.1, `03-SRS.md` v1.1, and `04-User-Stories.md` v1.1
 **Release:** Phase 1 / MVP
 
 ## 1. Purpose and notation
@@ -66,10 +74,10 @@ Global constraints for all use cases:
 
 ## 3. UC-01 — Onboard a tenant and first branch
 
-**Goal:** Create an isolated customer workspace, initial owner access, business profile, and first operable branch.  
-**Primary actors:** Super Admin; Tenant Owner  
-**Supporting systems:** Authentication/invitation service; audit service  
-**Trigger:** A commercially approved customer is ready for product onboarding.  
+**Goal:** Create an isolated customer workspace, initial owner access, business profile, and first operable branch.
+**Primary actors:** Super Admin; Tenant Owner
+**Supporting systems:** Authentication/invitation service; audit service
+**Trigger:** A commercially approved customer is ready for product onboarding.
 **Frequency:** Per new tenant; branch configuration repeats as the customer grows.
 
 **Preconditions**
@@ -118,16 +126,16 @@ Global constraints for all use cases:
 - **8e — Invalid currency/time zone/tax/hours:** Branch cannot activate until corrected.
 - **10e — Cross-tenant identifier injection:** Request is denied; no target details are exposed.
 
-**Rules:** BR-008, BR-009, BR-017, BR-018.  
-**Requirement links:** FR-TEN-001–009, FR-AUT-001–005, DATA-TEN-001–002, SEC-TEN-001, LOC-004–006.  
+**Rules:** BR-008, BR-009, BR-017, BR-018.
+**Requirement links:** FR-TEN-001–009, FR-AUT-001–005, DATA-TEN-001–002, SEC-TEN-001, LOC-004–006.
 **Story links:** US-TEN-001, US-TEN-002, US-TEN-003, US-AUT-001.
 
 ## 4. UC-02 — Provision and control staff access
 
-**Goal:** Give each staff member the minimum approved role and branch scope, and revoke it when no longer required.  
-**Primary actor:** Tenant Owner; permitted Branch Manager  
-**Supporting actor:** Invited staff member  
-**Trigger:** A staff member joins, changes duties/branch, or leaves.  
+**Goal:** Give each staff member the minimum approved role and branch scope, and revoke it when no longer required.
+**Primary actor:** Tenant Owner; permitted Branch Manager
+**Supporting actor:** Invited staff member
+**Trigger:** A staff member joins, changes duties/branch, or leaves.
 **Frequency:** As required per tenant.
 
 **Preconditions**
@@ -174,28 +182,28 @@ Global constraints for all use cases:
 - **7e — Invitation delivery fails:** Account/invitation remains in a truthful retryable state; access is not silently activated.
 - **9e — Stale authorization:** Server re-evaluates current permissions and rejects revoked actions.
 
-**Rules:** BR-004, BR-008, BR-019.  
-**Requirement links:** FR-RBAC-001–007, FR-AUT-001–005, SEC-RBAC-001, SEC-AUT-001–002, SEC-AUD-001.  
+**Rules:** BR-004, BR-008, BR-019.
+**Requirement links:** FR-RBAC-001–007, FR-AUT-001–005, SEC-RBAC-001, SEC-AUT-001–002, SEC-AUD-001.
 **Story links:** US-RBAC-001, US-RBAC-002, US-RBAC-003, US-RBAC-004, US-AUT-002.
 
 ## 5. UC-03 — Find or register a family
 
-**Goal:** Select the correct existing family or create a valid guardian-child relationship quickly and safely.  
-**Primary actor:** Reception Staff  
-**Supporting actor:** Parent/Guardian  
-**Trigger:** A family arrives and no confirmed reusable record is selected.  
+**Goal:** Select the correct existing family or create a valid guardian-child relationship quickly and safely.
+**Primary actor:** Reception Staff
+**Supporting actor:** Parent/Guardian
+**Trigger:** A family arrives and no confirmed reusable record is selected.
 **Frequency:** Frequent; often immediately before check-in.
 
 **Preconditions**
 
 - Reception Staff is authenticated, assigned to the operating branch, and permitted to access family records.
-- Approved fields, consent/privacy notice, phone-normalization policy, and child age/date representation are configured.
+- The approved Egypt M2 fields, Arabic-first privacy notice, legal-guardian child-data consent, phone normalization, and optional child DOB/age representation are configured.
 
 **Success postconditions**
 
 - The correct current-tenant guardian and child are selected, or new records are created.
 - Every child has at least one active same-tenant guardian relationship.
-- Consent evidence and required emergency/safety information are retained.
+- Versioned legal-guardian child-data consent evidence, required emergency contact, and any optional restricted safety note are retained.
 - Potential duplicate handling follows the approved policy.
 
 **Minimum guarantee**
@@ -208,14 +216,14 @@ Global constraints for all use cases:
 1. Reception asks for the guardian's phone or child name and enters a search.
 2. The system normalizes the search value and returns safe current-tenant matches only.
 3. Reception confirms the family using permitted identifying context.
-4. The system displays linked children and active guardians, current consent status, safety notes, and visit history within permission.
+4. The system displays linked children and active guardians, current consent status, and restricted safety information within permission. Visit history appears only after M3 session records exist.
 5. Reception confirms or updates permitted contact, emergency, consent, and safety information.
 6. Reception selects the child for the visit.
 
 **Extension A — new family**
 
 1. **At step 2**, no appropriate match exists; Reception starts guardian registration.
-2. Reception enters required guardian contact/emergency information and captures the approved consent response/version.
+2. Reception presents the Arabic-first notice, records acknowledgment for necessary service processing, and captures explicit written/electronic child-data consent from an active legal guardian; optional marketing consent is separate and unchecked.
 3. The system performs normalized-phone duplicate detection again before commit.
 4. Reception enters child name, approved date-of-birth/age fields, optional approved photo/notes, and relationship.
 5. The system atomically creates the guardian, child, active relationship, and consent evidence.
@@ -223,9 +231,9 @@ Global constraints for all use cases:
 
 **Other extensions**
 
-- **2a — Potential duplicate:** System applies OQ-17 decision: warn/require supervisor/use existing/approved merge path. It never silently creates an uncontrolled duplicate.
+- **2a — Potential duplicate:** A normalized-phone match opens the existing current-tenant family. Create-anyway and automated merge do not exist in MVP; foreign-tenant matches remain undisclosed.
 - **4a — Additional guardian:** Reception links another same-tenant guardian with relationship type and active state.
-- **5a — Consent change:** A new versioned consent event is appended; prior evidence remains.
+- **5a — Consent change:** A new versioned grant/withdrawal event is appended; prior evidence remains. Withdrawal stops consent-based processing without erasing records subject to a documented hold.
 - **5b — Optional child photo:** Approved image is privately stored; registration can continue without a photo.
 
 **Exceptions**
@@ -235,23 +243,23 @@ Global constraints for all use cases:
 - **5e — Remove final guardian:** Request is rejected until another valid active guardian is linked.
 - **A5e — Validation/storage failure:** No partial guardian/child/link/consent aggregate is exposed.
 
-**Rules:** BR-001, BR-008.  
-**Requirement links:** FR-CUS-001–009, DATA-REL-001, DATA-PII-001–002, SEC-PII-001–002, LOC-003, OQ-15, OQ-17.  
+**Rules:** BR-001, BR-008.
+**Requirement links:** FR-CUS-001–009, DATA-REL-001, DATA-PII-001–002, SEC-PII-001–002, LOC-003, OQ-15, OQ-17.
 **Story links:** US-CUS-001, US-CUS-002, US-CUS-003, US-CUS-004, US-CUS-005.
 
 ## 6. UC-04 — Issue/validate a ticket and check a child in
 
-**Goal:** Create exactly one Active session for an eligible child using a valid ticket or pricing rule.  
-**Primary actor:** Reception Staff  
-**Supporting actors:** Cashier where ticket sale is separated; Parent/Guardian  
-**Supporting systems:** QR/scanner/browser-print interface; audit service  
-**Trigger:** A registered child is ready to enter the play area.  
+**Goal:** Create exactly one Active session for an eligible child using a valid ticket or pricing rule.
+**Primary actor:** Reception Staff
+**Supporting actors:** Cashier where ticket sale is separated; Parent/Guardian
+**Supporting systems:** QR/scanner/browser-print interface; audit service
+**Trigger:** A registered child is ready to enter the play area.
 **Frequency:** Very high during arrival peaks.
 
 **Preconditions**
 
-- Tenant, branch, staff assignment, guardian-child link, and required pricing/ticket configuration are active.
-- Child has no Active/Paused session in the tenant.
+- Tenant, branch, staff assignment, guardian-child link, and required pricing/ticket configuration are active; a branch-local service date is selected.
+- Child has no Active session in the tenant.
 - If payment before entry is required, the ticket/order is eligible under that policy.
 
 **Success postconditions**
@@ -271,12 +279,12 @@ Global constraints for all use cases:
 2. Reception/Cashier selects an active ticket type/pricing rule.
 3. The system calculates/displays the ticket price and validity using server-held configuration.
 4. Staff confirms issue/sale according to payment policy.
-5. The system issues one tenant/branch-scoped ticket with a non-guessable QR payload.
+5. The system issues one tenant/branch-scoped ticket for the selected branch-local service date with a non-guessable QR payload.
 6. The system displays/prints the QR using supported browser hardware.
 7. Reception scans or selects the ticket for check-in.
-8. The system validates tenant/branch policy, validity window, Issued state, entitlement, child eligibility, branch state, and staff permission.
+8. The system validates tenant/branch, service date/operating window, validity, Issued state, entitlement, child eligibility, branch state, and staff permission.
 9. Reception confirms check-in.
-10. In one transaction, the system consumes the ticket, creates the Active session at server time, snapshots the rule, and appends ticket/session/audit events.
+10. In one transaction, the system locks holder/child assignment, consumes the ticket, creates the Active session at server time, snapshots the rule, and appends ticket/session/audit events.
 11. The system returns the Active session and current expected timing/alert information.
 
 **Extensions**
@@ -284,26 +292,27 @@ Global constraints for all use cases:
 - **2a — No pre-issued ticket required:** Reception selects an active pricing rule directly; check-in creates the session without ticket consumption if approved venue policy permits.
 - **5a — Reprint:** Authorized staff reprints the same QR; identity/state/price/validity do not change and reprint is audited.
 - **7a — Manual QR entry:** Authorized UI accepts the resolved ticket identifier if scanner input fails, subject to the same validation.
-- **8a — Valid ticket sold earlier:** Existing Issued ticket can be used if all scope, validity, entitlement, and transfer rules under OQ-18 pass.
+- **5b — Pre-scan correction:** Authorized staff may correct/reassign an unused Issued ticket before any successful scan; the change is audited and cannot alter tenant, branch, service date, price, or QR identity.
+- **8a — Valid ticket sold earlier:** Existing Issued ticket can be used only in its assigned branch and branch-local service date while still unused.
 
 **Exceptions**
 
 - **3e — Client price tampering:** Server rejects/recalculates; tampered amount does not post.
-- **8e — Expired/cancelled/consumed/wrong-scope/unknown ticket:** Check-in is blocked with a staff-safe reason and validation attempt logged.
+- **8e — Expired/cancelled/consumed/wrong-branch/wrong-service-date/unknown ticket:** Check-in is blocked with a staff-safe reason and validation attempt logged; a failed scan never locks transfer.
 - **8f — Inactive branch/rule or existing active session:** Check-in is blocked and ticket remains unconsumed.
 - **10e — Concurrent scan/check-in:** One request succeeds; others receive the existing result or a conflict; at most one session/consumption exists.
 - **10f — Transaction failure:** Ticket and session return/remain in their prior valid states.
 
-**Rules:** BR-002, BR-008, BR-009, BR-011, BR-013, BR-015.  
-**Requirement links:** FR-TKT-001–008, FR-SES-001–002, FR-SES-012–014, DATA-INT-001, INT-HW-001–002.  
+**Rules:** BR-002, BR-008, BR-009, BR-011, BR-013, BR-015.
+**Requirement links:** FR-TKT-001–008, FR-SES-001–002, FR-SES-012–014, DATA-INT-001, INT-HW-001–002.
 **Story links:** US-TKT-001, US-TKT-002, US-TKT-003, US-SES-001, US-SES-002.
 
 ## 7. UC-05 — Operate a timed session
 
-**Goal:** Monitor and change a live session without losing billing accuracy or auditability.  
-**Primary actor:** Reception Staff; Branch Manager for controlled actions  
-**Supporting system:** Time engine; scheduler  
-**Trigger:** Staff views or acts on an Active/Paused session.  
+**Goal:** Monitor and change a live session without losing billing accuracy or auditability.
+**Primary actor:** Reception Staff; Branch Manager for controlled actions
+**Supporting system:** Time engine; scheduler
+**Trigger:** Staff views or acts on an Active session.
 **Frequency:** High throughout operating hours.
 
 **Preconditions**
@@ -347,20 +356,20 @@ Global constraints for all use cases:
 - **4e — Permission revoked:** Server denies the command and refreshes available actions.
 - **5e — Approval missing/invalid/self-approval forbidden:** Action remains uncommitted.
 - **6e — Stale/concurrent session version:** One valid command commits; the other receives a conflict/current state.
-- **6f — Invalid transition:** Only Active can pause and only Paused can resume; terminal sessions reject all operational transitions.
+- **6f — Invalid transition:** Pause/resume is deferred; terminal sessions reject all operational transitions.
 - **7e — Scheduler/provider failure:** Session change remains committed; scheduling/delivery failure is recorded and retried/alerted separately.
 
-**Rules:** BR-003, BR-004, BR-011, BR-012, BR-013, BR-014, BR-019.  
-**Requirement links:** FR-SES-003–006, FR-SES-011–014, FR-TIM-001–009, FR-RBAC-005, FR-NOT-001.  
+**Rules:** BR-003, BR-004, BR-011, BR-012, BR-013, BR-014, BR-019.
+**Requirement links:** FR-SES-003–006, FR-SES-011–014, FR-TIM-001–009, FR-RBAC-005, FR-NOT-001.
 **Story links:** US-TIM-001, US-TIM-002, US-SES-003, US-SES-004, US-SES-005, US-SES-006.
 
 ## 8. UC-06 — Checkout, collect payment, and issue receipt
 
-**Goal:** Calculate the final session charge, settle any amount due, verify the collecting guardian, complete the session once, and issue a consistent receipt.  
-**Primary actors:** Reception Staff; Cashier  
-**Supporting actors:** Parent/Guardian; Branch Manager for approvals/overrides  
-**Supporting systems:** Time engine; POS; receipt and notification services  
-**Trigger:** Parent/guardian requests the child's checkout.  
+**Goal:** Calculate the final session charge, settle any amount due, verify the collecting guardian, complete the session once, and issue a consistent receipt.
+**Primary actors:** Reception Staff; Cashier
+**Supporting actors:** Parent/Guardian; Branch Manager for approvals/overrides
+**Supporting systems:** Time engine; POS; receipt and notification services
+**Trigger:** Parent/guardian requests the child's checkout.
 **Frequency:** Very high.
 
 **Preconditions**
@@ -385,7 +394,7 @@ Global constraints for all use cases:
 
 **Main success flow**
 
-1. Staff opens checkout for the Active/Paused session.
+1. Staff opens checkout for the Active session.
 2. If Paused, the system calculates through the checkout time and handles the open interval according to the approved rule/completion operation.
 3. The time engine produces a quote containing elapsed, pause treatment, extensions, rounding, base/overage, adjustments, discount/tax where applicable, payments, and amount due.
 4. Staff and guardian review the explanation.
@@ -411,23 +420,25 @@ Global constraints for all use cases:
 **Exceptions**
 
 - **3e — Calculation mismatch:** Staff does not override silently; authorized adjustment follows UC-05 then a new quote is generated.
-- **8e — Invalid/tampered/disallowed payment:** No payment posts; session remains Active/Paused and safe for retry.
+- **8e — Invalid/tampered/disallowed payment:** No payment posts; session remains Active and safe for retry.
 - **9e — Payment transaction failure:** Order/payment/receipt remain in prior valid state; retry uses idempotency.
 - **10e — Stale quote/session changed:** Completion conflicts; system shows current quote and requires reconfirmation.
 - **11e — Amount remains due or verification absent:** Completion is denied.
 - **12e — Concurrent checkout:** One completion succeeds; duplicate returns the original result/conflict without new payment/receipt.
 - **13e — Notification provider unavailable:** Completion/payment/receipt stay successful; attempt becomes failed/retryable without claiming delivery.
 
-**Rules:** BR-004, BR-005, BR-006, BR-013, BR-014, BR-016, BR-017, BR-018, BR-019.  
-**Requirement links:** FR-SES-007–011, FR-SES-014, FR-TIM-003–007, FR-POS-002–009, FR-SAF-001–002, FR-NOT-002–006, DATA-FIN-001, DATA-NUM-001, DATA-INT-001.  
+**Rules:** BR-004, BR-005, BR-006, BR-013, BR-014, BR-016, BR-017, BR-018, BR-019.
+**Requirement links:** FR-SES-007–011, FR-SES-014, FR-TIM-003–007, FR-POS-002–009, FR-SAF-001–002, FR-NOT-002–006, DATA-FIN-001, DATA-NUM-001, DATA-INT-001.
 **Story links:** US-SES-007, US-SES-008, US-SES-010, US-POS-002, US-POS-003, US-POS-004, US-NOT-002.
+
+**M4/OQ-19 implemented preparation boundary:** Reception verifies the active checkout-capable guardian with registered-phone last four digits, or a Branch Manager records a permission-checked, reasoned override. The server freezes the exact quote and moves the session to `pending_payment`; Cashier only receives the handoff and cannot prepare it. Identical retries return the original preparation, while changed retries, stale versions, ineligible/foreign guardians, and terminal sessions do not mutate state. M5 payment posting, receipt issuance, child release, refunds, and shifts are excluded.
 
 ## 9. UC-07 — Authorize an exceptional guardian checkout
 
-**Goal:** Permit a rare child checkout when normal guardian verification cannot be completed, without weakening the normal safety control.  
-**Primary actor:** Branch Manager  
-**Supporting actor:** Reception Staff  
-**Trigger:** UC-06 cannot complete normal guardian verification.  
+**Goal:** Permit a rare child checkout when normal guardian verification cannot be completed, without weakening the normal safety control.
+**Primary actor:** Branch Manager
+**Supporting actor:** Reception Staff
+**Trigger:** UC-06 cannot complete normal guardian verification.
 **Frequency:** Exceptional; monitored as a safety KPI.
 
 **Preconditions**
@@ -469,16 +480,16 @@ Global constraints for all use cases:
 - **5e — Empty reason:** Approval cannot commit.
 - **6e — Storage/concurrency failure:** No partial override is accepted; session remains uncompleted.
 
-**Rules:** BR-004, BR-005, BR-019.  
-**Requirement links:** FR-SES-008, FR-SAF-001–002, FR-RBAC-005, FR-AUD-001–004, OQ-12.  
+**Rules:** BR-004, BR-005, BR-019.
+**Requirement links:** FR-SES-008, FR-SAF-001–002, FR-RBAC-005, FR-AUD-001–004, OQ-12.
 **Story links:** US-SES-008, US-SES-009, US-SAF-003.
 
 ## 10. UC-08 — Complete a non-session POS sale
 
-**Goal:** Sell approved ticket, F&B, merchandise, or add-on items and record one payment/receipt without requiring a child session.  
-**Primary actor:** Cashier  
-**Supporting actor:** Branch Manager for controlled discount  
-**Trigger:** A customer requests a supported product sale.  
+**Goal:** Sell approved ticket, F&B, merchandise, or add-on items and record one payment/receipt without requiring a child session.
+**Primary actor:** Cashier
+**Supporting actor:** Branch Manager for controlled discount
+**Trigger:** A customer requests a supported product sale.
 **Frequency:** High.
 
 **Preconditions**
@@ -524,21 +535,21 @@ Global constraints for all use cases:
 - **8e — Duplicate/concurrent submit:** One result; retries return original or safe conflict.
 - **8f — Posting failure:** No partial Paid/payment/receipt aggregate is visible.
 
-**Rules:** BR-006, BR-013, BR-016, BR-017, BR-018, BR-019.  
-**Requirement links:** FR-POS-001–009, FR-POS-012–013, INT-PAY-001, DATA-FIN-001, DATA-NUM-001, DATA-INT-001.  
+**Rules:** BR-006, BR-013, BR-016, BR-017, BR-018, BR-019.
+**Requirement links:** FR-POS-001–009, FR-POS-012–013, INT-PAY-001, DATA-FIN-001, DATA-NUM-001, DATA-INT-001.
 **Story links:** US-POS-001, US-POS-002, US-POS-003, US-POS-004, US-POS-006.
 
 ## 11. UC-09 — Refund a posted payment
 
-**Goal:** Record an authorized policy-valid refund while preserving original financial evidence and report reconciliation. Refund type/window/method remain Open Decision OQ-09; ASM-10 assumes full-only for planning.  
-**Primary actor:** Branch Manager or other refund-authorized user  
-**Supporting actor:** Cashier/requester where approval separation applies  
-**Trigger:** An eligible posted sale requires correction/refund.  
+**Goal:** Record the approved OQ-09 full cash refund at the original branch on the same branch-local business date while preserving original financial evidence. For a ticket-linked payment, OQ-18 additionally requires the ticket to remain unused with no successful scan, consumption or session.
+**Primary actor:** Branch Manager or other refund-authorized user
+**Supporting actor:** Cashier/requester where approval separation applies
+**Trigger:** An eligible posted sale requires correction/refund.
 **Frequency:** Low but financially critical.
 
 **Preconditions**
 
-- Original payment is Posted, in actor's scope, not already fully refunded, and eligible under approved OQ-09 policy.
+- Original payment is Posted, in actor's scope, not already fully refunded, and eligible under approved OQ-09 policy; any linked ticket also passes the approved unused-ticket rule.
 - Actor has refund permission and any required approval.
 
 **Success postconditions**
@@ -576,15 +587,15 @@ Global constraints for all use cases:
 - **6e — Concurrent retries:** At most one result for the same refund command commits; other requests receive the original result/conflict and cumulative refunds never exceed balance.
 - **6f — Failure during posting:** Original payment remains Posted/not-refunded and no partial negative record appears.
 
-**Rules:** BR-004, BR-007, BR-016, BR-018, BR-019.  
-**Requirement links:** FR-POS-010–013, FR-RBAC-005, FR-RPT-001, DATA-FIN-001, DATA-INT-001, OQ-09.  
+**Rules:** BR-004, BR-007, BR-016, BR-018, BR-019.
+**Requirement links:** FR-POS-010–013, FR-RBAC-005, FR-RPT-001, DATA-FIN-001, DATA-INT-001, OQ-09.
 **Story links:** US-POS-005, US-RBAC-003, US-RPT-001.
 
 ## 12. UC-10 — Run and reconcile core reports
 
-**Goal:** Produce scoped, explainable revenue, attendance, session, and staff activity information that reconciles to source records.  
-**Primary actor:** Tenant Owner; Branch Manager; other explicitly authorized report user  
-**Trigger:** User needs operational/financial oversight or investigation.  
+**Goal:** Produce scoped, explainable revenue, attendance, session, and staff activity information that reconciles to source records.
+**Primary actor:** Tenant Owner; Branch Manager; other explicitly authorized report user
+**Trigger:** User needs operational/financial oversight or investigation.
 **Frequency:** Daily and on demand.
 
 **Preconditions**
@@ -627,17 +638,17 @@ Global constraints for all use cases:
 - **3e — Query timeout/failure:** No partial result is presented as complete; correlation ID is returned and failure is monitored.
 - **7e — Reconciliation variance:** Treated as a defect/investigation; values are not manually patched in the report layer.
 
-**Rules:** BR-007, BR-008, BR-013, BR-016, BR-018.  
-**Requirement links:** FR-RPT-001–008, FR-SES-012, FR-AUD-004, NFR-PERF-002–003, DATA-MNY-001, DATA-AUD-001.  
+**Rules:** BR-007, BR-008, BR-013, BR-016, BR-018.
+**Requirement links:** FR-RPT-001–008, FR-SES-012, FR-AUD-004, NFR-PERF-002–003, DATA-MNY-001, DATA-AUD-001.
 **Story links:** US-RPT-001, US-RPT-002, US-RPT-003, US-RPT-004.
 
 ## 13. UC-11 — Dispatch an operational notification
 
-**Goal:** Send session-ending alerts and receipt notifications asynchronously, truthfully recording every attempt without blocking core operation.  
-**Primary actor:** Scheduler / Queue Worker  
-**Supporting systems:** Notification provider; provider callback endpoint  
-**Interested human actors:** Parent/Guardian; Branch Manager/support user  
-**Trigger:** Eligible session alert due or receipt issued/resend requested.  
+**Goal:** Send session-ending alerts and receipt notifications asynchronously, truthfully recording every attempt without blocking core operation.
+**Primary actor:** Scheduler / Queue Worker
+**Supporting systems:** Notification provider; provider callback endpoint
+**Interested human actors:** Parent/Guardian; Branch Manager/support user
+**Trigger:** Eligible session alert due or receipt issued/resend requested.
 **Frequency:** High and event-driven.
 
 **Preconditions**
@@ -685,17 +696,17 @@ Global constraints for all use cases:
 - **9e — Invalid callback signature:** Callback is rejected and security/technical event recorded without state change.
 - **9f — Duplicate/out-of-order callback:** Idempotent state logic prevents duplicate event or status regression.
 
-**Rules:** BR-008, BR-010, BR-020.  
-**Requirement links:** FR-NOT-001–007, FR-TIM-008, INT-NOT-001–003, NFR-AVL-002, SEC-SEC-001, LOC-006.  
+**Rules:** BR-008, BR-010, BR-020.
+**Requirement links:** FR-NOT-001–007, FR-TIM-008, INT-NOT-001–003, NFR-AVL-002, SEC-SEC-001, LOC-006.
 **Story links:** US-NOT-001, US-NOT-002, US-NOT-003, US-SES-003.
 
 ## 14. UC-12 — Record and follow up a safety incident
 
-**Approval status:** **Proposed/Conditional on OQ-20.** The PRD describes incident records in a safety module and role responsibility, but does not list them in the Phase 1 MVP capabilities. This use case is not a release gate unless Product/Safety approves it.  
-**Goal:** Capture and retrieve basic operational incident facts and append follow-up without presenting PlayNexus as an emergency service.  
-**Primary actor:** Authorized staff member  
-**Supporting actor:** Branch Manager / safety lead  
-**Trigger:** A venue/child safety incident is observed or reported.  
+**Approval status:** **Proposed/Conditional on OQ-20.** The PRD describes incident records in a safety module and role responsibility, but does not list them in the Phase 1 MVP capabilities. This use case is not a release gate unless Product/Safety approves it.
+**Goal:** Capture and retrieve basic operational incident facts and append follow-up without presenting PlayNexus as an emergency service.
+**Primary actor:** Authorized staff member
+**Supporting actor:** Branch Manager / safety lead
+**Trigger:** A venue/child safety incident is observed or reported.
 **Frequency:** Exceptional but safety-critical.
 
 **Preconditions**
@@ -739,15 +750,15 @@ Global constraints for all use cases:
 - **7e — User lacks note/state permission:** Update is denied and original record is unchanged.
 - **9e — Search outside scope:** No protected incident or aggregate details are returned.
 
-**Rules:** BR-008, BR-019.  
-**Requirement links:** FR-SAF-003–006, FR-AUD-001–004, DATA-TEN-002, DATA-PII-001, SEC-PII-001, OQ-20.  
+**Rules:** BR-008, BR-019.
+**Requirement links:** FR-SAF-003–006, FR-AUD-001–004, DATA-TEN-002, DATA-PII-001, SEC-PII-001, OQ-20.
 **Story links:** US-SAF-001, US-SAF-002, US-AUD-001.
 
 ## 15. UC-13 — Suspend a tenant or deactivate a branch
 
-**Goal:** Stop new operations promptly without deleting business history.  
-**Primary actors:** Super Admin for tenant; Tenant Owner for branch  
-**Trigger:** Commercial, security, legal, closure, maintenance, or operational decision.  
+**Goal:** Stop new operations promptly without deleting business history.
+**Primary actors:** Super Admin for tenant; Tenant Owner for branch
+**Trigger:** Commercial, security, legal, closure, maintenance, or operational decision.
 **Frequency:** Infrequent.
 
 **Preconditions**
@@ -769,7 +780,7 @@ Global constraints for all use cases:
 **Main success flow — branch**
 
 1. Tenant Owner selects an Active branch and chooses Deactivate.
-2. The system displays impact, including new check-in/POS denial and any current Active/Paused sessions.
+2. The system displays impact, including new check-in/POS denial and any current Active sessions.
 3. Owner enters reason and confirms.
 4. The system checks permission/current version and sets branch Inactive.
 5. The system rejects subsequent new sessions/orders while keeping history accessible.
@@ -787,16 +798,16 @@ Global constraints for all use cases:
 - **4e — Concurrent status/config change:** One valid update commits; actor receives current state/conflict.
 - **5e — Cached authorization/status:** Server-side current status prevents new action within approved revocation interval.
 
-**Rules:** BR-008, BR-009, BR-016.  
-**Requirement links:** FR-TEN-002, FR-TEN-006, FR-RBAC-003, FR-AUT-002, FR-AUT-005, FR-RBAC-006, FR-AUD-001–003.  
+**Rules:** BR-008, BR-009, BR-016.
+**Requirement links:** FR-TEN-002, FR-TEN-006, FR-RBAC-003, FR-AUT-002, FR-AUT-005, FR-RBAC-006, FR-AUD-001–003.
 **Story links:** US-TEN-001, US-TEN-004, US-RBAC-002.
 
 ## 16. UC-14 — Deny a cross-scope or unauthorized action
 
-**Goal:** Ensure a user/client cannot read or mutate a tenant, branch, object, action, report, job, cache, or file outside effective authorization.  
-**Primary actor:** Any authenticated staff user or malicious/erroneous client  
-**Supporting systems:** Authorization, tenant scoping, audit/security monitoring  
-**Trigger:** Request lacks required permission, scope, or trusted context.  
+**Goal:** Ensure a user/client cannot read or mutate a tenant, branch, object, action, report, job, cache, or file outside effective authorization.
+**Primary actor:** Any authenticated staff user or malicious/erroneous client
+**Supporting systems:** Authorization, tenant scoping, audit/security monitoring
+**Trigger:** Request lacks required permission, scope, or trusted context.
 **Frequency:** Continuous; covers normal mistakes and hostile attempts.
 
 **Preconditions**
@@ -840,8 +851,8 @@ Global constraints for all use cases:
 
 - **7e — Audit/log sink unavailable:** Security design follows fail-safe policy for the operation and raises monitoring; critical privileged mutations must not silently proceed without required evidence.
 
-**Rules:** BR-004, BR-008.  
-**Requirement links:** FR-RBAC-003–007, SEC-TEN-001, SEC-RBAC-001, DATA-TEN-001–002, DATA-ID-001, FR-AUD-001–004, NFR-OBS-001–002.  
+**Rules:** BR-004, BR-008.
+**Requirement links:** FR-RBAC-003–007, SEC-TEN-001, SEC-RBAC-001, DATA-TEN-001–002, DATA-ID-001, FR-AUD-001–004, NFR-OBS-001–002.
 **Story links:** US-RBAC-004, US-TEN-001, US-RPT-001, US-SAF-002, US-AUD-001.
 
 ## 17. Cross-use-case traceability matrix
@@ -878,30 +889,30 @@ The minimum pilot UAT shall execute the following as one traceable journey:
 13. UC-13 deactivates a test branch, proves new check-in/order denial, and proves history remains.
 14. UC-14 attempts cross-tenant/branch/UI/API/report/file access and proves zero disclosure/change.
 
-## 19. Unresolved flow decisions
+## 19. Decision impact crosswalk
 
-The following must be closed through the BRD/SRS decision log before affected use cases are accepted:
+This table is a historical impact crosswalk, not a list of currently open OQs. As of 2026-09-15, OQ-01 through OQ-19 and OQ-21 through OQ-23 have approved baselines; OQ-20 and OQ-24 are explicitly deferred. Remaining provider/procurement and security/retention sub-decisions are registered separately in `.ai/DECISION_REGISTER.md`.
 
 | Decision | Affected use cases | Required outcome |
 |---|---|---|
-| OQ-01 online capture vs recording | UC-06, UC-08, UC-09 | Confirm baseline or issue approved integration change. |
-| OQ-02 mandatory hardware | UC-04 | Supported devices and fallback. |
-| OQ-03 offline mode | All front-desk use cases | Confirm online-only/manual continuity or specify sync architecture. |
-| OQ-04 subscription plans/limits | UC-01, UC-02 | Confirm whether any plan-limit enforcement enters MVP; subscription billing is otherwise Deferred. |
-| OQ-05/OQ-13 provider/channel/alert policy | UC-06, UC-11 | Provider, templates, due/retry/escalation behavior. |
-| OQ-06/OQ-07 launch markets/localization/privacy | UC-01, UC-03, UC-06, UC-08, UC-11, UC-12 if approved | Approve languages, currency/tax/time-zone, consent, retention, receipt, and operational-message requirements. |
-| OQ-08 receipt numbering/content | UC-01, UC-06, UC-08 | Legal scope and mandatory fields. |
-| OQ-09 refund policy | UC-09 | Methods, window, eligibility, approval, posting semantics. |
-| OQ-10 multi-branch roles | UC-02, UC-10, UC-14 | Assignment cardinality and role-per-branch behavior. |
-| OQ-11 capacity enforcement | UC-04 | Warning/block/override and concurrency behavior. |
-| OQ-12 guardian verification | UC-06, UC-07 | Approved methods, evidence, privacy, fallback. |
-| OQ-14 Super Admin support access | UC-14 | Least-privilege functions and approval/audit process. |
-| OQ-15/OQ-17 family age/duplicate policy | UC-03, UC-10 | Data fields, matching, age bands, duplicate resolution. |
-| OQ-16 pricing patterns | UC-04, UC-05, UC-06 | Approved rule decision table and worked examples. |
-| OQ-18 ticket transfer/scope/refund | UC-04, UC-09 | Ticket eligibility and financial consequences. |
-| OQ-19 station/payment handoff | UC-06 | Actor ownership and pending-checkout behavior. |
-| OQ-20 incident policy | UC-12 | Categories, states, visibility, retention, escalation. |
-| OQ-21 load/volume definitions | All high-volume/search/report use cases | Approve measurable normal/peak volume, ranges, pagination, and performance fixtures. |
-| OQ-22 security/session configuration | UC-01, UC-02, UC-14 and all authenticated flows | Approve timeouts, password policy, revocation interval, rate limits, and retention. |
-| OQ-23 branded vs white-label | UC-01 and scope governance | Confirm branded SaaS baseline; any white-label work requires approved scope change. |
-| OQ-24 minimal cashier shift close | UC-08, UC-10 | Decide whether shift open/close/daily close is part of basic POS; if yes, add a use case and linked requirements before implementation. |
+| OQ-01 online capture vs recording | UC-06, UC-08, UC-09 | **Resolved:** in-person payment recording only; online capture deferred. |
+| OQ-02 mandatory hardware | UC-04 | **Resolved:** keyboard-input scanner baseline; proprietary device SDKs deferred. |
+| OQ-03 offline mode | All front-desk use cases | **Resolved:** online-only with manual/read-only continuity; offline writes deferred. |
+| OQ-04 subscription plans/limits | UC-01, UC-02 | **Resolved:** approved V1 plan catalog, limits, trial/grace and manual SaaS billing; recurring provider billing deferred. |
+| OQ-05/OQ-13 provider/channel/alert policy | UC-06, UC-11 | **Resolved baseline:** WhatsApp, SMS fallback, email receipt/admin; 10-minute lead and bounded 2/5-minute retries. Provider/sender/template/callback/cost inputs remain separate procurement decisions. |
+| OQ-06/OQ-07 launch markets/localization/privacy | UC-01, UC-03, UC-06, UC-08, UC-11, UC-12 if approved | **Resolved engineering baseline:** Egypt/EGP/Cairo/Arabic-English and minimum-data/consent/three-year retention; production Finance/Legal/DPO approval remains a release gate. |
+| OQ-08 receipt numbering/content | UC-01, UC-06, UC-08 | **Resolved:** immutable branch/year sequence and approved receipt facts; fiscal validation remains a release gate. |
+| OQ-09 refund policy | UC-09 | **Resolved:** one full same-branch, same-local-business-day cash refund with reason and separate Manager/Owner approval. |
+| OQ-10 multi-branch roles | UC-02, UC-10, UC-14 | **Resolved:** multiple branch-scoped assignments with default-deny authorization. |
+| OQ-11 capacity enforcement | UC-04 | **Resolved for Egypt MVP:** hard non-overridable block; Active sessions count; transactional concurrency behavior. |
+| OQ-12 guardian verification | UC-06, UC-07 | **Resolved:** QR plus guardian phone last four/handoff evidence; reasoned audited manager override. |
+| OQ-14 Super Admin support access | UC-14 | **Resolved:** tenant-specific, least-privilege, reasoned, visible, revocable, audited, maximum 60-minute access; implementation remains partial. |
+| OQ-15/OQ-17 family age/duplicate policy | UC-03, UC-10 | **Resolved:** optional DOB/minimum precision and tenant-unique normalized guardian phone with hard reuse. |
+| OQ-16 pricing patterns | UC-04, UC-05, UC-06 | **Resolved:** immutable fixed-duration/grace/overtime/tax arithmetic. |
+| OQ-18 ticket transfer/scope/refund | UC-04, UC-09 | **Resolved:** branch/service-date scope, pre-scan correction, post-scan lock and unused-only refund eligibility. |
+| OQ-19 station/payment handoff | UC-06 | **Resolved:** Reception/Manager prepares; Cashier/authorized transaction actor posts exact payment and completion atomically. |
+| OQ-20 incident policy | UC-12 | **Deferred:** no incident module in Egypt V1; reopening requires a new Safety/Legal/Product decision. |
+| OQ-21 load/volume definitions | All high-volume/search/report use cases | **Resolved targets:** approved p95/availability/bounded-query baseline; environment workload counts are release-test evidence. |
+| OQ-22 security/session configuration | UC-01, UC-02, UC-14 and all authenticated flows | **Resolved baseline:** approved idle/password/revocation/MFA/secrets/debug controls; exact absolute timeout, rates and retention remain separately registered. |
+| OQ-23 branded vs white-label | UC-01 and scope governance | **Resolved:** branded SaaS only; white-label deferred. |
+| OQ-24 minimal cashier shift close | UC-08, UC-10 | **Deferred:** no shift/drawer workflow in the Egypt MVP. |

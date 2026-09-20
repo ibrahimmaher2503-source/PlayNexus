@@ -1,5 +1,33 @@
 # PlayNexus Testing Strategy
 
+## 2026-09-15 actual test stack
+
+The repository currently uses PHPUnit feature/unit tests, Blade/vanilla JavaScript browser journeys, Pint, Vite, SQLite for fast regression, and isolated MySQL 8.4/InnoDB for database/concurrency acceptance. References below to Livewire, Pest, Dusk, or a future browser package describe optional target techniques, not installed tooling. Execute tests in grouped risk-based batches and one final full regression; do not rerun the whole suite after every small edit.
+
+## 2026-09-15 M6 focused acceptance additions
+
+Focused M6 checks cover revenue/refund reconciliation, per-branch Cairo date boundaries, tenant/unassigned-branch denial, screen/export parity, bilingual report rendering, durable notification idempotency, bounded retry terminal state, encrypted destination masking, role/purpose visibility and idempotent synthetic pilot data. The release run additionally requires both PHP runtimes, isolated MySQL 8.4/InnoDB, migration rollback, isolated backup restore, dependency/secret checks, build/static/docs gates and authenticated browser journeys; current results belong in `.ai/TEST_RESULTS.md`, never in this strategy section.
+
+## 2026-09-15 current acceptance snapshot
+
+The final local engineering evidence is 398 tests / 3,206 assertions on SQLite under PHP 8.4.21 and 8.5.8, with four explicit MySQL-only skips, and 398 / 3,304 assertions on isolated MySQL 8.4.11/InnoDB. Real concurrency passes 3 tests / 76 assertions; rollback/reapply, isolated restore, static/build/docs, dependency/secret checks, and authenticated bilingual multi-role browser acceptance also pass. These are local engineering results, not `PILOT_READY`; staging, deployed monitoring, Finance/Legal approval, staff sign-off and named go/no-go remain external gates. The source-of-truth detail remains `.ai/TEST_RESULTS.md`.
+
+## 2026-09-15 M5 executed checks
+
+`M5FinancialConcurrencyTest` runs two independent PHP processes against MySQL 8.4.11/InnoDB for the same pending-session cash settlement and then the same approved refund execution. It proves one order, payment, receipt sequence, completion event and settlement audit, followed by one refund transition and execution audit with idempotent replay. The final full MySQL regression passes 383 tests / 3,229 assertions; SQLite/PHP 8.4/PHP 8.5 and authenticated Arabic/English desktop evidence are recorded in `.ai/TEST_RESULTS.md`.
+
+## 2026-09-13 check-in/session executed checks
+
+`PlaySessionCheckInTest` covers fixed-role allow/deny, fresh replay authorization, hidden tenant/branch scope, ticket/family/consent/emergency/date/state rejections, immutable UTC session facts, Active-only child uniqueness, hard capacity, rollback on audit failure, Cashier masking and bilingual board behavior, composite foreign-key negatives, and a read-only estimate state snapshot. Pause/resume is intentionally absent from this contract. `SessionQuoteCalculatorTest` fixes base+grace/overtime/tax boundaries and malformed-input denial. `TicketConcurrencyTest` runs two different-key check-ins in independent PHP processes against InnoDB and proves one 201/one rejection, one ticket consumption, one session/event/audit and two scan results. Full SQLite/PHP 8.5/MySQL counts and authenticated responsive browser evidence are recorded in `.ai/TEST_RESULTS.md`.
+
+## 2026-09-13 ticket lifecycle executed checks
+
+`TicketLifecycleTest` covers tenant/branch/fixed-role denial, integer immutable snapshots, encrypted opaque QR, local date/operating boundaries, request fingerprint retry conflicts, permanent first-successful-scan holder lock, active verified relationships/current child-data consent/emergency guards, unused manager cancellation without refund, immutable reprint, and audit rollback. `TicketConcurrencyTest` uses two real PHP processes contending on an InnoDB tenant lock for issue and scan retries; it is deliberately skipped on SQLite rather than counted as MySQL proof. Full counts and browser/QR-render acceptance remain coordinator-owned in `.ai/TEST_RESULTS.md`. The newer session/capacity evidence is documented in the section above; no financial refund test is substituted for the absent workflow.
+
+## M1 executed baseline — 2026-09-12
+
+The M1 regression figures below are historical baselines, not the current suite: 142 tests and 1,102 assertions on SQLite, with the preceding MySQL baseline at 142 / 1,096. They are retained for milestone history and are not evidence for current M2–M6 acceptance or production operations.
+
 **Document status:** Draft MVP quality baseline pending scope and policy decisions  
 **Audience:** Engineering, QA, product, security, and venue operations  
 **Approach:** Risk-based, automated at the lowest useful layer, production-like where behavior depends on the database or browser  
@@ -142,7 +170,7 @@ Record device, browser, operating system, hardware model, locale, branch time zo
 | T-CW-001 | Create tenant and first branch | Tenant/branch relationship, isolated owner, valid country/time zone/currency, active state | CG-01; FR-TEN-001, FR-TEN-004–005, SEC-TEN-001; US-TEN-001, US-TEN-003; UC-01 |
 | T-CW-002 | Register guardian and child | Child has guardian, approved duplicate-phone handling, search returns only current tenant | CG-03; FR-CUS-001–005, DATA-REL-001; US-CUS-001–003; UC-03 |
 | T-CW-003 | Standard check-in | Required child, branch, pricing/ticket, staff and server start time; ticket/session commits once; audit actor recorded | CG-04, CG-05; FR-SES-001–002, FR-SES-014, FR-TKT-005; US-TKT-002, US-SES-001; UC-04 |
-| T-CW-004 | Pause and resume | Valid transition only, approved pauses excluded when configured, overlapping pauses blocked | CG-05; FR-SES-003–004, FR-TIM-003; US-SES-004; UC-05 |
+| T-CW-004 | Pause and resume (deferred) | No route, permission, state, interval, or billing behavior is accepted in the Egypt MVP; a later scope change must add synchronized tests | CG-05; deferred FR-SES-003–004, historical US-SES-004; UC-05 |
 | T-CW-005 | Standard checkout | Guardian verified, server quote used, required settlement durable, session completed once, and receipt facts consistent | CG-06, CG-07; FR-SES-007–010, FR-POS-006–009, FR-SAF-001; US-SES-007–008, US-SES-010, US-POS-003–004; UC-06 |
 | T-CW-006 | Guardian mismatch override | Standard staff denied; authorized manager plus reason succeeds; immutable approval/audit evidence created | CG-06, CG-10; FR-SES-008, FR-SAF-001–002, FR-RBAC-005; US-SES-009, US-SAF-003; UC-07 |
 | T-CW-007 | Overtime and extension | Boundary calculation, visible overage, and accepted extension change the quote prospectively under the approved pricing fixture | CG-05; FR-SES-005, FR-SES-007, FR-TIM-003–006; US-SES-005, US-SES-007, US-TIM-002; UC-05, UC-06 |
@@ -154,12 +182,12 @@ Record device, browser, operating system, hardware model, locale, branch time zo
 | T-CW-013 | Concurrent check-in at capacity | The approved OQ-11 capacity policy is applied once; blocking mode cannot over-commit, and the losing request receives current capacity and a safe recovery path | CG-05; FR-SES-001–002, FR-SES-014; US-SES-001; UC-04; OQ-11 |
 | T-CW-014 | Concurrent checkout/payment handoff and recovery | Payment posting and session completion each have a durable idempotency boundary; concurrent/retried requests create at most one payment, receipt number, and completion; a paid-but-not-completed interruption is visible and safely recoverable without another charge; completion still requires current settlement and guardian verification | CG-06, CG-07; FR-SES-009–010, FR-SES-014, FR-POS-006–009, DATA-INT-001; US-SES-010, US-POS-003–004; UC-06; OQ-19 |
 | T-CW-015 | Cross-tenant adversarial access | Foreign IDs, filters, exports, nested routes, jobs and direct API requests disclose or mutate nothing | CG-01–CG-10; FR-RBAC-003, SEC-TEN-001, SEC-RBAC-001; US-RBAC-004; UC-14 |
-| T-CW-016 | Ticket expiry, cancellation, and reprint | Expired/cancelled tickets cannot authorize check-in and every validation is logged; only an unused Issued ticket can be cancelled with reason; reprint preserves identifier, QR, validity, price, and state while appending audit evidence; invalid terminal transitions change nothing | CG-04; FR-TKT-003–004, FR-TKT-006–008; US-TKT-002–003; UC-04 |
+| T-CW-016 | Ticket scope, service date, transfer lock, cancellation, refund eligibility, and reprint | Wrong-branch/date, expired, or cancelled tickets cannot authorize check-in and every validation is logged; failed scans do not lock assignment; first accepted scan locks assignment and blocks transfer/refund; only an unused Issued ticket may be cancelled/refund-approved with reason; reprint preserves identifier, QR, validity, price, and state; invalid terminal transitions change nothing | CG-04; FR-TKT-001, FR-TKT-003–008; US-TKT-001–003; UC-04 |
 | T-CW-017 | Notification delivery, retry, and terminal states | Provider acceptance is Sent, never Delivered without verified confirmation; retryable failures stop at the configured bound; permanent/not-sendable and stale/cancelled outcomes do not retry or send; duplicate/out-of-order callbacks cannot regress state or duplicate the core event | CG-09; FR-NOT-001–006, INT-NOT-001–003; US-NOT-001–003; UC-11 |
 | T-CW-018 | Incident creation, lifecycle, and update | Creation records one scoped Open incident; authorized follow-up/state changes append actor/time history without replacing original facts; denied, cross-scope, invalid, or concurrent updates preserve prior state; approved search exposes the chronological lifecycle | CG-10; FR-SAF-003–005, FR-AUD-001–004; US-SAF-001–002, US-AUD-001; UC-12; OQ-20 |
-| T-CW-019 | Session cancellation, approved adjustment, and terminal integrity | Active/Paused cancellation requires permission, reason, and configured approval; an open pause closes safely and alerts become stale; manual adjustment retains before/after values, requester/approver, reason, and recalculated effect; Completed/Cancelled reject ordinary mutation and corrections remain additive | CG-05; FR-SES-006, FR-SES-011, FR-TIM-007, FR-RBAC-005; US-SES-005–006; UC-05 |
+| T-CW-019 | Session cancellation, approved adjustment, and terminal integrity | Active cancellation requires permission, reason, and configured approval; manual adjustment retains before/after values, requester/approver, reason, and recalculated effect; Pending payment/Completed/Cancelled reject ordinary mutation and corrections remain additive | CG-05; FR-SES-006, FR-SES-011, FR-TIM-007, FR-RBAC-005; US-SES-005–006; UC-05 |
 
-These tests are release blockers for capabilities included in the approved pilot. Each must be automated except the explicit human factors within guardian verification and hardware. T-CW-014 proves topology-independent safety and recovery without assuming that payment posting, session completion, and receipt delivery are one database action; repeat it against the station/role topology selected when OQ-19 closes. T-CW-018 becomes a release blocker only if OQ-20 adds incidents to MVP; it then proves append-only and authorization invariants while exact transitions use the approved policy.
+These tests are release blockers for capabilities included in the approved pilot. Each must be automated except the explicit human factors within guardian verification and hardware. T-CW-014 proves safety and recovery against the approved OQ-19 Reception/Manager-to-Cashier handoff, including one atomic payment/session-completion/receipt write and idempotent lost-response replay. T-CW-018 is deferred with OQ-20 and becomes a release blocker only after a later incident contract is approved.
 
 ### MVP state coverage
 
@@ -168,11 +196,11 @@ These tests are release blockers for capabilities included in the approved pilot
 | Tenant | Pending, Active, Suspended | Provisioning/status feature tests, access revocation, retained history, T-CW-001/T-CW-015 |
 | Branch | Inactive, Active | Activation validation, reasoned deactivation, new-work denial, retained history, T-CW-011 |
 | Staff user | Invited, Active, Suspended | Invitation/credential activation, suspension/reactivation, session revocation, attribution retention |
-| Session | Active, Paused, Completed, Cancelled | Check-in, pause/resume, completion, cancellation/adjustment, terminal guards, T-CW-003–005/T-CW-019 |
+| Session | Active, Pending payment, Completed, Cancelled | Check-in, extension, checkout/settlement, cancellation/adjustment, terminal guards, T-CW-003/T-CW-005/T-CW-019 |
 | Ticket | Issued, Consumed, Cancelled, Expired; reprint as event | T-CW-003/T-CW-016, scan history, terminal-state denial |
 | Order/payment/refund/receipt | Order Draft/Paid/Voided/Refunded; Payment Posted/Voided; Refund Posted; Receipt Issued with refund annotation | T-CW-005/T-CW-008–010/T-CW-014, reconciliation and immutable-history checks |
 | Notification | `queued`, `sending`, `sent`, `delivered`, `failed_retryable`, `failed_permanent`, `stale` (UI may label `sending` Processing and `stale` Cancelled/Stale) | T-CW-017 with bounded retries and verified callbacks |
-| Incident | Open, UnderReview, Closed; exact transitions pending OQ-20 | T-CW-018 with append-only history and parameterized approved transitions |
+| Incident | Deferred from Egypt V1 by OQ-20; no active state contract | T-CW-018 only after a later approved contract, with append-only history and approved transitions |
 
 ## 6. Domain-specific test charters
 
@@ -195,7 +223,7 @@ A response should normally be indistinguishable from a missing resource where re
 
 - Successful login, invalid password, disabled user, inactive tenant, inactive branch, password reset, session expiry, and logout.
 - Rate limiting does not reveal account existence.
-- Policies cover view, create, update, pause, resume, cancel, checkout, adjust, discount, refund, approve, export, and manage staff.
+- Policies cover view, create, update, extend, cancel, checkout, adjust, discount, refund, approve, export, and manage staff. Pause/resume permissions are deliberately absent from the Egypt MVP.
 - Every role in the Permission Matrix receives positive tests for allowed actions and negative tests for critical denied actions.
 - Hiding a button is tested only as UX. Server policy denial is the security assertion.
 - Role or branch-scope changes take effect for existing sessions according to the approved policy.
@@ -219,7 +247,7 @@ A response should normally be indistinguishable from a missing resource where re
 Use a frozen clock and branch time zone. Cover:
 
 - Exact plan end, one second before, one second after, and rounding boundary.
-- Multiple pause/resume intervals, zero-length pause, open pause, overlapping pause attempt, and disallowed pause type.
+- Pause/resume interval cases are retained only as a future-scope test design; they are not an Egypt MVP release gate.
 - Extension before expiry, at expiry, and after overtime begins.
 - Checkout across midnight, month/year end, leap day, and local daylight-saving transitions relevant to launch countries.
 - UTC persistence and branch-local rendering.
@@ -235,7 +263,7 @@ Run real parallel requests against MySQL 8.4 with InnoDB for:
 
 - Last capacity slot claimed by two check-ins.
 - Same child checked in at two terminals.
-- Same session paused/resumed or checked out by two users.
+- Same session extended, adjusted, cancelled, or settled by two users.
 - Same sale/payment submitted twice by retry, double-click, or provider callback.
 - Discount approval and checkout happening in different order.
 - Pricing setting changed while a cashier holds a sale.
@@ -314,7 +342,7 @@ Agree the normal-load profile before claiming the PRD targets. Initial pilot pro
 
 Measure server response time and browser task time separately. At minimum:
 
-- Check-in, pause/resume, checkout quote, payment recording, and POS submit meet the 2 second standard-action target at the agreed normal load.
+- Check-in, extension/adjustment, checkout quote, payment recording, and POS submit meet the 2 second standard-action target at the agreed normal load; pause/resume is excluded from Egypt MVP.
 - Standard daily revenue, attendance, and session reports meet the 5 second target.
 - No correctness loss at peak concurrency.
 - Slow-query log and query plan reviewed for critical indexes.
@@ -357,7 +385,7 @@ Environment configuration is version controlled where it is not secret. Producti
 
 - Factories create tenants first, then branches and tenant-bound entities.
 - Every feature test names the tenant and branch in the fixture so scope is visible.
-- Maintain a compact deterministic scenario seed for product review: two tenants, multiple branches, every predefined role, active/paused/overtime/completed sessions, one approval, one refund, and reportable transactions.
+- Maintain a compact deterministic scenario seed for product review: two tenants, multiple branches, every predefined role, active/overtime/completed sessions, one approval, one refund, and reportable transactions. Paused sessions are not seeded in the Egypt MVP.
 - Use explicit money and time values for assertions, not random values.
 - Use random/fuzz values only for robustness checks, preserving the failing seed.
 - Keep synthetic Arabic and English names, phone formats, currencies, and time zones.
@@ -500,10 +528,14 @@ The traceability matrix is a release view, not duplicated prose. One automated t
 - [Laravel 13 database testing](https://laravel.com/docs/13.x/database-testing)
 - [Laravel 13 authorization](https://laravel.com/docs/13.x/authorization)
 - [Laravel 13 browser testing guidance](https://laravel.com/docs/13.x/dusk)
-- [Pest browser testing](https://pestphp.com/docs/browser-testing)
+- Browser acceptance is a separate headed/runtime check; the repository test runner is PHPUnit 12 through `php artisan test`.
 - [OWASP ASVS 5.0.0](https://owasp.org/www-project-application-security-verification-standard/)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [MySQL Innovation and LTS release model](https://dev.mysql.com/doc/refman/8.4/en/mysql-releases.html)
 - [Which MySQL version to use](https://dev.mysql.com/doc/refman/8.4/en/which-version.html)
 
 These sources were verified on 24 August 2026. Pin application dependencies in lock files and review support status before implementation and each major release.
+
+## Approved MVP decision amendment — 2026-09-10
+
+Add focused checks for: branch-scoped receipt numbering under concurrency and void immutability; QR/guardian-confirmation success, mismatch, missing-code, replay, and audited manager override; fixed package pricing, 10-minute grace boundary, 30-minute overtime rounding, integer-piastre arithmetic, tax snapshotting, and rejection of pause commands in MVP.

@@ -4,7 +4,13 @@
 **Source baseline:** PlayNexus PRD v1.0, June 2026  
 **Verified source:** 27,198 bytes; SHA-256 `D9119C1A3325DD8DBF318296EB52DDFF95B064A0C0061EAD96CAAD68D9FEF5D2`  
 **Implementation target:** Laravel web MVP  
-**Status:** Working specification pending stakeholder approval
+**Status:** M1–M6 locally engineering-accepted; external pilot approval remains pending
+
+## Implementation status — 2026-09-15
+
+M1 access/branch, M2 family, M3 pricing/tickets/check-in, the bounded M4 checkout-preparation contract, M5, and M6 are locally engineering-accepted. M5 implements cash-only POS, exact pending-session settlement, discount approval, immutable receipts, transaction lookup and same-day full cash refunds. M6 implements committed-source operational reports, local/database notification intent and attempts, scoped audit browsing/export, append-only database enforcement, synthetic pilot data, and an operations runbook. SQLite, PHP 8.4/8.5, authenticated bilingual desktop, isolated MySQL 8.4.11/InnoDB, and real duplicate settlement/refund contention pass. Shifts, provider delivery, incidents, staging/monitoring, production Finance/Legal approval, staff sign-off, and named go/no-go remain outside this bounded acceptance. See `.ai/TEST_RESULTS.md` for current evidence.
+
+M6 implementation adds committed-source core reports, filter-identical CSV, durable local/database notification intent and attempts, scoped audit export, bilingual UI, synthetic pilot data and the operations/restore/walkthrough runbook. Real provider delivery, incidents, staging/monitoring, Finance/Legal, staff sign-off and go/no-go remain gated. Current M6 acceptance evidence is recorded at the top of `.ai/TEST_RESULTS.md`.
 
 `docs/` is the single source of truth for product, technical, delivery, and implementation documentation. Do not create parallel summary copies.
 
@@ -32,6 +38,11 @@
 | 16 | [Implementation Checklist](16-Implementation-Checklist.md) | Product, foundation, MVP, and release tracking |
 | 17 | [Definition of Done](17-Definition-of-Done.md) | Completion gate for every backlog item |
 | 18 | [Security Checklist](18-Security-Checklist.md) | Identity, data, application, and operations controls |
+| 19 | [UX/UI Remediation Plan](19-UX-UI-Remediation-Plan.md) | Canonical desktop and responsive improvement backlog |
+| 20 | [M0 Audit Report](20-M0-Audit-Report.md) | Evidence-led M0 closure review and repair gate |
+| 21 | [M1 Audit Report](21-M1-Audit-Report.md) | Evidence-led M1 access, branch, authorization, browser, and UX closure review |
+| 22 | [M6 Operations Runbook](22-M6-Operations-Runbook.md) | Release, queue/scheduler, migration, backup/restore, monitoring, pilot data, support, and staff walkthrough |
+| 23 | [Decision and Implementation Gap Ledger](23-Decision-and-Implementation-Gap-Ledger.md) | Current approved/open decisions, confirmed implementation gaps, deliberate deferrals, documentation drift, and pilot gates |
 | UI | [Design System](../DESIGN.md) | Canonical color, typography, layout, component, RTL, and accessibility rules |
 
 ## Source-of-truth order
@@ -49,18 +60,16 @@ Included: tenant and branch setup, staff/RBAC, guardian and child profiles, sess
 
 Deferred: native apps, online marketplace, AI, advanced loyalty and memberships, birthday management, advanced inventory/HR, franchise controls, accounting integrations, white-label products, and broad marketing automation.
 
-## Decisions required before Sprint 1 closes
+## Decision register snapshot
 
-- Whether MVP payments are record-only or include an online gateway.
-- Whether checkout, payment recording, session completion, and receipt issuance happen as one terminal action or as a recoverable reception/cashier handoff.
-- Whether wristbands/scanners are mandatory hardware or optional keyboard-input devices.
-- Supported launch countries, currencies, VAT behavior, branch timezone, and receipt requirements.
-- Exact pricing models, rounding rules, pause policy, grace period, and overage rules.
-- Guardian checkout verification method and emergency override evidence.
-- Subscription plans, tenant limits, and trial/suspension behavior.
-- Whether temporary offline operation is required. The current architecture assumes online operation.
-- Notification providers and whether SMS/WhatsApp are pilot requirements or later integrations.
-- Whether the POS module's `daily shift close` is required in the MVP or whether the explicit MVP daily revenue/reconciliation reports are sufficient for the pilot.
-- Whether basic incident recording/search is required in the MVP; it appears in the Safety module but not in the PRD's explicit MVP feature list.
+- **Approved:** record-only in-person payments/no online gateway; browser keyboard-input scanners; Egypt/EGP/Africa-Cairo/Arabic-English; online-only operation; branch/year immutable receipt numbering/content; fixed-duration/grace/overtime pricing; QR plus registered-guardian confirmation with audited override; branch-scoped roles/support rules; optional DOB; branded SaaS.
+- **Approved/deferred:** incident management is outside the current MVP family/session boundary; restricted safety notes remain.
+- **Decision status as of 2026-09-15:** OQ-01 through OQ-19 and OQ-21 through OQ-23 have approved baselines; OQ-20 incidents and OQ-24 cashier shifts are explicitly deferred. OQ-05/OQ-13 still require provider, sender, template, callback and cost procurement inputs; OQ-22 still has separately registered absolute-timeout, exact rate-limit and audit/log-retention choices. OQ-04 remains approved with partial implementation; recurring SaaS billing is deferred. Deployment validation remains a release gate, not an open Product question.
 
 Unresolved items are labeled assumptions; they are not hidden product commitments.
+
+## Approved MVP baseline decisions — 2026-09-10
+
+The following initial decisions are approved for implementation planning: branded SaaS only (OQ-23); online-only operation (OQ-03); Egypt launch with EGP, Africa/Cairo, Arabic and English, and configurable tax behavior (OQ-06); minimum operational/safety data with recorded consent and lawful anonymization/retention exceptions (OQ-07); multi-branch staff with branch-scoped roles and deny-by-default authorization (OQ-10); default-deny, time-bound, reason-required, audited Super Admin support access (OQ-14); record-only in-person payments with no gateway in MVP (OQ-01); browser keyboard-input QR/barcode scanners with no proprietary hardware SDK (OQ-02); and optional child date of birth with purpose-limited age/family-band use (OQ-15).
+
+OQ-08 receipt numbering/content, OQ-12 guardian verification, OQ-16 pricing, OQ-19 station handoff, OQ-21 targets and the OQ-22 baseline are approved and reflected in the canonical pack. The remaining procurement/security sub-decisions are tracked in `.ai/DECISION_REGISTER.md`; release approvals are tracked separately in `.ai/RELEASE_APPROVAL_GATES.md`.

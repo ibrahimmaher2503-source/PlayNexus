@@ -1,0 +1,106 @@
+name: M0 Gate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: testing
+      APP_URL: http://127.0.0.1
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: playnexus_ci
+      DB_USERNAME: playnexus
+      DB_PASSWORD: playnexus
+      DB_URL: ''
+      PLAYNEXUS_DB_TARGET: playnexus_ci
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: playnexus_ci
+          MYSQL_USER: playnexus
+          MYSQL_PASSWORD: playnexus
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PHP dependencies from lock file
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare application environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Install Node dependencies from lock file
+        run: npm ci --ignore-scripts
+
+      - name: Confirm disposable database target
+        run: php tools/ensure-safe-database.php
+
+      - name: Wait for MySQL
+        run: |
+          php -r 'for ($i = 0; $i < 60; $i++) { try { new PDO("mysql:host=".getenv("DB_HOST").";port=".getenv("DB_PORT"), getenv("DB_USERNAME"), getenv("DB_PASSWORD")); exit(0); } catch (Throwable $e) { sleep(1); } } fwrite(STDERR, "MySQL did not become ready\n"); exit(1);'
+
+      - name: Run fresh MySQL migrations
+        run: php artisan migrate:fresh --database=mysql --force --no-interaction
+
+      - name: Run M0 tests on MySQL 8.4
+        run: php artisan test --compact tests/Feature/TenantBranchTest.php tests/Feature/M0DemoSeederTest.php
+
+      - name: Run full SQLite regression
+        run: DB_CONNECTION=sqlite DB_DATABASE=:memory: DB_URL= php artisan test --compact
+
+      - name: Check PHP formatting
+        run: php vendor/bin/pint --test
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Validate documentation
+        run: |
+          python -m pip install --disable-pip-version-check --no-input pyyaml
+          python tools/validate_documentation.py

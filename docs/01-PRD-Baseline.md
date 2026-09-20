@@ -41,7 +41,7 @@ PlayNexus is a cloud-based, multi-tenant, multi-branch SaaS operating system for
 | Branch Manager | Daily operations, staff, revenue, attendance, capacity, overrides, refund approval | **Source MVP actor** for applicable core operations. Booking/game-specific duties are later phase unless approved. |
 | Reception Staff | Family registration, sessions, tickets, checkout | **Source MVP actor.** |
 | Cashier | Ticket/product sale, payment record, permitted discounts, receipts | **Source MVP actor.** |
-| Game Operator | Games, activities, queues, incidents, maintenance requests | **Source role; Deferred for game/queue operations** because Games & Capacity is not in the PRD MVP list/Phase 1 roadmap. Incident participation is a **Proposed interpretation** pending OQ-20. |
+| Game Operator | Games, activities, queues, incidents, maintenance requests | **Source role; Deferred for Egypt V1** for game/queue operations and incident management under approved OQ-20. |
 | Parent/Guardian | Own/child profiles, bookings, time, notifications, payment history | **Source target role; Assumption ASM-06:** MVP is staff-assisted with notifications/receipts and no authenticated parent portal. |
 
 ## 4. Exact MVP capability inventory
@@ -53,7 +53,7 @@ PlayNexus is a cloud-based, multi-tenant, multi-branch SaaS operating system for
 | PRD-MVP-003 | Staff users and role-based permissions. | CAP-03; FR-AUT, FR-RBAC |
 | PRD-MVP-004 | Parent registration and child registration. | CAP-04; FR-CUS |
 | PRD-MVP-005 | Check-in session creation and checkout flow. | CAP-05; FR-SES, FR-SAF |
-| PRD-MVP-006 | Smart time calculation with Active, Paused, Completed, and Cancelled statuses. | CAP-06; FR-TIM, FR-SES |
+| PRD-MVP-006 | Smart time calculation with Active, Paused, Completed, and Cancelled statuses (historical source wording; Egypt MVP superseded by the approved no-pause lifecycle). | CAP-06; FR-TIM, FR-SES |
 | PRD-MVP-007 | Basic ticketing and QR generation. | CAP-07; FR-TKT |
 | PRD-MVP-008 | Basic POS for tickets, F&B, merchandise, and add-ons. | CAP-08; FR-POS |
 | PRD-MVP-009 | Payment recording and digital receipts. | CAP-08–09; FR-POS |
@@ -66,9 +66,9 @@ PlayNexus is a cloud-based, multi-tenant, multi-branch SaaS operating system for
 |---|---|---|
 | PRD-XCUT-001 | Tenant isolation is mandatory. | Required across UI, API, data, files, jobs, caches, and reports. |
 | PRD-XCUT-002 | RBAC, audit logs, guardian matching, controlled checkout, and override tracking are required by the business rules/module specifications/NFRs. | Required wherever the applicable MVP flow uses them. |
-| PRD-XCUT-003 | Basic incident records are described in Safety & Security and Game Operator responsibilities but are not named in §5.1 MVP or Phase 1 deliverables. | **Proposed MVP interpretation**, not a direct MVP commitment; Product/Safety must confirm OQ-20 before incident UI/API becomes a release gate. |
-| PRD-XCUT-004 | Branch capacity is a configuration requirement; game-level capacity/queues appear in a later operational module. | Store branch capacity in MVP. Enforcement mode is **Open Decision OQ-11**; game/queue/participation management is Deferred. |
-| PRD-XCUT-005 | The POS module specification mentions daily shift close, while §5.1 and Phase 1 describe only “basic POS.” | A minimal cashier shift open/close is **Open Decision OQ-24**; advanced cash-drawer/employee shift management remains Deferred. |
+| PRD-XCUT-003 | Basic incident records are described in Safety & Security and Game Operator responsibilities but are not named in §5.1 MVP or Phase 1 deliverables. | **Deferred for Egypt V1 by approved OQ-20.** Restricted safety notes remain; incident UI/API/routes/tables remain absent until a later approved contract. |
+| PRD-XCUT-004 | Branch capacity is a configuration requirement; game-level capacity/queues appear in a later operational module. | Store branch capacity in MVP. Approved OQ-11 requires a hard, non-overridable transactional check-in limit; game/queue/participation management remains Deferred. |
+| PRD-XCUT-005 | The POS module specification mentions daily shift close, while §5.1 and Phase 1 describe only “basic POS.” | **Deferred for Egypt V1 by approved OQ-24.** Payment records retain tenant, branch, cashier, and server time without implying a drawer workflow. |
 
 ## 5. Explicit exclusions and phase boundaries
 
@@ -109,7 +109,7 @@ Additional phase boundaries stated by the roadmap:
 | FR-011 | Support memberships and loyalty in future phases. | Should | **Deferred; not an MVP Should.** | None in MVP |
 | FR-012 | Support parent mobile app and marketplace in future phases. | Could | **Deferred.** | None in MVP |
 
-The source IDs above remain valid PRD trace IDs. The detailed SRS uses family IDs to avoid redefining or silently changing the source statements.
+The source IDs above remain valid PRD trace IDs. The 2026-09-13 approved Egypt M4 amendment supersedes pause/resume in the current release; the original source wording remains here only as historical provenance. The detailed SRS uses family IDs to avoid redefining or silently changing the source statements.
 
 ## 7. Core business rules BR-001 through BR-010 — Source
 
@@ -117,8 +117,8 @@ The source IDs above remain valid PRD trace IDs. The detailed SRS uses family ID
 |---|---|---|
 | BR-001 | Every child must be linked to at least one parent or guardian. | Included |
 | BR-002 | A session cannot start without a branch, child, ticket/pricing rule, and staff user. | Included; the session module also requires a start time as stored session data. |
-| BR-003 | Session statuses include Active, Paused, Completed, and Cancelled. | Included |
-| BR-004 | Only authorized users may pause, resume, cancel, refund, or manually adjust a session. | Included |
+| BR-003 | Session statuses include Active, Paused, Completed, and Cancelled. | **Historical source wording; superseded for Egypt MVP by `active`, `pending_payment`, `completed`, `cancelled`.** |
+| BR-004 | Only authorized users may pause, resume, cancel, refund, or manually adjust a session. | **Historical source wording; pause/resume is deferred for Egypt MVP; supported actions remain authorized extension, adjustment, cancellation, refund, and checkout settlement.** |
 | BR-005 | Checkout validates the parent-child relationship or records a manager-approved override. | Included; verification method remains OQ-12. |
 | BR-006 | Discounts above the configured threshold require manager approval. | Included |
 | BR-007 | Refunds require a reason and must be included in audit reports. | Included; refund type/window remains OQ-09. |
@@ -132,9 +132,9 @@ Rules BR-011 onward in the BRD are **Proposed derived controls**, not source rul
 
 | Source category | Preserved source requirement | Derived SRS IDs | Approval note |
 |---|---|---|---|
-| Performance | Standard actions within 2 seconds under normal load; standard-range dashboard reports within 5 seconds. | NFR-PERF-001–004 | Percentile, load, and “standard range” definitions are Proposed/OQ-21. |
+| Performance | Standard actions within 2 seconds under normal load; standard-range dashboard reports within 5 seconds. | NFR-PERF-001–004 | Approved OQ-21 supersedes these source targets with p95 targets; the production workload fixture and measurement evidence remain a release gate. |
 | Availability | Target 99.9% uptime; critical peak operations stable. | NFR-AVL-001–002 | SLA exclusions/measurement remain to be approved. |
-| Scalability | Support growth in tenants, branches, users, families, sessions, transactions, and reports. | NFR-SCA-001–002; NFR-PERF-003 | Numeric capacity profile is OQ-21. |
+| Scalability | Support growth in tenants, branches, users, families, sessions, transactions, and reports. | NFR-SCA-001–002; NFR-PERF-003 | OQ-21 targets are approved; environment-specific workload counts remain release evidence. |
 | Security | RBAC, secure password hashing, encryption in transit, tenant isolation, and audit logs. | SEC-*; FR-RBAC; FR-AUD | Detailed controls are derived security requirements subject to security approval. |
 | Usability | Reception/cashier workflows use minimal steps and suit non-technical staff. | NFR-USA-001–003; NFR-ACC-001 | Accessibility specifics are a Proposed quality control, not stated verbatim in PRD. |
 | Localization | Prepare for English/Arabic UI, regional currencies, taxes, and date/time formats. | LOC-001–006 | “Prepared” versus complete bilingual day-one delivery is OQ-06/ASM-09. |
@@ -156,7 +156,7 @@ Rules BR-011 onward in the BRD are **Proposed derived controls**, not source rul
 
 ## 10. Source success metrics
 
-The PRD gives target directions, not numeric targets except system uptime. Values, baselines, ownership, and measurement windows remain Open Decisions.
+The source PRD gives target directions. Approved OQ-21 now supplies response-time and availability targets; the production workload fixture, sampling/exclusion method, and measured deployment evidence remain release gates rather than open Product decisions.
 
 | Source metric ID | Metric | Source direction | MVP instrumentation/disposition |
 |---|---|---|---|
@@ -195,7 +195,7 @@ Additional operational controls in the BRD KPI table are **Proposed acceptance/q
 
 Additional BRD risks are **Proposed derived risks** and must be assessed/owned; they are not presented as source risks.
 
-## 13. Source open questions
+## 13. Source-question crosswalk
 
 | Source question ID | Preserved source question | Pack decision ID |
 |---|---|---|
@@ -211,5 +211,5 @@ Additional BRD risks are **Proposed derived risks** and must be assessed/owned; 
 - Source commitments are not silently removed; any deferral requires an approved scope decision.
 - Source future requirements FR-011/FR-012 and phase-later modules are not silently promoted into MVP.
 - Derived control detail may be prioritized Must for safe implementation while still remaining **Proposed until the SRS approval gate**.
-- Open Decisions are resolved with date, approver, rationale, and impacted IDs. A decision updates every affected artifact.
+- Decisions are resolved with date, approver, rationale, and impacted IDs. Current state is controlled by `.ai/DECISION_REGISTER.md`; preserved source questions do not reopen later approvals or deferments.
 - If source and a derived artifact conflict, the source intent and latest approved decision govern; the conflict is recorded in `13-Traceability-Matrix.md` rather than guessed.

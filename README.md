@@ -1,6 +1,6 @@
 # PlayNexus
 
-PlayNexus is a planned cloud-based, multi-tenant and multi-branch operating system for kids entertainment venues in MENA. This repository is currently in the documentation and architecture baseline stage; Laravel application code has not been scaffolded yet.
+PlayNexus is a Laravel 13 documentation-first, multi-tenant and multi-branch operating system for kids entertainment venues in MENA. Access/branch foundation, the approved Egypt family contract, and M3 immutable pricing/tickets/check-in/live sessions with a read-only non-final estimate are implemented. Checkout, child release, POS, financial refunds, and production release remain outside the delivered boundary.
 
 ## MVP outcome
 
@@ -8,12 +8,12 @@ The first release will let a venue configure branches and staff, register guardi
 
 ## Proposed implementation baseline
 
-- PHP 8.5 and Laravel 13 modular monolith, verified against the official support policy on 24 August 2026.
-- Server-rendered Blade UI with Livewire 4 only for high-interaction operational screens, plus Tailwind CSS 4.
+- PHP 8.4 or 8.5 and Laravel 13 modular monolith, verified against the official support policy on 24 August 2026.
+- Server-rendered Blade UI with small vanilla JavaScript enhancements and Tailwind CSS 4; no Livewire dependency is installed.
 - MySQL 8.4 LTS/InnoDB shared-schema multi-tenancy with mandatory `tenant_id` scoping and database constraints.
 - Session authentication for the web product; Laravel Sanctum for first-party API access.
-- Laravel policies and gates for authorization; database queues initially for receipts and notifications; Pest 5 for focused tests.
-- English and Arabic, LTR and RTL, desktop and tablet first.
+- Laravel policies and gates for authorization; database queues initially for receipts and notifications; PHPUnit 12 for focused tests.
+- English and Arabic, LTR and RTL, with a full-screen desktop workspace as the primary layout and tablet as the compact layout.
 
 Re-check supported patch versions when scaffolding; the major-version rationale and official sources are in the tooling guide.
 
@@ -29,10 +29,25 @@ Re-check supported patch versions when scaffolding; the major-version rationale 
 
 ## Current status
 
-The audited draft documentation pack is complete in Markdown/YAML/HTML and is pending stakeholder decisions and approval. No Word/DOCX artifact is part of the project. See [.ai/CURRENT_MILESTONE.md](.ai/CURRENT_MILESTONE.md) and [.ai/PROGRESS.md](.ai/PROGRESS.md).
+M1 is complete and M2 Egypt family engineering is implemented with remaining release gates. M3 is locally accepted: immutable pricing/tickets, atomic ticket-backed check-in, hard branch capacity, masked live sessions and exact read-only estimates are backed by isolated MySQL/SQLite/PHP 8.5 tests, real concurrency and authenticated bilingual responsive Edge QA. M4 checkout/final charge and guardian release, M5 payments/refunds, and production gates remain open. The current integration worktree preserves uncommitted user changes. See [.ai/CURRENT_MILESTONE.md](.ai/CURRENT_MILESTONE.md) and [.ai/PROGRESS.md](.ai/PROGRESS.md).
 
-## Start implementation only after
+## Local setup
 
-1. Resolve the MVP decisions listed in `docs/00-INDEX.md`.
-2. Approve the permission model, pricing rules, checkout verification, and payment mode.
-3. Scaffold Laravel and record the exact local commands in this README and `AGENTS.md`.
+Verified on 12 September 2026: Laravel 13.31.0, PHP 8.4.21 and 8.5.8, Composer 2.10.3, Node 24.15.0, npm 11.12.1, and MySQL 8.4.11/InnoDB. The complete M1 suite passes on SQLite and isolated MySQL; Vite, Pint, dependency audits, documentation validation, and real Arabic/English browser checks also pass.
+
+Composer is a required prerequisite. Install Composer for Windows before setup, then open a new shell and verify it is available. The command below uses the Windows Package Manager's Composer package; it avoids any ignored local tooling.
+
+```powershell
+winget install --id Composer.Composer -e
+composer --version
+composer setup
+php artisan serve
+php artisan test
+vendor/bin/pint --test
+```
+
+`composer setup` uses a project-local SQLite file by default and refuses to migrate if `.env` points at an unconfigured or default database. To use MySQL 8.4, set `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` in `.env`, then set `PLAYNEXUS_DB_TARGET` to the exact same intentionally selected database name before rerunning `composer setup`. It never overwrites an existing environment or key. The default route redirects to `/app`. Branch timezone and EGP currency settings are implemented; timestamps remain stored in UTC.
+
+## Next review gate
+
+M0 scaffold repairs are locally verified. The next permitted review is M1 only after the hosted M0 workflow passes; later implemented milestones remain outside that review boundary.

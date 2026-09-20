@@ -1,5 +1,33 @@
 # PlayNexus Permission Matrix
 
+## 2026-09-15 M6 enforcement subset
+
+The existing report/notification/audit matrix is enforced in the session-authenticated UI: Owner has tenant scope; assigned Manager has branch scope and non-PII CSV; Reception/Cashier see permitted operational reports and their own staff activity but cannot export; notification visibility is branch-scoped and purpose-limited (Reception session alerts, Cashier receipts, Manager both). Hidden unassigned branch filters return 404 and active in-scope roles without the required report capability return 403.
+
+Pause/resume has no permission in the approved Egypt MVP. The row retained in the matrix below is a superseded target entry and is not seeded or exposed; supported session actions are check-in, extension, adjustment, cancellation, checkout preparation, and settlement.
+
+## 2026-09-13 check-in/session policy implementation
+
+`PlaySessionPolicy` permits active Tenant Owner and assigned Branch Manager/Reception roles to check in within current active branch scope. Cashier may view the scoped masked board but cannot check in; a custom role with `branches.view` alone receives no session ability. Foreign, unassigned and inactive branch scope remains hidden as 404; an active in-scope fixed role missing check-in permission receives 403. Authorization is repeated under the transaction lock before replay or mutation. No role can override hard capacity or tenant-wide active-child uniqueness (paused is deferred).
+
+The read-only live estimate inherits board visibility: Owner, assigned Branch Manager/Reception/Cashier may see it only for sessions already visible in active branch scope. It grants no checkout/payment permission, accepts no client amount, and exposes no additional guardian PII.
+
+## 2026-09-13 OQ-19 checkout preparation boundary
+
+Reception and assigned Branch Managers may prepare checkout for an active in-scope session: the server verifies the linked checkout-capable guardian by registered-phone last four digits, or a Branch Manager/Owner uses the separate manager-override permission with a non-empty reason. Successful preparation freezes the immutable quote, records actor/time/evidence, increments the lock version, and moves the session to `pending_payment` for the Cashier queue. Cashier is denied preparation and may only receive the queue for the later M5 matching-payment command. Replays are idempotent; changed keys, stale locks, foreign/ineligible guardians, and terminal sessions fail without mutation. This slice does not grant payment, refund, receipt, release, or shift permissions.
+
+## 2026-09-13 ticket lifecycle policy implementation
+
+`TicketPolicy` reuses the current fixed pricing/branch policy: active Tenant Owner, assigned Branch Manager, Reception, and Cashier can issue, validate, reprint, and correct an unused pre-scan ticket in scope. Only Owner/assigned Branch Manager can create immutable ticket types or cancel unused tickets. A custom role with only `branches.view` never gains ticket abilities. Resource queries return 404 for foreign, unassigned, or inactive scope; an active in-scope fixed role missing the manager action receives 403. Fresh authorization is repeated under the existing tenant command lock. Sensitive correction/cancellation require reason, expected version, and atomic audit; no financial refund approval or execution ability is exposed by this subset.
+
+## T18-T20 bounded implementation amendment
+
+User-authorized wave: an active owner has `branches.view` over active own-tenant branches; may add active tenant staff directly, search them by name/email, create tenant-specific roles, toggle their currently enforced `branches.view` permission, and assign eligible custom or fixed branch roles. Branch-manager staff administration, owner transfer and all other draft permissions remain unimplemented. All owner targets are excluded from these mutations. Deny foreign scope404, missing owner403, stale submitted state409; record server-derived reasons and atomic audit for successful changes.
+
+## T14 bounded owner-read implementation
+
+The coordinator-approved initial owner permission is `TenantPolicy::view` for own-tenant profile and staff-list reads at `/app/tenant`. It requires fresh active user/tenant state and explicit tenant_owners membership. Foreign/inactive tenant policy scope returns 404; in-scope missing ownership returns 403. Existing middleware revokes inactive accounts. Owner branch-wide access, mutation and platform access are not granted by this slice; the remaining matrix stays draft.
+
 **Document ID:** PN-IAM-001  
 **Status:** Draft MVP authorization baseline pending stakeholder approval  
 **Source:** PRD roles, FR-003, BR-004–BR-008  
@@ -55,28 +83,30 @@ An entry grants at most the listed scope. It does not bypass record state, tenan
 | Action / permission code | Super Admin | Tenant Owner | Branch Manager | Reception | Cashier | Game Operator | Parent |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | View tenant staff `staff.view` | support only | T | B | self | self | — | — |
-| Invite/disable tenant staff `staff.manage` | — | T | B* | — | — | — | — |
+| Add/disable tenant staff `staff.manage` | — | T | B* | — | — | — | — |
 | Assign Tenant Owner `staff.roles.assign_owner` | — | T** | — | — | — | — | — |
 | Assign branch roles `staff.roles.assign_branch` | — | T | B* | — | — | — | — |
 | Assign/remove branch access `staff.branches.assign` | — | T | B* | — | — | — | — |
 | View role definitions `roles.view` | G | T | B | — | — | — | — |
-| Change fixed role-permission map `roles.permissions.manage` | deploy only | — | — | — | — | — | — |
+| Manage tenant custom role permissions `roles.permissions.manage` | — | T | — | — | — | — | — |
 | Revoke API token `tokens.revoke` | own/platform | T | own | own | own | own | — |
 | Request/reset own password | public generic request / valid single-use token | self | self | self | self | — | — |
 
 `*` Branch Managers can manage only Reception and Cashier users in branches they manage. They cannot create/assign Tenant Owners, Branch Managers, or the future Game Operator role.  
 `**` An owner cannot remove the tenant's last active Tenant Owner. Ownership transfer requires re-authentication and audit.
 
-MVP roles are fixed and seeded. “Role management” means assignment, not tenant-authored permission bundles. Custom roles can be introduced only with a separate privilege-escalation review.
+Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is tenant-owned and currently exposes only the already-enforced `branches.view` key; adding any other permission requires its policy enforcement, matrix update, negative tests, and a separate privilege-escalation review.
 
 ## 4. Guardians, children, and sensitive data
+
+**M2 current enforcement — 2026-09-12:** search, masked basic profile viewing, and initial atomic guardian-plus-child registration are available to an active Tenant Owner or an active `branch_manager`, `reception_staff`/legacy `reception`, or `cashier` assignment on an active branch. Profile correction and adding/editing children are limited to Tenant Owner, Branch Manager, and Reception. Cashier receives masked phone/email, no locale, and age without full date of birth and cannot use any family-maintenance, consent, relationship, emergency, or safety-note action. A custom role carrying only `branches.view` does not grant family access. The approved Egypt follow-up adds legal-guardian consent, emergency/safety fields, and relationship lifecycle under the existing owner/manager/reception boundary; child photos and merge remain deferred.
 
 | Action / permission code | Super Admin | Tenant Owner | Branch Manager | Reception | Cashier | Game Operator | Parent |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Search guardian/child `customers.search` | support only | T | B | B | B/M | — | O/future |
 | View basic guardian profile `guardians.view` | support only | T | B | B | B/M | — | O/future |
 | Create guardian `guardians.create` | — | T | B | B | B | — | O/future |
-| Edit guardian contact `guardians.update` | — | T | B | B | B/limited | — | O/future |
+| Edit guardian contact `guardians.update` | — | T | B | B | — | — | O/future |
 | Manage consent/opt-out `guardians.consent.manage` | — | T | B | B | — | — | O/future |
 | View basic child profile `children.view` | support only | T | B | B | B/M | — | O/future |
 | Create/edit child `children.manage` | — | T | B | B | — | — | O/future |
@@ -89,7 +119,6 @@ MVP roles are fixed and seeded. “Role management” means assignment, not tena
 | Approve/execute anonymization `customers.anonymize.execute` | — | T/A | — | — | — | — | — |
 | Export customer PII `customers.export` | — | T/A | B/A | — | — | — | O/future |
 
-`limited` means cashier may correct name/phone only while completing the current sale and cannot change consent, relationships, photos, or notes.  
 `future*` means a guardian may request a relationship change, but staff verification is required before it becomes active.
 
 ## 5. Pricing, tickets, and sessions
@@ -100,13 +129,15 @@ MVP roles are fixed and seeded. “Role management” means assignment, not tena
 | Create/retire pricing rule `pricing.manage` | — | T | B | — | — | — | — |
 | View ticket types `ticket_types.view` | support only | T | B | B | B | — | future |
 | Manage ticket types `ticket_types.manage` | — | T | B | — | — | — | — |
+
+**Implemented pricing slice — 2026-09-12:** an active Tenant Owner views/manages active branches in the tenant; an active Branch Manager views/manages only active manager assignments; Reception and Cashier fixed roles view only their active assigned branches. A user with manager rights in one branch and view-only rights in another sees both but the creation selector contains only the manageable branch. Custom `branches.view` alone grants no pricing access.
 | Issue/sell ticket `tickets.issue` | — | T | B | B | B | — | future |
 | Validate/scan ticket `tickets.scan` | — | T | B | B | B | — | — |
 | Reprint ticket `tickets.reprint` | — | T | B | B | B | — | future |
 | Cancel unused ticket `tickets.cancel` | — | T | B/A | R | R | — | R/future |
 | View session `sessions.view` | support only | T | B | B | B | — | O/future |
 | Create check-in `sessions.check_in` | — | T | B | B | — | — | future |
-| Pause/resume session `sessions.pause_resume` | — | T | B | B | — | — | — |
+| Pause/resume session `sessions.pause_resume` | — | — | — | — | — | — | — (deferred; superseded target row) |
 | Extend session with configured option `sessions.extend` | — | T | B | B | B/session handoff | — | — |
 | Verified checkout `sessions.checkout` | — | T | B | B | — | — | — |
 | Cancel active session `sessions.cancel` | — | T/A | B/A | R | — | — | — |
@@ -115,7 +146,9 @@ MVP roles are fixed and seeded. “Role management” means assignment, not tena
 | Guardian-checkout override `sessions.checkout.override` | — | T/A | B/A | R | — | — | — |
 | View session history `sessions.history.view` | support only | T | B | B | B/M | — | O/future |
 
-Reception checkout without override still requires an active checkout-capable guardian relationship and one verification method approved under OQ-12; this matrix does not choose that method. Completion also requires the linked order to be fully paid, while station/role ownership remains open under OQ-19. Completed/cancelled sessions cannot be edited; corrections are append-only adjustments.
+Reception checkout preparation without override requires an active checkout-capable guardian relationship plus the approved OQ-12 session/ticket QR and registered-phone-last-four evidence. Preparation freezes the quote and enters `pending_payment`; completion still requires the later linked order payment. Completed/cancelled sessions cannot be edited; corrections are append-only adjustments.
+
+**Approved OQ-18 boundary:** issue/scan actions never widen ticket scope beyond its tenant, branch, and service date. Authorized staff may correct holder assignment only before the first successful scan. A refund-eligible ticket must remain unused with no successful scan, consumption, or linked session; Branch Manager or Tenant Owner approval is mandatory and does not replace the separate refund execution permission under OQ-09.
 
 ## 6. POS, payment, full refund, and receipts
 
@@ -137,11 +170,11 @@ Reception checkout without override still requires an active checkout-capable gu
 | Execute full refund `refunds.execute` | — | T | B | — | B with approval | — | — |
 | Void unpaid order `orders.void` | — | T/A | B/A | R | R | — | — |
 
-A user cannot approve a discount/refund/payment void/order void they requested. Under ASM-08/ASM-10 pending OQ-09, the draft permission baseline accepts exactly one full posted payment and at most one full refund per order; split/partial payment and partial-refund permissions are not seeded. Cashier shifts and cash-drawer balancing remain absent pending OQ-24. An approved refund does not itself prove cash was returned; execution records who completed the full reversal and when.
+A user cannot approve a discount/refund/payment void/order void they requested. Approved OQ-09 accepts exactly one full posted cash payment and at most one full same-day refund per order; split/partial permissions are absent. OQ-24 defers cashier shifts and drawer balancing. Approval alone does not mean cash was returned; execution records who completed the reversal and when.
 
 ## 7. Conditional basic incidents; games deferred
 
-All incident permissions in this section remain unseeded and routes remain disabled unless OQ-20 explicitly adds basic incident recording/search to the MVP.
+All incident permissions in this section remain unseeded and routes remain disabled because approved OQ-20 defers incident management from Egypt V1. A later approved contract is required to reopen it.
 
 | Action / permission code | Super Admin | Tenant Owner | Branch Manager | Reception | Cashier | Game Operator | Parent |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -198,7 +231,7 @@ Rules:
 | Guardian phone | last 4 digits after search result selection | Tenant Owner, Branch Manager, Reception; Cashier only current sale | mask in logs; PII-export permission required |
 | Guardian email | first character + masked domain/local part | Tenant Owner, Branch Manager, Reception; Cashier only current receipt | mask in logs |
 | Child photo | placeholder/thumbnail only | Owner/Manager/Reception | never in logs/exports by default |
-| Child age/DOB representation | proposed pending OQ-15 | Owner/Manager/Reception only after policy approval | ordinary reports expose approved age band, never infer a precision not stored |
+| Child age/DOB representation | optional DOB under approved OQ-15 | Owner/Manager/Reception under purpose-limited policy | ordinary reports expose approved age band, never infer a precision not stored |
 | Child safety notes | “Safety note exists” flag | explicit `children.safety_notes.view` and need-to-know | encrypted at rest; excluded from normal exports/audit snapshots |
 | Incident narrative | severity/title only | explicit sensitive incident permission within branch | encrypted; export requires separate PII approval |
 | Payment external reference | last 4/short suffix | Owner/Manager/Cashier on current order | never store PAN/CVV; mask logs |
@@ -272,6 +305,10 @@ Error messages must not disclose that another tenant's resource exists.
 - Every resource endpoint is tested with a second tenant's valid ID and must return `404`.
 - Every approval action tests self-approval, expiry, payload mismatch, stale version, replay, and cross-branch use.
 - Every masked field has serializer/view tests for Reception, Cashier, Manager, Owner, and support mode.
-- Future Game Operator, games, shifts, marketing, parent login, split/partial payment, and partial-refund permissions are absent from the MVP seed and route registration. Incident permissions are also absent until OQ-20 is approved.
+- Future Game Operator, games, shifts, marketing, parent login, split/partial payment, partial-refund, and incident permissions are absent from the Egypt V1 seed and route registration. OQ-20 explicitly defers incidents.
 - Disabling a user or branch invalidates new operations immediately.
 - No Parent/Guardian API token can be issued until own-record policies and identity proofing are implemented.
+
+## Approved MVP decision amendment — 2026-09-10
+
+Checkout requires the normal guardian-verification permission and a successful QR plus registered-guardian confirmation. Manager override is a separate deny-by-default permission, requires a reason, is single-use, and creates an audit record. Receipt voiding is separate from receipt viewing and never deletes the original record. Pause permissions are not seeded for the MVP pricing flow.

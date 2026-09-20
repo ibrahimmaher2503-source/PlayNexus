@@ -1,5 +1,7 @@
 # PlayNexus Product Context
 
+**Implementation status — 2026-09-12:** M1 access and branch foundation is locally accepted. Guardian/child, session, pricing, checkout, POS, reporting, notification, and pilot-release capabilities remain future milestones; M1 acceptance does not change this product scope.
+
 ## Register
 
 product

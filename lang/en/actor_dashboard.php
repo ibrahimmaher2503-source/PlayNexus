@@ -1,0 +1,42 @@
+<?php
+
+return [
+    'titles' => [
+        'owner' => 'Business overview', 'branch_manager' => 'Branch operations',
+        'reception' => 'Front desk', 'cashier' => 'Cashier workspace', 'staff' => 'Your workspace',
+    ],
+    'descriptions' => [
+        'owner' => 'Monitor every branch, then move directly to the business task that needs attention.',
+        'branch_manager' => 'Keep sessions, capacity, settlement, and today’s branch activity under control.',
+        'reception' => 'Start with the family in front of you, then issue a ticket or continue check-in.',
+        'cashier' => 'Settle pending visits, open POS, and find today’s receipts quickly.',
+        'staff' => 'Choose an assigned branch to begin.',
+    ],
+    'today' => 'Today in', 'updated' => 'Updated :time', 'current_branch' => 'Current branch',
+    'choose_branch' => 'Choose a branch', 'choose_branch_help' => 'Select one of your active assignments to open its role-specific workspace.',
+    'no_branch' => 'No active branch is available', 'no_branch_owner' => 'Create and activate the first branch to start operations.',
+    'no_branch_staff' => 'Ask a Tenant Owner or Branch Manager to assign an active branch to your account.',
+    'active_branches' => 'Active branches', 'active_staff' => 'Active staff', 'active_sessions' => 'Active sessions',
+    'pending_payments' => 'Pending payment', 'attendance' => 'Check-ins today', 'tickets' => 'Tickets issued today',
+    'capacity' => ':used of :total in play', 'due_soon' => ':count due within 15 minutes',
+    'overdue' => ':count overdue · View active sessions', 'receipts' => 'Receipts today', 'cash_sales' => 'Net cash sales today',
+    'no_sales' => 'No cash sale recorded yet.', 'no_attention' => 'Nothing needs immediate attention.',
+    'attention' => 'Needs attention', 'subscription_restricted' => 'The account is restricted. Operational writes are unavailable.',
+    'subscription_grace' => 'The account is in its grace period. Operations remain available.',
+    'setup' => 'Continue business setup', 'setup_help' => 'Review the profile, branch readiness, staff, pricing, and catalog.',
+    'quick_actions' => 'Quick actions', 'branch_overview' => 'Branch overview', 'branch_overview_help' => 'Local-day activity, capacity, and money stay attached to each branch.',
+    'inactive' => 'Inactive', 'active' => 'Active', 'open_branch' => 'Open branch', 'local_date' => 'Local date :date',
+    'actions' => [
+        'branches' => ['label' => 'Manage branches', 'help' => 'Create, configure, activate, or review branches.'],
+        'staff' => ['label' => 'Manage staff', 'help' => 'Invite staff and review roles and branch assignments.'],
+        'reports' => ['label' => 'Open reports', 'help' => 'Review revenue, attendance, sessions, and staff activity.'],
+        'settings' => ['label' => 'Business settings', 'help' => 'Update the approved business and regional settings.'],
+        'families' => ['label' => 'Find a family', 'help' => 'Search guardians and children, or start a new family record.'],
+        'tickets' => ['label' => 'Issue or find a ticket', 'help' => 'Prepare today’s visit or locate an existing ticket.'],
+        'sessions' => ['label' => 'Check in or view sessions', 'help' => 'Start check-in and monitor active children.'],
+        'pending' => ['label' => 'Settle pending visits', 'help' => 'Open visits waiting for checkout payment.'],
+        'pos' => ['label' => 'Open POS', 'help' => 'Create a server-priced cash order.'],
+        'transactions' => ['label' => 'Receipts and transactions', 'help' => 'Find receipts, payments, and eligible refunds.'],
+        'branch_settings' => ['label' => 'Branch settings', 'help' => 'Review capacity and operational configuration.'],
+    ],
+];

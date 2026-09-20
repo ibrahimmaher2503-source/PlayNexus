@@ -1,15 +1,244 @@
 # Current Milestone
 
+## 2026-09-15 available-gap closure
+
+Fresh isolated MySQL 8.4.11/InnoDB acceptance also passes 410/410 tests / 3,411 assertions under strict mode and `ONLY_FULL_GROUP_BY`.
+
+GAP-01–06 and GAP-09 plus DOC-01–09 are closed in the current uncommitted shared worktree. The follow-up delivers working locale submit, branch-manager administration limited to Reception/Cashier in managed branches, occurrence-based revenue breakdowns, branch currency/timezone and Net presentation, complete immutable session-history detail, and authentication/security-denial audit. Final SQLite regression is 410 total / 406 passed / 4 MySQL-only skips / 3,313 assertions; grouped browser acceptance passes EN/AR, manager staff mutation, USD/America-New_York reports and RTL with no console errors.
+
+No safe local implementation item remains in the gap ledger without an approved contract or named gate. GAP-07 behavior is product-approved and awaits implementation plus Security/Legal release validation. GAP-08 has an approved engineering baseline; destructive execution remains disabled pending the final Legal/DPO schedule. Bounded OQ-04 is approved and SQLite-green but still lacks its MySQL/browser acceptance. OQ-05/OQ-13 provider procurement inputs and the separately registered OQ-22 security values remain open; OQ-21 workload counts are release-test inputs. The application is not `PILOT_READY`.
+
+## 2026-09-15 GAP-01 closed — usable POS ticket sale
+
+The POS now captures one eligible tenant-scoped guardian/child relationship and a native service date for ticket lines, preserves those facts through quote, draft and discount payloads, and rechecks eligibility at draft creation and payment before ticket issuance. Family options are masked and are not loaded for Reception users who cannot transact. Central evidence passes 27 tests / 230 assertions, scoped Pint and Vite, plus an isolated authenticated Cashier browser journey from validation through EGP 150.00 quote, paid order, issued ticket and immutable receipt. This closes GAP-01 only; GAP-02 is next and `PILOT_READY` remains externally gated.
+
+## 2026-09-15 UI wireframe/sidebar follow-up
+
+The approved UI baseline is now mapped surface-by-surface in `docs/10-UI-UX-Wireframes.md`. The authenticated shell uses grouped permission-aware navigation, persistent expanded/collapsed desktop states, a responsive drawer, branch-local context and an offline unsafe-write guard. WF-03 now renders committed branch operations, money, attendance and audit summaries. Focused checks pass 24/154 plus authentication/navigation 21/161; the full SQLite suite passes 401 total / 397 passed / 4 MySQL-only skips / 3,232 assertions; authenticated English/Arabic desktop/responsive browser checks and offline emulation pass with no console errors. Provider delivery/manual resend and incident workflows remain outside the approved contract.
+
+
+## 2026-09-15 M6 locally engineering-accepted
+
+The bounded M6 implementation now includes committed-source revenue/attendance/session/staff reports, per-branch half-open UTC date filters, bounded pagination/sorting and filter-identical non-PII CSV; durable provider-neutral operational notification intents/attempts, queue/scheduler collection, idempotent processing and truthful local `sent` state; expanded scoped audit filtering/actions/export; bilingual responsive UI; environment-guarded synthetic pilot data; and a release/migration/restore/monitoring/support/staff-walkthrough runbook. No provider SDK, real message, incident module, microservice or reporting/export dependency was added.
+
+Final evidence passes: focused M6 24/150; full SQLite on PHP 8.4.21 and 8.5.8 at 398 total / 394 passed / 4 explicit MySQL-only skips / 3,206 assertions; isolated MySQL 8.4.11/InnoDB at 398/398 / 3,304 assertions; real concurrency 3/76; migration rollback/reapply; isolated dump restore including append-only audit triggers; dependency/secret checks; Pint/Vite/Blade/routes/docs/whitespace; and authenticated Owner/Reception/Cashier English LTR and Arabic RTL desktop acceptance with no browser warnings/errors. The final 1,000-row occurrence-based report profile observed 194 ms p95/max over ten navigations. M6 is `LOCALLY_ENGINEERING_ACCEPTED`; `PILOT_READY` remains externally gated by staging, deployed monitoring, Finance/Legal approval, staff rehearsal/sign-off and named go/no-go.
+
+## 2026-09-15 M5 final review: locally engineering-accepted
+
+CodeGraph plus direct Laravel review found and closed the remaining local payment/UI gaps. Cash settlement now fails closed unless the branch explicitly enables cash, while identical successful retries still return the original receipt even if branch configuration later changes. The POS now exposes the approved discount request, separate Manager/Owner decision, and approved Cashier payment states with role-correct visibility; Reception receives no approval history.
+
+Focused M5 regression passes 55 tests / 368 assertions. Full SQLite passes on PHP 8.4.21 and PHP 8.5.8: 383 total / 379 passed / 4 explicit MySQL-only skips / 3,131 assertions. Full isolated MySQL 8.4.11/InnoDB passes 383 tests / 3,229 assertions; the dedicated two-process M5 race passes 1 / 29 and proves one settlement and one refund execution under duplicate contention. Global Pint, Vite, Blade cache, routes, documentation validation and whitespace pass. Authenticated Arabic RTL desktop review confirms correct Owner visibility and no browser warnings/errors. M5 is locally engineering-closed, not production-ready; Finance/Legal, hosted CI and operational release controls remain separate.
+
+## Historical 2026-09-15 M5 SQLite/browser checkpoint — superseded above
+
+Coordinator review found and fixed four integration defects after worker delivery: ordinary POS authorization omitted Tenant Owner/Branch Manager, ordinary receipts snapshotted the opening user as the seller name instead of the tenant legal/display name, the ordinary receipt sequence used a Query Builder `whereKey` call that did not advance the counter, and transaction history omitted branch currency while calculating refund eligibility. Focused regressions cover the corrections, including consecutive `000001`/`000002` receipt allocation.
+
+Final process-local SQLite regression passes 379 total / 376 passed / 3 explicit environment skips / 3,109 assertions. Global Pint, Vite build, route inspection, documentation validation (34 Markdown files, 0 errors / 2 historical marker warnings), and `git diff --check` pass. Authenticated desktop browser acceptance on isolated task-local SQLite at `127.0.0.1:8207` passes an Owner catalog item → server quote → draft → exact cash payment → immutable receipt `000002` journey, QR rendering, legal seller name, transaction-history eligibility, English LTR and Arabic RTL, with no browser console errors.
+
+M5 is locally accepted for SQLite and the tested browser path, not fully closed or production-ready. The required isolated MySQL 8.4/InnoDB concurrency gate is unavailable: port 3306 is XAMPP MariaDB 10.4.32 and Docker/MySQL 8.4 tooling is absent. The optional external `openapi-spec-validator` Python module is also absent; the repository validator parses the contract successfully. Shift/drawer, provider delivery, partial/card payments and production Finance/Legal validation remain intentionally deferred.
+
+## Historical 2026-09-15 M5 remediation in progress — superseded above
+
+Three Luna/xhigh workers resumed partial files after usage-limit interruptions. POS security/selected-branch/global-catalog changes have focused worker evidence; coordinator review also required Owner-only global management and fresh locked authorization. Coordinator follow-ups now pass receipt/refund/settlement 14 tests / 115 assertions and ordinary order/payment/discount/ticket 9 tests / 74 assertions, superseding the earlier receipt-return and outdated discount-fixture failures. Ordinary receipt consistency and visible POS/history/refund controls remain active. ERD, API/OpenAPI and traceability now describe the bounded cash-pilot domain records instead of a speculative generic approval schema. See `.ai/TEST_RESULTS.md`; no final combined green/MySQL/browser/print or M5 closure is claimed.
+
+## 2026-09-14 M5 CORE BACKEND AND POS QUOTE LOCALLY GREEN; ACCEPTANCE PARTIAL
+
+The approved Egypt M5 foundation is implemented locally: tenant/branch-safe financial tables, exact cash settlement of a frozen `pending_payment` session, immutable branch/year receipt snapshots, atomic session completion, a branch product catalog and server-priced desktop POS quote, payload-bound positive-discount approval, and one full same-branch/same-local-day cash refund with separate Manager/Owner approval. Shift/drawer remains deferred and zero-total checkout remains disabled.
+
+Focused M5 SQLite coverage passes 21 tests / 127 assertions, and the full SQLite regression passes 350 of 353 tests with three environment skips / 2,901 assertions. M5 is not complete: ordinary POS order/payment posting and ticket issuance, transaction-history UI, discount consumption inside payment, refund UI, real MySQL concurrency, bilingual browser/print acceptance, and canonical API/ERD/traceability reconciliation remain open.
+
+## 2026-09-14 M5 IMPLEMENTATION STARTED
+
+The owner approved the M5 cash/refund/discount/shift defaults recorded in `.ai/DECISIONS.md`. Implementation starts with the financial schema and critical `pending_payment` cash-settlement/receipt/session-completion vertical slice, then the reusable catalog/cart, approval and same-day full-refund slices. Shift/drawer and provider delivery remain deferred.
+
+## 2026-09-14 M5 PLANNING READY; IMPLEMENTATION NOT STARTED
+
+The complete M5 implementation plan is recorded at the top of `docs/agent-plan.md`. The first deliverable is the existing `pending_payment` handoff through one exact in-person cash payment, immutable branch/year receipt and atomic verified session completion; the same financial core then supports a small catalog/cart POS. No code or migration for M5 has started.
+
+Owner decisions remain required for OQ-09 refund policy, OQ-24 shift inclusion/deferral, the zero-basis-point discount approval baseline, and zero-total behavior. Recommended defaults are: full same-branch/same-local-day cash refund with separate manager/owner approval; defer shifts; every positive discount requires approval; do not enable zero-total checkout initially. Refund/shift/discount implementation must not be inferred before those decisions are recorded.
+
+## 2026-09-14 M4 UI and runtime gates LOCALLY ACCEPTED; M5 NOT STARTED
+
+The current M0–M4 workspace is integrated and the M4 desktop follow-up is closed. Operational pages now use the available 1440px desktop canvas; ticket tables remain tables from 1024px upward; sparse branch and session boards expand instead of leaving tablet-like dead space. Arabic operational copy is simple, meaningful Modern Standard Arabic familiar to Egyptian staff without dialect or backend terminology.
+
+Audit history now includes M4 session events and tenant-scoped employee, branch, record-type and local-date filters. Family profiles show recent visits for active children only, with tenant/child constraints and branch-local time. Full SQLite passes 329 of 332 with three explicit environment skips and 2,774 assertions. Full isolated MySQL 8.4.11/InnoDB passes all 332 tests with 2,843 assertions. Pint, Vite, documentation and whitespace checks pass. Authenticated Arabic RTL desktop acceptance at 1920×1080 covers eleven operational pages with no horizontal page overflow or raw translation keys.
+
+This is local acceptance, not production release. Hosted CI/brand approval remain external gates. Payment, completion, receipt, refund, child release and all M5 behavior remain out of scope and unimplemented.
+
+## 2026-09-14 M0 repair LOCALLY ACCEPTED; hosted CI pending
+
+The bounded M0 audit repairs are implemented: safe project-local SQLite setup with an explicit MySQL target guard, deterministic local/testing-only two-tenant role fixtures, aligned PHP 8.4+/PHPUnit 12 tooling, and a minimal hosted gate for MySQL 8.4 M0 tests plus full SQLite regression, Pint, Vite and documentation. Local SQLite passes 314 total / 311 passed / 3 skipped / 2,659 assertions; the focused isolated MySQL 8.4.11 gate passes 7 tests / 49 assertions after all 21 migrations. Composer validation, Pint, build, docs and whitespace pass.
+
+The first hosted workflow run remains external and pending. A diagnostic full MySQL run also exposed three later-M4 test portability issues; they are recorded but not changed under the M0-only boundary. Do not start M1 review until the owner accepts this M0 report and the hosted gate is green.
+
+## 2026-09-14 M4 implementation and browser runtime accepted; MySQL evidence pending
+
+OQ-19 is implemented as the approved Reception-to-Cashier handoff: guardian last-four verification or audited Manager/Owner override freezes an immutable quote and transitions only the active session to `pending_payment`. The same bounded M4 slice adds server-derived on-time/due/overdue state, fixed 30-minute extensions priced from the immutable snapshot, append-only reasoned Manager/Owner adjustments, and reasoned terminal cancellation. An extension moves the overtime boundary as well as adding its frozen unit charge, so it cannot be charged twice. Every mutation uses tenant/branch scope, actor/reason/audit evidence, optimistic versioning and UUID idempotency; active HTML forms redirect safely to the scoped board.
+
+Focused M4 tests pass on process-local SQLite: 26 passed, 1 explicit MySQL-concurrency skip, 197 assertions. Scoped Pint, Blade cache, routes, Vite build, documentation validation and whitespace checks pass. An isolated, authenticated desktop browser run at `127.0.0.1:8215` passes with a synthetic Owner: a 30-minute extension updates the stored expected end and total from `256.50` to `342.00 EGP`, guardian last-four verification freezes that total and sends the session to `pending_payment`, and the English LTR and Arabic RTL screens both render correctly. Payment, receipt, refund, child release, shift, pause/resume and provider notifications remain deliberately excluded for M5/later. The only remaining runtime gate is an isolated MySQL 8.4/InnoDB run; the former private listener is not running.
+
+## 2026-09-13 M4 checkout-preparation slice LOCALLY ACCEPTED; M5 NOT STARTED
+
+OQ-19 is resolved as a reception-to-cashier handoff. Reception/assigned Manager verifies an active checkout-capable guardian by registered-phone last four digits, or a permission-checked manager override with a non-empty reason, then the server calculates and freezes the exact quote and moves the session to `pending_payment`. Cashier cannot prepare checkout; M5 will post one matching payment and atomically complete the session. UUID replays are idempotent, changed replays and stale versions conflict, terminal/ineligible/foreign cases fail safely, and successful preparation is event/audit recorded.
+
+Focused `PlaySessionCheckoutPreparationTest` passes 8 tests / 66 assertions on process-local SQLite. Central integration also passes full process-local SQLite `php artisan test --compact`: 293 total / 291 passed / 2 skipped / 2,494 assertions; `npm run build`, scoped Pint, Blade cache/compilation, and `git diff --check` pass (build has the existing optional `fontaine` notice). Full global Pint only exposed a pre-existing `ordered_imports` issue in `StaffStatusController`, outside M4 and not modified. This is not full M4 or production acceptance: PHP 8.5, isolated MySQL, browser, payment, refund, receipt, child release, shift, pause/extension/adjustment gates remain pending.
+
+## 2026-09-13 M3 LOCALLY ACCEPTED; M4 NOT STARTED
+
+M3 now includes a deterministic read-only estimate for each Active session from its immutable pricing snapshot and one server clock. Fixed duration plus grace, rounded-up overtime units, and branch-snapshotted inclusive/exclusive tax use integer minor units and half-up rounding. The bilingual surface labels the value as an as-of estimate and never persists it or presents checkout/payment as complete. Malformed snapshots fail closed.
+
+Three `gpt-5.6-luna` / `xhigh` workers delivered calculator, boundary tests, and bilingual copy; coordinator review integrated the view and corrected fail-closed handling. Focused quote/session checks pass 18 / 177. Full PHP 8.4 and 8.5 SQLite pass 279 of 281 / 2,387 with two MySQL-only skips; MySQL 8.4.11 passes 281 / 2,434. Authenticated Edge QA passes Arabic/English, Owner/Cashier, mobile/tablet/desktop, exact 14% display fixture, no overflow, and no browser errors.
+
+M3 is locally accepted, not production-released. Per the product owner's stop instruction, M4 has not started. OQ-12 guardian verification is already approved; OQ-19 station/payment ownership remains open. Final checkout, guardian release, payment, receipt, pause/extension/adjustment, alerts, and refund execution remain unimplemented.
+
+## 2026-09-13 check-in/session stage CLOSED
+
+IMPLEMENTED / LOCALLY ACCEPTED: atomic idempotent ticket-backed check-in, one Active play session with immutable pricing/time facts, tenant-wide active-child uniqueness (paused is deferred), hard branch capacity, append-only session/scan/audit evidence and a bilingual masked live board. Owner/assigned Manager/Reception may check in; Cashier is read-only. Full MySQL passes 272 / 2,385, SQLite and PHP 8.5 pass 270 of 272 / 2,338 with two MySQL-only skips, true concurrency passes 2 / 47, and authenticated responsive Edge QA passes. Existing port 8206 was untouched.
+
+This closes the bounded check-in/session stage, not production readiness or checkout/finance. M4 did not start. If the owner explicitly resumes it, first freeze the smallest checkout/time-and-charge contract and OQ-19 station ownership before implementing any release verification, final charge, payment or refund behavior.
+
+## 2026-09-13 historical ticket-only engineering acceptance
+
+IMPLEMENTED / M3 PARTIAL: three user-requested Luna/xhigh workers delivered UI, focused tests and independent review, followed by coordinator integration. The slice includes immutable branch ticket types, dated issuance with frozen integer money/time facts, encrypted opaque QR, idempotent validation, permanent holder lock after the first accepted scan, audited pre-scan correction, manager/owner unused-ticket cancellation and immutable reprint. Full MySQL passes 262 / 2,233; SQLite passes 261 / 2,210 with one MySQL-only skip. Scoped authenticated headless Edge visual/QR/print acceptance passes. See `.ai/TEST_RESULTS.md` for exact evidence.
+
+At this ticket-only checkpoint, validation was not check-in, consumption or session creation; the current section above records the later accepted implementation. Cancellation still does not post a refund. OQ-09 refund execution and approved tax-total examples remain separate gates. The existing port 8206 runtime/database was not migrated or restarted; apply both current M3 migrations to the explicitly selected runtime database before using these slices there. Task-local QA is not production approval.
+
+## 2026-09-13 M3 ticket decision closure
+
+OQ-18 is approved for Egypt. The next bounded M3 implementation may add branch/service-date-scoped ticket types and issuance, QR validation, pre-scan assignment correction, permanent transfer lock on first successful scan, unused-ticket cancellation/refund eligibility with manager/owner approval, and atomic idempotent ticket consumption plus check-in. OQ-09 still governs payment method, refund window, and reversal execution, while approved finance tax examples remain required before calculator/checkout acceptance.
+
+## 2026-09-13 Egypt M2 engineering closure
+
+The approved Egypt family contract is implemented and has full SQLite/MySQL regression evidence at 241 tests / 1,997 assertions. The visible flow includes explicit Arabic-first child-data consent, a separate optional unchecked marketing choice, emergency contact, restricted encrypted safety notes, and verified relationship lifecycle controls. Tenant uniqueness, hard reuse, role/scope denials, append-only evidence, withdrawal behavior, and the final-guardian invariant are enforced in code and tests.
+
+M2 is **IMPLEMENTED / RELEASE PARTIAL**: real browser acceptance is still unavailable, and production remains gated on Legal/DPO approval of the deployed privacy notice and processor/transfer/licensing details. Visit history and retention execution wait for M3 session/last-visit data under the approved dependency waiver. These gates do not reopen the product decisions or authorize unrelated M3 expansion.
+
+## 2026-09-12 M2 remediation checkpoint
+
+M1 remains closed. The approved M2 family slices are hardened: family permissions are action-specific, Cashier responses are server-masked and read-only after initial registration, search excludes inactive guardians/children, and the responsive application shell/assignment workflow has been improved without adding a new design-system dependency. Branch creation is retry-safe through a tenant-scoped idempotency key, and JSON failures expose a stable request ID.
+
+Automated acceptance is current on both SQLite and isolated MySQL 8.4.11/InnoDB at 234 tests / 1,943 assertions. The Egypt M2 product decisions are now approved: tenant-unique normalized phone with hard reuse, versioned legal-guardian child-data consent, separate optional marketing consent, three-year default retention, required emergency contact, restricted encrypted safety notes, verified relationship lifecycle/last-guardian invariant, visit-history dependency waiver, and incident deferral. M2 stays **IN PROGRESS** until this new contract is implemented/tested and browser acceptance plus production Legal/DPO review are complete. No additional M3 behavior is authorized.
+
+## 2026-09-12 M2 started — family registry first slice
+
+M1 remains closed. M2 starts with a bounded staff-assisted family registry: current-tenant search by normalized guardian phone or child name, and atomic creation of one guardian, one child, and one active relationship. Same-tenant phone matches block a second record and return the existing-family path until OQ-17 chooses merge/create-with-approval behavior; cross-tenant matches are never disclosed. Consent events, safety notes/photos, family editing, history, check-in, and M2 closure remain outside this first wave until their approved contracts are ready.
+
+T33 schema/models, T34 authorization/controller/routes, and T35 bilingual UI are integrated and centrally reviewed. Next: obtain isolated MySQL evidence for the new migration, close OQ-17 and legal consent wording/version/retention, then plan the next bounded M2 slice.
+
+## 2026-09-12 M2 second slice — family profile maintenance
+
+Implement a tenant-scoped family detail page, basic guardian/child edits with optimistic conflict checks, and adding one new child plus active relationship to an existing guardian. Audit successful changes without copying phone, email, DOB, or names into audit JSON. Consent, safety/emergency data, relationship revocation, guardian merge, visit history, tickets, and check-in remain outside this slice.
+
+T36 backend authorization/commands, T37 bilingual family-profile UI, and T38 adversarial review are integrated and centrally corrected. Automated, build, format, and route gates pass. Browser acceptance remains blocked by `User unavailable`; isolated MySQL evidence and the OQ-17/legal-consent decisions remain open.
+
+## 2026-09-12 M3 first slice — fixed-duration pricing configuration
+
+Create and list immutable branch pricing rules using the approved OQ-16 shape: integer EGP amounts, fixed package duration, 600-second grace, 1,800-second rounded-up overtime units, and selected-branch tax snapshot. No default business prices are seeded. This historical slice excluded ticket types/QR; OQ-18 was subsequently approved in the top current-milestone entry. Calculation, ticket implementation, check-in, sessions, extensions, retirement, and M3 closure remain later.
+
+T39 pricing data/integrity, T40 scoped backend/audit, and T41 bilingual UI are integrated and centrally reviewed. Automated security and money-conversion checks pass. Browser acceptance is blocked by `User unavailable`; fresh isolated MySQL evidence and later pricing version/retirement/calculation work remain open. Ticket types stay blocked by OQ-18.
+
+## 2026-09-12 M3 second slice — immutable pricing version replacement
+
+Allow an authorized owner/branch manager to replace one active rule by atomically retiring it and creating version +1 with the same tenant, branch, and code. The new version takes new package prices/duration and the current locked branch tax snapshot; the old row remains unchanged except status. Stale/replayed forms conflict and no in-place money/duration update is exposed.
+
+T42 version command/security, T43 bilingual replacement UI, and T44 adversarial immutability review are integrated and centrally reviewed. Focused and full automated gates pass. Browser acceptance is blocked by `User unavailable`, and fresh isolated MySQL evidence remains outstanding. Calculator/tax totals, tickets, QR, check-in, sessions, and M3 closure remain excluded.
+
+## 2026-09-12 M1 closed
+
+M1 access and branch foundation is DONE on `codex/first`. PHP 8.5 compatibility (T31) is closed; its full suite passes on PHP 8.4.21 and 8.5.8, and its migrations plus suite passed on isolated MySQL 8.4.11/InnoDB. M2 is now in progress through the family-registry first slice; this is not M2 closure or production readiness. No main merge or push.
+
+## 2026-09-12 T30 and T32 runtime acceptance
+
+T30 MySQL and T32 browser acceptance are DONE and integrated on `codex/first`. MySQL 8.4.11/InnoDB passed the current migrations and full suite; real browser checks covered platform provisioning/lifecycle, bilingual platform pages, and branch-settings locale switching that remains on the same safe local page. Post-merge regression passed 141 tests / 1,077 assertions. PHP 8.5 (T31) remains the next runtime gap. No main merge or push.
+
+## 2026-09-12 T27-T29 platform administration wave
+
+Platform Super Admin tenant administration is locally integrated on `codex/first`: isolated platform login/session enforcement, tenant provisioning with an invited initial owner and idempotent replay, tenant lifecycle activation/suspension, a separate bilingual platform shell, and platform audit records. Tenant users are forbidden from platform management and suspended tenants cannot continue protected operations.
+
+Focused security acceptance passed 17 tests / 178 assertions; the full suite passed 138 tests / 1,059 assertions. All Blade views compile; Pint, frontend build, documentation validation and whitespace checks pass. Browser remains deferred by user. MySQL validation for migrations added after T07B and PHP 8.5 remain outstanding. No main merge or push.
+
+Next work should close M1 runtime evidence: isolated MySQL 8.4 migration/full-suite verification for the current schema, PHP 8.5 compatibility, then the deferred browser journeys for platform and account/settings flows.
+
+## 2026-09-12 T24-T26 integrated feature wave
+
+Password recovery, tenant business-profile settings, and full branch operational settings are locally integrated on `codex/first`. Password resets are generic, time-limited and single-use, and increment `auth_version` to revoke older authenticated sessions. Tenant owners can update their own bilingual profile and configure own-tenant branches, including inactive branches, with optimistic conflict checks, transactions and atomic audit records. Branch configuration covers code, address, timezone, capacity, EGP currency, tax mode/rate, receipt prefix, cash payment and all seven opening-hours rows.
+
+Focused acceptance passed 18 tests / 190 assertions; the full suite passed 121 tests / 881 assertions. Pint, frontend build, documentation validation and diff checks passed. Browser remains deferred by user. The three new migrations and locking behavior remain unverified on MySQL, and PHP 8.5 remains unverified. No main merge or push.
+
+Next bounded M1 work: platform-super-admin provisioning and authorization, followed by an isolated MySQL migration/locking acceptance pass for the post-T07 schema. Email transport delivery and browser journeys remain separate runtime acceptance work.
+
+## 2026-09-12 T21-T23 integrated feature wave
+
+Staff invitation, owner branch lifecycle, and tenant audit viewing are locally integrated on `codex/first`. Focused verification passed 23 tests / 188 assertions; the full suite passed 103 tests / 691 assertions. Pint, frontend build, documentation validation, and whitespace checks passed. Browser remains deferred by user; MySQL/PHP 8.5 remain unverified. No main merge or push.
+
+## 2026-09-12 T18-T20 integrated feature wave
+
+Three requested Luna/xhigh workers delivered complete features in isolated worktrees from `bb5f883`. Integrated T18 `ee9a35b` (owner all-active-branch access), T19 `7c6e171` plus `401a235` (existing non-owner staff status and per-row validation correction), T20 `3066663` (fixed branch assignment management). T20 worker later amended its commit to `95e99b6` solely for SQL-null assertion handling; coordinator applied that correction directly after the original commit was integrated. Shared audit migration, route composition, owner navigation and canonical documentation are coordinator-owned.
+
+Delivered: active owners list/select/read all active own-tenant branches; ownership revocation clears selected context unless an independent permitted staff assignment remains. Owners manage existing non-owner staff status at `/app/staff` and fixed branch roles/access at `/app/assignments`. All owner accounts remain protected. Administration requires reason codes, expected-state conflict checks, scoped transaction locks and atomic successful-change audit. No user creation, invitation delivery, owner assignment/transfer, platform access or arbitrary permission maps.
+
+Review found and corrected Query Builder misuse, query callback type mismatch, JSON audit serialization, per-row old-input contamination, and generic HTML409 presentation. Added a localized conflict page. Tests were inspected as code as well as executed; a stale-branch regression's setup used the wrong query and was corrected before acceptance.
+
+Verification in isolated integration checkout: focused `php artisan test --filter='OwnerBranchAccessTest|StaffManagementTest|BranchAssignmentManagementTest'` PASS 28 tests / 187 assertions after three initial failures were resolved. Full `php artisan test` PASS 80 tests / 503 assertions. Process-local SQLite `:memory:`, empty DB_URL, array sessions, SESSION_CONNECTION unset. `php vendor/bin/pint --test` PASS after scoped formatting; `npm run build` PASS (optional fontaine notice); documentation validator PASS 0 errors / 2 existing warnings; `git diff --check` PASS.
+
+Status: DONE for local implementation and automated acceptance. Browser DEFERRED_BY_USER. MySQL migration/row-lock concurrency and PHP8.5 remain unverified; SQLite transaction rollback/expected-state tests are not evidence of MySQL concurrent behavior. Successful admin-change audit is delivered, not the complete denied/security audit program. Full M1/production acceptance remain incomplete. No shared service changes, main merge or push.
+
+## 2026-09-12 owner-read slice integrated
+
+T14 contract, T15 backend, T16 bilingual UI and T17 security tests are DONE for local code/automated acceptance on `codex/first`. An explicitly provisioned active tenant owner can read `/app/tenant` without branch assignment; staff see no owner navigation and receive 403. The server resolves tenant scope; no request tenant ID can select another institution. Read-only staff list is paginated, localized and limited to name/email/status plus internal id.
+
+Combined verification PASS: 52 tests / 315 assertions, Pint, build and docs/diff checks. Evidence is in TEST_RESULTS.md. Browser is DEFERRED_BY_USER, MySQL for the new migration and PHP 8.5 remain unverified. This supersedes T14 representation-blocked statements for this slice only. Owner-wide branch operations, platform authorization, assignment management UI and full M1 remain incomplete.
+
+## 2026-09-12 combined integration checkpoint
+
+Recovered local integration at `6dafe21`: T10 `c3b2065` and T11 `c61f9e8` are merged into `codex/first`; T12 report `4093e8d` is integrated. Reviewed status enforcement, forward migration/backfill, mass-assignment exclusion, policy checks, locale middleware/controller and the failed-login interaction. Retained the pending focused fix that restores the validated locale after failed-login session invalidation; its regression checks guest state and the following Arabic RTL page.
+
+Combined verification: `php artisan test` PASS (37 tests / 247 assertions), process-local SQLite `:memory:` and array sessions; `php vendor/bin/pint --test` PASS; `npm run build` PASS (optional fontaine notice); documentation validator PASS (0 errors / 2 existing placeholder warnings); `git diff --check` PASS.
+
+Three Terra review agents were attempted (`staff_review_now`, `locale_review_now`, `owner_review_now`); all ended with usage-limit errors, so no independent agent review is claimed. Coordinator performed the code review. T12 is accepted as investigation only: owner representation and owner branch scope remain unresolved; no owner/platform implementation is authorized by that report.
+
+Status: code integrated and automated checks PASS; T13 runtime acceptance remains PARTIAL. No combined T10/T11 browser or MySQL acceptance is claimed; historical T07/T09 evidence does not cover this wave. Next bounded acceptance is active login -> locale switch/invalid-login persistence -> select branch -> suspend user -> protected reload clears authentication/context. Then close T13 and define owner representation before dispatching the next implementation wave. Full M1, PHP 8.5 and production remain incomplete. No main merge, push or shared service change.
+
+## 2026-09-10 T09 integration accepted
+
+T09 integrated locally into codex/first from accepted 0c93d50, preserving coordinator 27ade78. The only conflict was .ai/TEST_RESULTS.md; both evidence sections were retained. Combined tests PASS: 26 tests/156 assertions; Pint PASS; docs validator PASS (0 errors/2 known warnings); diff check PASS. Application/tests/dependencies match accepted worker code. No additional build, MySQL or browser run was needed for this documentation-only conflict resolution. T09 integration DONE; full M1, owner/platform permissions, PHP 8.5 and production remain incomplete. No main merge or push.
+
+This entry supersedes earlier T09 pending-review/not-integrated statements below.
+
+## 2026-09-10 orchestrator acceptance
+
+T08 is DONE following independent review of 7a3963e and passing integration checks. This supersedes pending-review statements below. The accepted auth/branch baseline is on codex/first; next is scoped M1 policy/gate planning, not implementation yet. Full M1, PHP 8.5 and production readiness remain incomplete.
+
+## 2026-09-10 T09 branch view authorization
+
+Implemented fixed `branches.view` authorization through Laravel `BranchPolicy` and Gate across branch listing, selection, direct reads and stored-context revalidation. `branch_manager`, `reception_staff`, `cashier`, and legacy `reception` are allowed only on active assigned branches; unsupported or misplaced roles deny by default. T09 is `REVIEW_REQUIRED` pending orchestrator review. The policies/gates scope remains limited to this permission, and full M1, PHP 8.5 and production readiness remain incomplete.
+
 ## Milestone
 
-M0: Approve the audited documentation and close implementation-blocking decisions.
+M1: Staff authentication and branch-aware access foundation.
 
 ## Goal
 
-Use the completed BRD, SRS, backlog, use cases, architecture, ERD, permissions, API/OpenAPI, wireframes, testing strategy, and tooling plan to close decisions that affect schema and critical workflows before scaffolding Laravel.
+Provide staff-only session access from `users.tenant_id`, active assigned-branch selection, tenant/branch isolation, a minimal bilingual operational shell, and fixed branch `branches.view` authorization. The bounded auth/branch slice and T07 MySQL 8.4/InnoDB runtime acceptance are accepted; T09 is implemented on `codex/t09-branch-view-policy` and remains `REVIEW_REQUIRED` pending orchestrator review. No customer, session, pricing, payment, reporting, tenant-owner, platform, or broader M1 module is in scope.
 
 ## Next three actions
 
-1. Obtain G1 stakeholder decisions listed in `docs/00-INDEX.md` and record them in `.ai/DECISIONS.md`.
-2. Approve or revise the permission, pricing, checkout, finance, and conditional-incident boundaries.
-3. Scaffold the approved Laravel baseline and prove tenant isolation with the first visible vertical slice.
+1. Complete orchestrator review of the T09 BranchPolicy/Gate implementation and evidence.
+2. If accepted, integrate the focused T09 branch into `codex/first`; do not begin another permission or policy slice here.
+3. Track PHP 8.5 validation, full M1 completion and production readiness as separate incomplete dependencies.
+
+## 2026-09-10 M1 foundation slice
+
+Tenant/branch context and assignment-scoped access are implemented and verified with the focused SQLite suite. MySQL migration/runtime verification remains blocked by the unavailable environment.
+
+## 2026-09-10 T08 integration
+
+`codex/first` was checked out at `C:\Users\N\.codex\worktrees\t08-integration\PlayNexus` and fast-forwarded from `03108c6` to accepted `37b4f6b`. The coordinator ledger was imported from the main checkout and the accepted worker and coordinator evidence were reconciled in a focused documentation commit. T08 is `REVIEW_REQUIRED`; full M1, PHP 8.5 validation and production readiness remain incomplete.
+
+## 2026-09-10 update
+
+Initial G1 baseline choices and OQ-08/OQ-12/OQ-16 decisions were approved and synchronized across the canonical contract documents. T03 scaffold is integrated from commit `7866de3b7c04386621217adb8b9c43c46c588cae`.
+
+## 2026-09-10 T05 update
+
+T05 adds staff session authentication, login throttling, session-backed active branch selection, stale-context clearing, and a minimal English/Arabic shell. SQLite feature tests and frontend build pass; MySQL migration/runtime remains `BLOCKED_BY_ENVIRONMENT`.

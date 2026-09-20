@@ -260,6 +260,16 @@ def main() -> int:
                         for method in ("get", "post", "put", "patch", "delete", "options", "head")
                         if isinstance(path_item.get(method), dict)
                     }
+                    # First-party session routes are separate from the planned bearer API.
+                    for extension, value in spec.items():
+                        if not str(extension).startswith("x-playnexus-implemented-web-") or not isinstance(value, dict):
+                            continue
+                        for web_route in value.get("routes", []):
+                            matched = re.fullmatch(r"(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD) (/app/[^\s]+)", str(web_route))
+                            if not matched:
+                                errors.append(f"invalid implemented web route: {web_route}")
+                            else:
+                                contract_operations.add((matched[1].lower(), matched[2]))
                     missing_from_contract = sorted(catalog_operations - contract_operations)
                     missing_from_catalog = sorted(contract_operations - catalog_operations)
                     if missing_from_contract:

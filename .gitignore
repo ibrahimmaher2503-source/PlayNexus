@@ -9,6 +9,11 @@
 /storage/framework/sessions/*
 /storage/framework/views/*
 /storage/logs/*
+/storage/framework/*.sqlite
+/storage/framework/*.log
+/storage/framework/edge-*/
+/storage/framework/wave*/
+/playnexus
 /.phpunit.cache/
 /.phpunit.result.cache
 /.pest-cache/
@@ -17,3 +22,4 @@
 **/__pycache__/
 *.pyc
 /deliverables/
+/.codex/

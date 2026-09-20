@@ -1,5 +1,15 @@
 # PlayNexus Business Requirements Document (BRD)
 
+## 2026-09-15 M6 bounded business delivery
+
+CAP-10 is implemented for committed-source revenue, attendance, session and staff activity oversight within tenant/branch scope. CAP-11 is implemented through durable operational intent and deterministic database transport so provider availability cannot corrupt core operation; this is not real customer delivery. CAP-12 audit search/export is expanded with masking and scope, while OQ-20 incident management remains deferred. The engineering defaults and external release approvals are recorded, not silently promoted to product/legal commitments.
+
+**Implementation note — 2026-09-15:** M5 locally implements cash-only catalog/cart sales, matching `pending_payment` session settlement, controlled discounts, immutable browser receipts, transaction lookup and approved same-day full cash refunds. SQLite, authenticated bilingual desktop, isolated MySQL 8.4.11/InnoDB, and real duplicate settlement/refund contention pass. Production approvals remain open; cashier shifts and provider delivery are deferred.
+
+## 2026-09-15 current Egypt session boundary
+
+The approved Egypt MVP does not offer pause/resume. The current session states are `active`, `pending_payment`, `completed`, and `cancelled`; extensions and additive adjustments are explicit, server-priced records. Any paused-state requirement or example retained below is historical source intent or a superseded target, not an active Egypt MVP commitment.
+
 **Document version:** 1.1  
 **Status:** Draft for stakeholder approval  
 **Product:** PlayNexus — Kids Entertainment Operating System  
@@ -18,7 +28,7 @@ The PRD remains the source for product intent. Where it does not make a decision
 
 Kids entertainment venues commonly manage registration, timed play, tickets, sales, and child release through disconnected tools or manual records. This creates slow queues, billing leakage, inconsistent controls, poor visibility, and child-safety risk.
 
-PlayNexus will provide a cloud-based, multi-tenant, multi-branch operating system. The MVP will support the complete visit journey: configure a tenant and branch; authorize staff; register guardians and children; issue or validate an entry ticket; check a child in; track active and approved paused time; alert staff as a session approaches its end; verify checkout; record sales and payments; issue receipts; and reconcile operations through core reports and an immutable audit trail.
+PlayNexus will provide a cloud-based, multi-tenant, multi-branch operating system. The MVP will support the complete visit journey: configure a tenant and branch; authorize staff; register guardians and children; issue or validate an entry ticket; check a child in; track active time and approved extensions/adjustments; alert staff as a session approaches its end; verify checkout; record sales and payments; issue receipts; and reconcile operations through core reports and an immutable audit trail. Pause/resume remains outside the approved Egypt MVP.
 
 The launch principle is operational correctness before growth features. Memberships, loyalty, birthday packages, advanced CRM, native apps, inventory, HR, franchise controls, AI, marketplace, and white-label delivery are not MVP commitments.
 
@@ -49,7 +59,7 @@ PlayNexus can become the operational system of record for venues across MENA, in
 | ID | Objective | MVP evidence | Priority |
 |---|---|---|---|
 | BOBJ-01 | Digitize the arrival-to-checkout workflow. | A visit can be completed without an external operational register. | Must |
-| BOBJ-02 | Reduce time and billing errors. | Charges are derived from stored pricing rules, timestamps, pauses, extensions, discounts, and taxes. | Must |
+| BOBJ-02 | Reduce time and billing errors. | Charges are derived from stored pricing rules, timestamps, extensions, adjustments, discounts, and taxes. | Must |
 | BOBJ-03 | Improve child-release safety and accountability. | Every checkout records guardian verification or an authorized override, actor, time, and reason. | Must |
 | BOBJ-04 | Improve operating speed for non-technical staff. | Measured check-in and checkout completion times trend downward during the pilot. | Must |
 | BOBJ-05 | Give managers reliable operational visibility. | Core reports reconcile to sessions, sales, payments, refunds, and audit events. | Must |
@@ -85,13 +95,13 @@ PlayNexus can become the operational system of record for venues across MENA, in
 | CAP-03 | Staff identity and RBAC | Staff can perform only authorized actions in allowed tenant/branch scope. |
 | CAP-04 | Guardian and child registration | Families can be found and safely reused across visits without uncontrolled duplicates. |
 | CAP-05 | Check-in and checkout | Each child visit has a traceable lifecycle and release verification. |
-| CAP-06 | Smart time and pricing engine | Active time, approved pauses, extensions, rounding, tax, and final charge are reproducible. |
+| CAP-06 | Smart time and pricing engine | Active time, approved extensions/adjustments, rounding, tax, and final charge are reproducible; pause/resume is deferred in the Egypt MVP. |
 | CAP-07 | Basic ticketing and QR | Entry entitlement is issued, identified, validated, and audited. |
 | CAP-08 | Basic POS and payment recording | Tickets, F&B, merchandise, add-ons, and extensions can be sold and recorded. |
 | CAP-09 | Digital receipts | Paid transactions have a unique, reproducible receipt. |
 | CAP-10 | Core reporting | Authorized users see revenue, attendance, sessions, and staff activity by date and branch. |
 | CAP-11 | Operational notifications | Session-ending alerts and receipts are triggered and delivery attempts are logged. |
-| CAP-12 | Audit and safety controls | Sensitive actions, manual overrides, checkout verification, and refunds are accountable. Basic incident recording is **Proposed**, pending OQ-20, because it is described by the PRD safety module but not named in the MVP list. |
+| CAP-12 | Audit and safety controls | Sensitive actions, manual overrides, checkout verification, and refunds are accountable. Approved OQ-20 defers basic incident management from Egypt V1. |
 
 ### 6.2 Explicitly out of scope for MVP
 
@@ -103,7 +113,7 @@ PlayNexus can become the operational system of record for venues across MENA, in
 - Inventory, procurement, recipe, and stock-depletion management.
 - HR, payroll, rostering, and advanced cashier shift management.
 - Split tender, deposits, subscriptions, and integrated online payment capture unless separately approved.
-- Advanced cashier/cash-drawer shift management. Whether a minimal daily shift open/close is part of “basic POS” remains OQ-24.
+- Cashier shift open/close, cash-drawer balancing and variance handling; OQ-24 defers them from the Egypt MVP.
 - External accounting integration, marketplace, franchise management, AI analytics/assistant, and white-label apps.
 - Offline operation and automatic conflict synchronization unless approved through OQ-03.
 - Advanced analytics and PDF/Excel exports; on-screen core reports are the MVP commitment.
@@ -127,7 +137,7 @@ The following protect the 10–14 week development objective stated in the PRD:
 | BRQ-003 | Authorized users shall create staff accounts, assign predefined roles, and constrain access by tenant and branch. | CAP-03 | Must | Permission tests allow intended actions and deny unauthorized/cross-scope actions. |
 | BRQ-004 | Reception staff shall register, find, and update guardians and linked children, including contact, emergency, consent, and safety notes. | CAP-04 | Must | A child always has at least one active guardian link and duplicate-phone warnings are shown. |
 | BRQ-005 | Reception staff shall start a session for an eligible child at an active branch using a valid ticket or pricing rule. | CAP-05, CAP-07 | Must | The session contains the required child, branch, actor, rule/ticket, start time, and status. |
-| BRQ-006 | Authorized staff shall pause, resume, extend, cancel, and complete sessions according to configured policy. | CAP-05, CAP-06 | Must | Only valid transitions succeed; each sensitive action is attributed and auditable. |
+| BRQ-006 | Authorized staff shall extend, adjust, cancel, and complete active sessions according to the approved Egypt policy; pause/resume is deferred. | CAP-05, CAP-06 | Must | Only valid transitions succeed; each sensitive action is attributed and auditable. |
 | BRQ-007 | The platform shall calculate an explainable final charge from authoritative timestamps and versioned commercial rules. | CAP-06 | Must | Recalculation using stored inputs produces the charged amount within the defined currency precision. |
 | BRQ-008 | Authorized staff shall issue, identify, scan, cancel, and reprint QR tickets with a retained event history. | CAP-07 | Must | Expired, cancelled, or already-consumed tickets cannot authorize another session. |
 | BRQ-009 | Cashiers shall create orders for supported catalog items, apply permitted discounts and taxes, and record supported payment methods. | CAP-08 | Must | A paid sale reconciles line totals, discount, tax, payment, and final total. |
@@ -136,7 +146,7 @@ The following protect the 10–14 week development objective stated in the PRD:
 | BRQ-012 | Checkout shall verify an authorized guardian or require a manager-approved override before releasing the child. | CAP-05, CAP-12 | Must | Completion is blocked until the verification or override record is saved. |
 | BRQ-013 | Managers and owners shall access accurate revenue, attendance, session-history, and staff-activity reports within their scope. | CAP-10 | Must | Report aggregates reconcile to source records for the same filters. |
 | BRQ-014 | The platform shall trigger session-ending alerts and receipt notifications and record every delivery attempt and outcome available from the provider. | CAP-11 | Must | Trigger, recipient, channel, template, attempt time, and current result are queryable. |
-| BRQ-015 | **Proposed:** Authorized staff shall record and retrieve child-safety incidents by child, branch, date, and reporting staff member. | CAP-12 | Conditional on OQ-20 | A saved incident is scoped, timestamped, searchable, and auditable. |
+| BRQ-015 | **Deferred:** Authorized staff shall record and retrieve child-safety incidents by child, branch, date, and reporting staff member. | CAP-12 | Deferred by approved OQ-20 | If later reopened, a new approved contract must define scoped, timestamped, searchable, auditable behavior. |
 | BRQ-016 | All material operational and administrative actions shall produce tenant-scoped audit evidence. | CAP-12 | Must | Audit records identify actor, action, subject, time, scope, and relevant before/after values. |
 
 ## 8. Core business process
@@ -146,7 +156,7 @@ The following protect the 10–14 week development objective stated in the PRD:
 3. Reception finds an existing guardian or registers a guardian and child, captures required consent and safety information, and verifies the guardian relationship.
 4. A valid ticket is issued/sold or an approved pricing rule is selected.
 5. Reception checks the child in; the time engine starts from a server-authoritative timestamp.
-6. Authorized staff may pause/resume or extend the session according to policy; the system records the reason and actor.
+6. Authorized staff may extend, adjust, or cancel the active session according to policy; pause/resume is unavailable in the Egypt MVP and the system records the reason and actor for supported changes.
 7. The system triggers the configured session-ending alert.
 8. At checkout, the system calculates and displays the charge breakdown; any amount due is recorded through POS.
 9. Reception verifies the collecting guardian, or an authorized manager records an exceptional override.
@@ -160,24 +170,25 @@ Rules BR-001 through BR-010 preserve the source PRD identifiers. Rules BR-011 on
 |---|---|---|
 | BR-001 | Every child shall be linked to at least one guardian. | Registration and guardian-link changes |
 | BR-002 | A session shall not start without a branch, child, valid ticket or pricing rule, and initiating staff user. | Check-in |
-| BR-003 | Session states shall include Active, Paused, Completed, and Cancelled. | Session lifecycle |
-| BR-004 | Only authorized users may pause, resume, cancel, refund, or manually adjust a session. | Authorization policy |
+| BR-003 | Egypt MVP session states are Active, Pending payment, Completed, and Cancelled. | Session lifecycle |
+| BR-004 | Only authorized users may extend, cancel, refund, or manually adjust a session; pause/resume is deferred. | Authorization policy |
 | BR-005 | Checkout shall validate the guardian-child relationship or retain a manager-approved override. | Checkout |
 | BR-006 | A discount above the configured threshold requires manager approval. | POS total confirmation |
 | BR-007 | A refund requires a reason and shall appear in audit and financial reports. | Refund |
 | BR-008 | Tenant data shall be isolated from all other tenants. | Every data access path |
 | BR-009 | An inactive branch shall not create new sessions. | Check-in |
 | BR-010 | Marketing notifications shall respect consent and opt-out settings. | Deferred marketing features; data model remains consent-aware |
-| BR-011 | A child shall not have more than one Active or Paused session at the same time within the tenant. | Check-in and session transition |
-| BR-012 | Only an Active session may be paused; only a Paused session may be resumed. Completed and Cancelled sessions are terminal. | Session lifecycle |
+| BR-011 | A child shall not have more than one Active session at the same time within the tenant. | Check-in and session transition |
+| BR-012 | Only an Active session may be extended or cancelled; Pending payment, Completed, and Cancelled sessions reject ordinary lifecycle mutation. | Session lifecycle |
 | BR-013 | Charge calculations shall use server timestamps and the pricing/tax configuration snapshot effective when the session/order was created. | Time engine and POS |
-| BR-014 | Approved pause time is excluded only when the selected rule permits exclusion; otherwise it remains billable. | Time engine |
+| BR-014 | **Deferred for the Egypt MVP:** pause billing and pause intervals are not available; the retained source rule is a historical target only. | Time engine |
 | BR-015 | A ticket that is expired, cancelled, or consumed shall not authorize a new session. | Ticket validation |
 | BR-016 | A financial record shall not be deleted after posting; correction occurs through an authorized void/refund record. | POS and reporting |
-| BR-017 | Receipt numbers shall be unique within the configured legal numbering scope; that scope is pending OQ-08. | Receipt issuance |
+| BR-017 | Receipt numbers shall use the approved immutable branch-scoped yearly sequence `BRANCH-YYYY-000001`; numbers are never reused and voids preserve their reason and history. | Receipt issuance |
 | BR-018 | All monetary values shall use the configured currency and its supported minor-unit precision; cross-currency sales are not supported in one order. | Pricing, POS, reports |
 | BR-019 | Manual overrides shall require an authorized actor and a non-empty reason and shall never overwrite audit history. | Sessions, checkout, discounts, refunds |
 | BR-020 | Operational notifications may be sent independent of marketing opt-in where legally permitted; legal classification and mandatory wording require approval under OQ-07. | Notifications |
+| BR-021 | An MVP ticket belongs to one branch and branch-local service date; the first successful scan permanently locks its holder assignment. Only an unused ticket with no successful scan/session is refund-eligible, with manager/owner approval, reason, linked reversal when paid, and audit. | Ticket issue, scan, transfer correction, cancellation, and refund eligibility |
 
 ## 10. Success measures and KPIs
 
@@ -223,14 +234,14 @@ The dependency list is a **Proposed delivery dependency register** derived from 
 
 | ID | Dependency | Needed for | Owner | Required by |
 |---|---|---|---|---|
-| DEP-01 | Approved MVP pricing models, rounding, pause, extension, discount, refund, and tax examples | Time engine, POS, QA oracle | Product + Finance | Gate G1 |
+| DEP-01 | Approved MVP pricing models, rounding, extension, discount, refund, and tax examples plus the no-pause boundary | Time engine, POS, QA oracle | Product + Finance | Gate G1 |
 | DEP-02 | Initial countries, currencies, time zones, tax/receipt obligations, privacy and retention guidance | Configuration, localization, legal compliance | Sponsor + Legal + Finance | Gate G1 |
 | DEP-03 | Role and permission approval | RBAC and safety workflows | Product + Operations + Safety | Gate G1 |
 | DEP-04 | Notification provider/channel and commercial approval | Session alerts and receipt delivery | Product + Procurement | Before notification integration sprint |
 | DEP-05 | Hosting, backup, monitoring, email/domain, and environment decisions | Deployment and operations | Architecture + DevOps | Gate G2 |
 | DEP-06 | Pilot venue, representative catalog/pricing data, staff, and devices | Usability and operational validation | Implementation + Pilot Tenant | Gate G3 |
 | DEP-07 | Browser, printer, scanner, and QR/wristband support matrix | Front-desk compatibility | Product + Pilot Tenant | Gate G2 |
-| DEP-08 | Data-processing terms, consent wording, privacy notice, and—only if OQ-20 approves the incident module—incident escalation policy | Registration, notifications, and Conditional incidents | Legal + Safety | Gate G3 |
+| DEP-08 | Data-processing terms, consent wording, privacy notice, and—only after a later decision reopens OQ-20—incident escalation policy | Registration and notifications; deferred incidents | Legal + Safety | Gate G3 |
 
 ## 12. Risks and treatments
 
@@ -262,37 +273,37 @@ RISK-01, RISK-02, RISK-03, RISK-04, and RISK-08 map to the five source risks PRD
 | ASM-07 | One child may have multiple guardians and one guardian may have multiple children; one guardian link is designated for the checkout verification event. | Redesign relationship and verification rules. |
 | ASM-08 | A single payment record settles a basic MVP order; split tender and partial payment are deferred. | Extend payment allocation, refund, and reconciliation models. |
 | ASM-09 | Arabic/English readiness means translatable UI, Unicode data, RTL-compatible design, and locale-aware formats; exact launch-language completeness remains OQ-06. | Adjust translation, QA, and release scope. |
-| ASM-10 | To keep basic POS small, the draft design assumes one full refund against an eligible payment and defers partial refunds; this is not approved until OQ-09 closes. | Extend payment allocation, receipt state, API, reports, and reconciliation for partial refunds. |
+| ASM-10 | **Approved by OQ-09:** one full same-branch, same-local-business-day cash refund against an eligible payment; partial refunds are deferred. | Extend payment allocation, receipt state, API, reports, and reconciliation only after a later approved change. |
 | ASM-11 | Basic incident recording is treated as Conditional/Proposed for MVP because the PRD safety module describes it but the Phase 1 MVP list does not name it. | If rejected, remove incident UI/API permissions and tests from MVP while retaining guardian checkout safety/audit. |
 
 ## 14. Open questions and decision log
 
 | ID | Decision required | Options / impact | Decision owner | Due gate |
 |---|---|---|---|---|
-| OQ-01 | Does MVP capture online payments or only record payments? | Gateway capture adds provider, webhook, failure, reconciliation, refund, PCI-scope, and certification work. | Sponsor + Finance | G1 |
-| OQ-02 | Is wristband/scanner hardware mandatory? | Mandatory hardware requires approved models, drivers/SDKs, and pilot testing; otherwise browser QR is baseline. | Product + Operations | G1 |
-| OQ-03 | Is offline mode required? | Offline mode materially changes identity, numbering, session timing, payment, and conflict architecture. | Sponsor + Operations | G1 |
-| OQ-04 | What subscription plans and tenant/branch/user limits apply? | Limits affect provisioning and enforcement; billing automation remains out of MVP unless approved. | Commercial Owner | G2 |
-| OQ-05 | Which notification channels/providers launch first? | Select email, SMS, or WhatsApp; approve templates, sender identities, delivery callbacks, and cost. | Product + Procurement | G1 |
-| OQ-06 | Which countries, languages, currencies, tax regimes, and time zones are required on day one? | Defines localization and compliance test matrix. | Sponsor + Legal + Finance | G1 |
-| OQ-07 | What consent, privacy, retention, deletion, and operational-message rules apply by launch country? | Defines fields, policies, workflows, and legal text. | Legal / DPO | G1 |
-| OQ-08 | What is the legal receipt numbering scope and required receipt content? | Could be tenant-, branch-, device-, or fiscal-year-scoped and country-specific. | Finance + Legal | G1 |
-| OQ-09 | Which payment methods, refund types, and refund windows are allowed? | Determines UI, permission, state, and reconciliation rules. | Finance + Operations | G2 |
-| OQ-10 | Can staff belong to multiple branches and hold different roles per branch? | The recommended model supports scoped assignments; approval freezes RBAC schema and UX. | Product + Operations | G1 |
-| OQ-11 | Is branch capacity a warning, a hard check-in block, or manager-overridable? | Affects safety workflow and concurrency. | Safety + Operations | G1 |
-| OQ-12 | What guardian-verification methods are acceptable? | Candidate methods: QR/token, phone confirmation, photo/name/manual check; affects safety and privacy. | Safety + Legal | G1 |
-| OQ-13 | What alert lead times, retry rules, and escalation behavior are required? | Defines scheduler, UX, and provider volume. | Operations | G2 |
-| OQ-14 | What data must Super Admin access for support, and under what audited authorization? | Determines least-privilege support access and privacy controls. | Security + Support + Legal | G1 |
-| OQ-15 | Does the child record store exact date of birth, declared age, partial date, or a jurisdiction-dependent combination? | Affects privacy, age-band reporting, correction, and validation. | Product + Legal/Safety | G1 |
-| OQ-16 | Which exact pricing patterns and worked examples are in MVP? | Must decide fixed duration, per-unit rate, grace, overage, rounding, pauses, extension, tax order, and boundaries. | Product + Finance | G1 |
-| OQ-17 | What is the duplicate guardian policy after a normalized-phone match? | Choose warn/use existing/create with approval/merge/hard block; affects data and workflow. | Product + Operations | G1 |
-| OQ-18 | Are tickets branch-specific or tenant-wide, transferable, date-specific, and refundable? | Affects eligibility, QR validation, state, and financial behavior. | Product + Operations + Finance | G1 |
-| OQ-19 | Are checkout and payment handled at one station/role or through reception-to-cashier handoff? | Affects authorization, intermediate state, idempotency, and recovery from paid-but-not-completed sessions. | Product + Operations + Finance | G1 |
-| OQ-20 | Is basic incident recording an MVP release requirement, and what categories, states, visibility, retention, and escalation apply? | Decides whether PRD Safety module incident behavior enters Phase 1 or remains Deferred. | Product + Safety + Legal | G1 |
-| OQ-21 | What are normal/peak load, standard report range, volume horizon, and API page/date limits? | Converts source performance/scalability direction into measurable acceptance. | Product + Architecture + QA | G2 |
-| OQ-22 | What are session/token timeouts, password policy, authorization revocation interval, rate limits, and audit/log retention periods? | Freezes security and operations configuration. | Security + Operations | G2 |
-| OQ-23 | Will PlayNexus launch as branded SaaS only, or include any white-label system capability? | Source PRD asks this explicitly; baseline assumes branded SaaS and defers white-label work under PRD-EXC-005/Phase 4. | Sponsor + Commercial Owner | G0 |
-| OQ-24 | Does “basic POS” include a minimal cashier shift open/close and daily close, as mentioned in the POS module specification? | If yes, define opening/closing cash, variance, permissions, and report impact; otherwise keep all shift functionality Deferred. | Product + Finance + Operations | G1 |
+| OQ-01 | **Resolved:** record in-person payments only; no online gateway capture in MVP. | Avoids gateway/webhook/PCI expansion while preserving an auditable payment record. | Product owner approved; Finance pilot validation | G1 |
+| OQ-02 | **Resolved:** use browser keyboard-input QR/barcode scanners; no proprietary hardware SDK in MVP. | Keeps hardware replaceable and the pilot web-native. | Product owner approved; Operations device validation | G1 |
+| OQ-03 | **Resolved:** online-only; outages use a visible failure/read-only manual continuity procedure, not offline writes. | Avoids unsafe synchronization of identity, timing, numbering, and money. | Product owner approved; Operations runbook gate | G1 |
+| OQ-04 | **Resolved for Production V1 (2026-09-15):** editable demo Starter 1 branch/5 users, Growth 3/15, Professional 10/50 and Enterprise custom; monthly/yearly EGP prices; 14-day trial plus 7-day grace; limits only; manual commercial billing first. | Freezes subscription lifecycle, limits, restricted/read-only expiry and Super Admin controls without inventing an online gateway. | Product owner approved; Commercial validates launch prices | G2 |
+| OQ-05 | **Resolved channel order (2026-09-15):** WhatsApp first, SMS fallback, email for receipts/administration. Actual vendors, sender identities, production credentials and templates are deployment inputs. | Freezes channel intent without claiming provider delivery before procurement and callback verification. | Product owner approved; Procurement deployment gate | G1 |
+| OQ-06 | **Resolved for initial launch:** Egypt, EGP, Africa/Cairo, Arabic and English; tax rate/mode remain branch-configurable and require operator accounting validation. | Freezes localization/runtime baseline without deciding an operator's legal tax classification. | Product owner approved; Legal + Finance deployment validation | G1 |
+| OQ-07 | **Resolved for Egypt engineering baseline (2026-09-12):** Arabic-first notice; written/electronic legal-guardian consent for child data; optional separate marketing consent; append-only evidence/withdrawal; active lifecycle plus three-year default retention subject to documented holds. Production notice and licensing still require Legal/DPO sign-off. | Freezes M2 fields/workflows without claiming production legal approval. | Product approved; Legal / DPO production gate | G1 |
+| OQ-08 | **Resolved:** immutable branch-scoped yearly display number `BRANCH-YYYY-000001`; never reuse numbers and preserve void reason/history. Include seller/branch, timestamp, number, service, quantity, prices, discount, tax, total, payment method, actor, and verification QR. | Freezes receipt identity/content; production fiscal/legal validation remains. | Product owner approved; Finance + Legal deployment validation | G1 |
+| OQ-09 | **Resolved (2026-09-14):** one full cash refund only, at the original branch on the same branch-local business date, with a non-empty reason and separate Manager/Owner approval. Ticket-linked refunds also require unused/no-scan/no-session eligibility. | Freezes refund UI, permissions, state and reconciliation for the Egypt pilot. | Product owner approved; Finance + Operations deployment validation | G1 |
+| OQ-10 | **Resolved:** staff may hold multiple branch-scoped assignments/roles; authorization is deny by default and evaluated per active branch. | Freezes RBAC scope and selector behavior. | Product owner approved; Operations validation | G1 |
+| OQ-11 | **Resolved for Egypt MVP (2026-09-13):** branch capacity is a hard check-in block with no manager override; Active sessions occupy capacity and the final check is transactional. Pause/resume is not an available state in this MVP. | Affects safety workflow and concurrency. | Product default authorized by owner; Safety + Operations validation | G1 |
+| OQ-12 | **Resolved:** checkout uses session/ticket QR plus registered-guardian phone last four digits or a handoff code; failure blocks checkout. Manager override is permission-checked, reason-required, single-use, and audited. | Freezes normal evidence and controlled exception behavior. | Product owner approved; Safety + Legal release validation | G1 |
+| OQ-13 | **Resolved for Production V1 (2026-09-15):** session alert 10 minutes before end; retry after 2 then 5 minutes on technical failure; maximum three attempts; stop after confirmed delivery; persist attempts/callbacks. | Freezes scheduler behavior and provider volume; vendor-specific callback mapping remains a deployment input. | Product owner approved; Operations validates templates/escalation | G2 |
+| OQ-14 | **Resolved:** Super Admin tenant-content access is denied by default and requires least-privilege, time-bound, reason-required, audited authorization. | Freezes support-access safety baseline. | Product owner approved; Security + Legal implementation gate | G1 |
+| OQ-15 | **Resolved:** child date of birth is optional; purpose-limited age/family bands may be used without collecting greater precision than needed. | Freezes minimum-data child profile baseline. | Product owner approved; Legal + Safety validation | G1 |
+| OQ-16 | **Resolved for the read-only Egypt MVP estimate (2026-09-13):** fixed duration; 600-second included grace; overtime starts on the next second and rounds up in 1,800-second units; integer minor units; branch-snapshotted inclusive/exclusive tax with half-up rounding. Checkout/discount/extension/payment examples remain their later gates. | Freezes the non-final calculation examples without determining a venue's legal tax classification. | Product default authorized by owner; Finance validates branch tax setup | G1 |
+| OQ-17 | **Resolved (2026-09-12):** normalized phone is tenant-unique for MVP; a match uses the existing family. No create-anyway or automated merge; concurrent duplicates fail safely and foreign matches remain undisclosed. | Freezes duplicate handling and uniqueness behavior. | Product + Operations | G1 |
+| OQ-18 | **Resolved for Egypt MVP (2026-09-13):** branch-specific and branch-local-service-date-bound; audited reassignment only before the first successful scan; permanently non-transferable afterward; refund-eligible only while unused and only with in-scope manager/owner approval, reason, audit, and linked reversal when paid. OQ-09 retains refund window/method/execution. | Freezes ticket eligibility, QR validation, transfer lock, and refund precondition. | Product approved; Operations + Finance implementation acceptance | G1 |
+| OQ-19 | **Resolved (2026-09-13):** Reception verifies the active checkout-capable guardian (or a reasoned manager override) and freezes the server quote into `pending_payment`; Cashier receives the scoped queue and M5 payment posting atomically completes the session. Replays are idempotent; manager recovery/override is permission-checked, reasoned, and audited. | Separates child-release verification from payment custody while preserving a recoverable handoff. | Product owner approved; Operations + Finance validate M5 settlement/recovery | G1 |
+| OQ-20 | **Deferred (2026-09-12):** incident-management workflow is outside M2 and the MVP registry/profile release. M2 keeps restricted encrypted child safety notes only. | Avoids inventing incident categories or escalation while preserving minimum family safety data. | Product approved; Safety + Legal before later activation | G1 |
+| OQ-21 | **Resolved acceptance targets (2026-09-15):** p95 below 500 ms normal UI/API, below 1 second critical transactions, below 3 seconds standard reports, 99.9% availability, pagination and bounded queries. Environment load counts are recorded before production testing. | Freezes measurable targets without pretending local timings prove deployed capacity or availability. | Product owner approved; Architecture + QA deployment evidence | G2 |
+| OQ-22 | **Resolved baseline (2026-09-15):** 30-minute staff idle, 15-minute sensitive/platform idle, 12-character minimum password, throttled login/reset/sensitive APIs, immediate revocation on disable/suspend, mandatory Super Admin MFA, enforceable Tenant Owner MFA, immutable UI audit, external secrets and production debug off. | Freezes application defaults; statutory retention and deployed controls retain Security/Legal validation. | Product owner approved; Security + Operations deployment validation | G2 |
+| OQ-23 | **Resolved:** branded SaaS only for MVP; white-label capability is deferred. | Prevents hidden theme/domain/tenant-branding scope. | Product owner approved | G0 |
+| OQ-24 | **Deferred (2026-09-14):** no cashier shift open/close, drawer balance or variance workflow in the Egypt MVP. Payments retain branch, cashier and server timestamp for later reconciliation. | Keeps M5 bounded without inventing drawer behavior. | Product owner approved; Finance + Operations validate later expansion | G1 |
 
 Decisions shall be recorded with date, approver, chosen option, rationale, and affected requirement IDs. An approved change updates all impacted pack documents.
 

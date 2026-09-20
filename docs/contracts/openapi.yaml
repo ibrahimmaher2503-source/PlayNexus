@@ -1,3 +1,46 @@
+x-playnexus-approved-decisions:
+  receipt_numbering: branch-scoped unique BRANCH-YYYY-000001; voided records retained
+  checkout_verification: QR plus registered_guardian_phone_last4_or_handoff_code; manager_override_audited
+  pricing: fixed_duration; grace_seconds 600; overtime_unit_seconds 1800; pause_disabled; integer_minor_units; configurable_tax
+  ticket_scope: tenant_and_branch; branch_local_service_date; holder_locks_on_first_accepted_scan; rejected_scans_do_not_lock; unused_only_refund_eligibility_with_manager_approval
+x-playnexus-implemented-web-m6:
+  authentication: Laravel session plus CSRF and active tenant access; not the external bearer API below
+  identifiers: bigint
+  routes:
+    - GET /app/reports/{revenue|attendance|sessions|staff}
+    - GET /app/reports/{type}/export
+    - GET /app/notifications
+    - GET /app/audit
+    - GET /app/audit/export
+  report_types: revenue; attendance; sessions; staff
+  range: inclusive branch-local dates converted per branch to half-open UTC; maximum 31 days
+  pagination: 25 rows; streamed CSV chunks of 500 use identical filters and scope
+  notifications: durable local/database intent and attempts; queued processing; sent is transport acceptance only
+  exclusions: real provider channels and callbacks await DEC-NOT-01 through DEC-NOT-04 inputs; incident module deferred by OQ-20
+x-playnexus-implemented-web-ticketing:
+  authentication: Laravel session plus CSRF and active tenant access; not the external bearer API below
+  identifier_type: bigint
+  routes:
+    - GET /app/tickets
+    - POST /app/ticket-types
+    - POST /app/tickets
+    - POST /app/tickets/scan
+    - PATCH /app/tickets/{ticket}/assignment
+    - POST /app/tickets/{ticket}/cancel
+    - POST /app/tickets/{ticket}/reprint
+    - GET /app/sessions
+    - POST /app/sessions/check-in
+    - POST /app/sessions/{session}/extend
+    - POST /app/sessions/{session}/cancel
+    - POST /app/sessions/{session}/adjustments
+  specification: ../09-API-Specification.md
+  validity: branch-local service_date; immutable UTC half-open operating window and timezone snapshot
+  idempotency: issue and validation scan require tenant-actor-scoped UUID and canonical fingerprint
+  authorization: fixed owner or assigned manager/reception/cashier; type creation and cancellation manager-only
+  family_guard: verified active checkout-capable relationship; latest granted child_data consent; emergency contact
+  qr: opaque random payload encrypted at rest; SHA-256 lookup; local client rendering; non-cacheable authorized artifact
+  check_in: authorized ticket-backed consumption plus one Active play session; tenant-wide child uniqueness and hard branch capacity; UUID replay safety
+  exclusions: validation alone does not consume; session cancellation is not payment refund; pause/resume remains disabled; real provider notifications remain deferred while M6 local/database transport is implemented
 openapi: 3.1.0
 info:
   title: PlayNexus MVP API
@@ -29,6 +72,112 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /app/pos/orders:
+    servers: [{ url: / }]
+    post:
+      tags: [POS]
+      operationId: createWebPosOrder
+      security: [{ webSession: [] }]
+      description: First-party Laravel session and CSRF. Persist a server-priced draft from catalog identifiers/quantities; tenant/branch context is authorized server-side. UUID replay must reuse the draft; zero-total and client money fields are rejected. Ticket lines require guardian, child and service date.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [branch_id, idempotency_key, items]
+              properties:
+                branch_id: { type: integer, minimum: 1 }
+                idempotency_key: { type: string, format: uuid }
+                guardian_id: { type: integer, minimum: 1 }
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items:
+                    type: object
+                    required: [item_kind, quantity]
+                    properties:
+                      item_kind: { type: string, enum: [product, ticket] }
+                      product_id: { type: integer, minimum: 1 }
+                      ticket_type_id: { type: integer, minimum: 1 }
+                      quantity: { type: integer, minimum: 1, maximum: 1000 }
+                      guardian_id: { type: integer, minimum: 1 }
+                      child_id: { type: integer, minimum: 1 }
+                      service_date: { type: string, format: date }
+      responses:
+        '201': { description: Created server-priced draft }
+        '200': { description: Original durable draft replay }
+        '404': { description: Hidden tenant/branch/catalog resource }
+        '409': { description: Unavailable catalog or changed replay }
+        '422': { description: Invalid quantities, ticket assignment or client money }
+  /app/pos/orders/{order}/payments:
+    servers: [{ url: / }]
+    parameters:
+      - name: order
+        in: path
+        required: true
+        schema: { type: integer, minimum: 1 }
+    post:
+      tags: [POS]
+      operationId: payWebPosOrder
+      security: [{ webSession: [] }]
+      description: Session/CSRF protected exact EGP cash posting. Atomically consume the order-bound discount approval if supplied, post one payment, issue ticket lines, allocate immutable receipt, and mark paid. Identical UUID replay returns original financial facts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_order_lock_version, amount_minor, currency, idempotency_key]
+              properties:
+                expected_order_lock_version: { type: integer, minimum: 1 }
+                amount_minor: { type: integer, minimum: 1 }
+                currency: { type: string, enum: [EGP] }
+                method: { type: string, enum: [cash] }
+                idempotency_key: { type: string, format: uuid }
+                approval_id: { type: integer, minimum: 1 }
+      responses:
+        '201': { description: Payment and receipt committed atomically }
+        '200': { description: Original payment/receipt replay }
+        '403': { description: In-scope actor lacks payment permission }
+        '404': { description: Hidden tenant/branch order }
+        '409': { description: Stale version, amount mismatch, invalid approval or changed replay }
+        '422': { description: Invalid payment input }
+  /app/orders/{order}/receipt:
+    servers:
+      - url: /
+    parameters:
+      - name: order
+        in: path
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      tags: [POS]
+      operationId: showWebReceipt
+      security: [{ webSession: [] }]
+      description: First-party active tenant/branch session authorization; immutable receipt facts and separate current refund annotation. Browser HTML print verification is a separate acceptance gate.
+      responses:
+        '200': { description: Existing immutable receipt with current refund annotation }
+        '404': { description: Hidden or unavailable tenant/branch order }
+        '409': { description: No issued receipt }
+  /app/orders/{order}/receipt/reprint:
+    servers:
+      - url: /
+    parameters:
+      - name: order
+        in: path
+        required: true
+        schema: { type: integer, minimum: 1 }
+    post:
+      tags: [POS]
+      operationId: reprintWebReceipt
+      security: [{ webSession: [] }]
+      description: Requires Laravel session and CSRF; audits reprint of the same receipt without a new payment or number. Does not send a provider notification.
+      responses:
+        '200': { description: Same issued commercial facts }
+        '404': { description: Hidden or unavailable tenant/branch order }
+        '409': { description: No issued receipt }
   /auth/login:
     post:
       tags: [Authentication]
@@ -629,7 +778,7 @@ paths:
       tags: [Customers]
       operationId: linkGuardianChildRelationship
       summary: Link an existing child to a guardian after staff verification
-      description: 'Permission: relationships.manage. The verification workflow remains open under OQ-12.'
+      description: 'Permission: relationships.manage. Registered-phone last four digits are checked server-side and never stored.'
       parameters:
         - $ref: '#/components/parameters/GuardianId'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -652,6 +801,67 @@ paths:
                     $ref: '#/components/schemas/GuardianChildRelationship'
         '401':
           $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /guardians/{guardian_id}/children/{child_id}/consent:
+    patch:
+      tags: [Customers]
+      operationId: withdrawFamilyConsent
+      summary: Append a child-data or marketing consent withdrawal
+      description: 'Permission: guardians.consent.manage. Child-data withdrawal restricts the child from active workflows; retained evidence is not overwritten.'
+      parameters:
+        - $ref: '#/components/parameters/GuardianId'
+        - $ref: '#/components/parameters/ChildId'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [consent_type]
+              properties:
+                consent_type:
+                  type: string
+                  enum: [child_data, marketing]
+      responses:
+        '200':
+          description: Withdrawal recorded
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /guardians/{guardian_id}/children/{child_id}/relationships/{related_guardian_id}:
+    delete:
+      tags: [Customers]
+      operationId: revokeGuardianChildRelationship
+      summary: Revoke one relationship while preserving the final legal guardian
+      description: 'Permission: relationships.manage. The mutation is transactional, version-checked, and rejects removal of the final active checkout-capable legal guardian.'
+      parameters:
+        - $ref: '#/components/parameters/GuardianId'
+        - $ref: '#/components/parameters/ChildId'
+        - name: related_guardian_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '200':
+          description: Relationship revoked
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
@@ -932,7 +1142,7 @@ paths:
       tags: [Tickets]
       operationId: issueTicket
       summary: Issue a ticket and return its QR payload once
-      description: 'Permission: tickets.issue.'
+      description: 'Permission: tickets.issue. The ticket is immutable to one branch and one branch-local service date.'
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
@@ -990,7 +1200,7 @@ paths:
       tags: [Tickets]
       operationId: cancelTicket
       summary: Cancel an unconsumed ticket
-      description: 'Permission: tickets.cancel; an action-bound approval is required when policy requires it.'
+      description: 'Permission: tickets.cancel. Refund eligibility requires an unused Issued ticket with no successful scan, consumption, or linked session and an action-bound Branch Manager/Tenant Owner approval; OQ-09 governs financial execution.'
       parameters:
         - $ref: '#/components/parameters/TicketId'
         - $ref: '#/components/parameters/IfMatch'
@@ -1060,7 +1270,7 @@ paths:
       tags: [Tickets]
       operationId: scanTicket
       summary: Validate a QR/barcode and append a scan event
-      description: 'Permission: tickets.scan.'
+      description: 'Permission: tickets.scan. Branch/service-date policy is enforced; the first accepted scan permanently locks guardian/child assignment while rejected scans do not.'
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
@@ -1372,9 +1582,9 @@ paths:
       summary: Verify guardian and complete a session whose linked order is fully paid
       description: >-
         Permission: sessions.checkout; manager approval is required for an override.
-        OQ-19 remains open: this contract does not assign quote, payment, or final
-        completion to Reception versus Cashier, and keeps those commands separately
-        idempotent and recoverable.
+        Approved OQ-19 assigns guardian verification and quote freezing to Reception
+        or Manager, then exact payment and atomic completion to Cashier; the commands
+        remain separately idempotent and recoverable.
       parameters:
         - $ref: '#/components/parameters/SessionId'
         - $ref: '#/components/parameters/IfMatch'
@@ -1892,7 +2102,7 @@ paths:
           $ref: '#/components/responses/PreconditionRequired'
 
   /incidents:
-    x-release-scope: conditional-OQ-20
+    x-release-scope: deferred-OQ-20
     get:
       tags: [Incidents]
       operationId: listIncidents
@@ -1964,12 +2174,12 @@ paths:
           $ref: '#/components/responses/ValidationFailed'
 
   /incidents/{incident_id}:
-    x-release-scope: conditional-OQ-20
+    x-release-scope: deferred-OQ-20
     patch:
       tags: [Incidents]
       operationId: updateIncident
       summary: Append an incident follow-up and update its current status or assignee
-      description: 'Conditional on OQ-20. Permission: incidents.manage; sensitive detail remains masked by field permission.'
+      description: 'Deferred from Egypt V1 by OQ-20. Historical proposed permission: incidents.manage; this path is not deployed.'
       parameters:
         - $ref: '#/components/parameters/IncidentId'
         - $ref: '#/components/parameters/IfMatch'
@@ -2312,6 +2522,11 @@ paths:
 
 components:
   securitySchemes:
+    webSession:
+      type: apiKey
+      in: cookie
+      name: playnexus_session
+      description: First-party Laravel session cookie (configured cookie name may vary); state-changing web requests additionally require CSRF verification.
     bearerAuth:
       type: http
       scheme: bearer
@@ -3175,7 +3390,6 @@ components:
         - full_name
         - phone_masked
         - preferred_locale
-        - marketing_consent
         - status
         - lock_version
         - created_at
@@ -3193,6 +3407,7 @@ components:
           enum: [ar, en]
         marketing_consent:
           type: boolean
+          description: Derived latest state only; append-only consent events are authoritative.
         status:
           type: string
           enum: [active, blocked, anonymized]
@@ -3204,9 +3419,8 @@ components:
     GuardianCreateRequest:
       type: object
       additionalProperties: false
-      description: Duplicate handling is not frozen; duplicate_reviewed is a proposed field pending OQ-17.
-      x-open-question: OQ-17
-      required: [full_name, phone_e164, preferred_locale, marketing_consent]
+      description: Normalized phone is tenant-unique. A match returns the existing family; create-anyway and automatic merge are unsupported.
+      required: [full_name, phone_e164, preferred_locale]
       properties:
         full_name:
           type: string
@@ -3227,9 +3441,8 @@ components:
           enum: [ar, en]
         marketing_consent:
           type: boolean
-        duplicate_reviewed:
-          type: boolean
-          description: Proposed only pending OQ-17; do not require or interpret this field until the duplicate policy is approved.
+          default: false
+          description: Optional, separate, unchecked marketing consent; refusal does not block service and an append-only event is recorded.
     GuardianUpdateRequest:
       type: object
       additionalProperties: false
@@ -3254,13 +3467,14 @@ components:
           enum: [ar, en]
         marketing_consent:
           type: boolean
+          description: Requests an append-only marketing grant/withdrawal event; no mutable Boolean is authoritative.
         marketing_opt_out:
           type: boolean
 
     Child:
       type: object
-      description: DOB, derived age, and age-band fields are a proposed representation pending OQ-15 and are not contract-frozen.
-      x-open-question: OQ-15
+      description: Optional DOB, derived age, and purpose-limited age-band fields follow approved OQ-15.
+      x-decision: OQ-15-approved
       required:
         - id
         - full_name
@@ -3276,7 +3490,7 @@ components:
         date_of_birth:
           type: string
           format: date
-          description: Proposed pending OQ-15; omitted when not selected by policy or when the actor may see only an age band.
+          description: Optional under approved OQ-15; omitted when not collected or when the actor may see only an age band.
         age_years:
           type: integer
           minimum: 0
@@ -3302,9 +3516,8 @@ components:
     ChildCreateRequest:
       type: object
       additionalProperties: false
-      description: The date_of_birth property is proposed pending OQ-15 and must not be migration-frozen before that decision.
-      x-open-question: OQ-15
-      required: [full_name, relationship, can_check_out, is_primary]
+      description: Optional DOB follows approved OQ-15. Active registration requires emergency contact and explicit legal-guardian child-data consent.
+      required: [full_name, relationship, can_check_out, is_primary, emergency_contact_name, emergency_contact_phone_e164, child_data_consent]
       properties:
         full_name:
           type: string
@@ -3313,7 +3526,7 @@ components:
         date_of_birth:
           type: string
           format: date
-          description: Proposed pending OQ-15; the approved contract may instead use declared age or a reduced-precision value.
+          description: Optional; age is derived when present and unnecessary precision must not be inferred.
         gender:
           type: string
           enum: [female, male, unspecified]
@@ -3333,12 +3546,29 @@ components:
           pattern: '^\+[1-9][0-9]{7,14}$'
         safety_notes:
           type: string
-          maxLength: 4000
+          maxLength: 1000
+          description: Optional encrypted need-to-know operational note; excluded from normal logs and exports.
+        child_data_consent:
+          type: object
+          additionalProperties: false
+          required: [accepted, notice_version, locale, method]
+          properties:
+            accepted:
+              type: boolean
+              const: true
+            notice_version:
+              type: string
+              maxLength: 80
+            locale:
+              type: string
+              enum: [ar, en]
+            method:
+              type: string
+              enum: [electronic, written]
     ChildUpdateRequest:
       type: object
       additionalProperties: false
-      description: The date_of_birth property is proposed pending OQ-15 and may change when the approved age representation is selected.
-      x-open-question: OQ-15
+      description: Optional DOB follows approved OQ-15; sensitive changes require existing M2 permissions and audit metadata without note content.
       minProperties: 1
       properties:
         full_name:
@@ -3359,7 +3589,7 @@ components:
           pattern: '^\+[1-9][0-9]{7,14}$'
         safety_notes:
           type: [string, 'null']
-          maxLength: 4000
+          maxLength: 1000
         status:
           type: string
           enum: [active, restricted]
@@ -3385,16 +3615,15 @@ components:
         relationship_verified_at:
           type: [string, 'null']
           format: date-time
-          description: Staff relationship-verification fact; distinct from the checkout evidence method still open under OQ-12.
+          description: Staff relationship-verification fact; distinct from the approved OQ-12 checkout evidence method.
         created_at:
           type: string
           format: date-time
     GuardianChildRelationshipCreateRequest:
       type: object
       additionalProperties: false
-      description: Links an existing child; the staff verification workflow is proposed pending OQ-12 and is not represented as a frozen method enum.
-      x-open-question: OQ-12
-      required: [child_id, relationship, can_check_out, is_primary]
+      description: Links/reactivates a same-tenant guardian after approved staff verification. Authorized pickup and other cannot consent; the last active checkout-capable legal guardian cannot be revoked.
+      required: [child_id, relationship, can_check_out, is_primary, verification_method, verification_value]
       properties:
         child_id:
           $ref: '#/components/schemas/Ulid'
@@ -3405,6 +3634,42 @@ components:
           type: boolean
         is_primary:
           type: boolean
+        verification_method:
+          type: string
+          enum: [registered_phone_last_four]
+        verification_value:
+          type: string
+          pattern: '^[0-9]{4}$'
+          description: Compared server-side with the registered guardian phone and never stored.
+
+    FamilyConsentEvent:
+      type: object
+      additionalProperties: false
+      required: [id, guardian_id, child_id, consent_type, status, notice_version, locale, method, occurred_at]
+      properties:
+        id:
+          $ref: '#/components/schemas/Ulid'
+        guardian_id:
+          $ref: '#/components/schemas/Ulid'
+        child_id:
+          $ref: '#/components/schemas/Ulid'
+        consent_type:
+          type: string
+          enum: [child_data, marketing]
+        status:
+          type: string
+          enum: [granted, withdrawn]
+        notice_version:
+          type: string
+        locale:
+          type: string
+          enum: [ar, en]
+        method:
+          type: string
+          enum: [electronic, written]
+        occurred_at:
+          type: string
+          format: date-time
 
     PricingRule:
       type: object
@@ -3641,6 +3906,7 @@ components:
       required:
         - id
         - branch_id
+        - service_date
         - ticket_type_id
         - status
         - display_code
@@ -3653,6 +3919,10 @@ components:
           $ref: '#/components/schemas/Ulid'
         branch_id:
           $ref: '#/components/schemas/Ulid'
+        service_date:
+          type: string
+          format: date
+          description: Local service date in the immutable ticket branch time-zone/operating-window snapshot.
         ticket_type_id:
           $ref: '#/components/schemas/Ulid'
         guardian_id:
@@ -3673,6 +3943,10 @@ components:
         valid_until:
           type: [string, 'null']
           format: date-time
+        assignment_locked_at:
+          type: [string, 'null']
+          format: date-time
+          description: Set by the first accepted scan; guardian/child assignment is immutable afterward.
         uses_count:
           type: integer
           minimum: 0
@@ -3694,10 +3968,14 @@ components:
     TicketIssueRequest:
       type: object
       additionalProperties: false
-      required: [branch_id, ticket_type_id]
+      required: [branch_id, service_date, ticket_type_id]
       properties:
         branch_id:
           $ref: '#/components/schemas/Ulid'
+        service_date:
+          type: string
+          format: date
+          description: Service date interpreted in the selected branch time zone.
         ticket_type_id:
           $ref: '#/components/schemas/Ulid'
         guardian_id:
@@ -3744,7 +4022,7 @@ components:
           type: boolean
         result:
           type: string
-          enum: [accepted, not_found, expired, cancelled, already_consumed, wrong_branch, policy_denied]
+          enum: [accepted, not_found, expired, cancelled, already_consumed, wrong_branch, wrong_service_date, policy_denied]
         ticket:
           $ref: '#/components/schemas/Ticket'
         scanned_at:
@@ -3921,8 +4199,8 @@ components:
             not:
               required: [seconds_delta]
     SessionCheckoutRequest:
-      description: verification_method is a proposed allowlisted code pending OQ-12; order_id must identify the already fully paid linked order. OQ-19 station ownership remains open.
-      x-open-questions: [OQ-12, OQ-19]
+      description: verification_method follows the approved OQ-12 allowlist; order_id identifies the already fully paid linked order. OQ-19 assigns verification/quote freeze to Reception or Manager and exact payment/completion to Cashier.
+      x-decisions: [OQ-12-approved, OQ-19-approved]
       oneOf:
         - type: object
           additionalProperties: false
@@ -3937,7 +4215,7 @@ components:
               minLength: 1
               maxLength: 50
               pattern: '^[a-z][a-z0-9_]*$'
-              description: Must match the Safety/Legal allowlist selected when OQ-12 closes; no method enum is approved yet.
+              description: Must match the approved OQ-12 Safety/Legal allowlist.
         - type: object
           additionalProperties: false
           required: [order_id, verification_method, approval_id]
@@ -4401,8 +4679,8 @@ components:
             - type: 'null'
     Receipt:
       type: object
-      description: Immutable commercial facts regenerated from the posted order/payment/refund snapshots; legal field set and numbering scope remain OQ-08.
-      x-open-question: OQ-08
+      description: Immutable commercial facts regenerated from the posted order/payment/refund snapshots using the approved OQ-08 branch-year numbering and content contract.
+      x-decision: OQ-08-approved
       required:
         - order_id
         - branch_id
@@ -4655,7 +4933,7 @@ components:
       type: object
       additionalProperties: false
       minProperties: 1
-      description: Conditional on OQ-20. Each accepted update appends history and never replaces the original report.
+      description: Deferred from Egypt V1 by OQ-20. Historical proposal only; if later approved, each accepted update must append history and never replace the original report.
       properties:
         status:
           type: string

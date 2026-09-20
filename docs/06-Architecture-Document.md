@@ -1,5 +1,27 @@
 # PlayNexus Architecture Document
 
+## 2026-09-15 M6 reports and local notification architecture
+
+M6 stays inside the Laravel modular monolith. `ReportController` reads committed finance/session/audit tables directly with tenant and accessible-branch constraints; it converts each branch-local inclusive date selection to its own half-open UTC range and reuses the same query for streamed CSV. `CollectOperationalNotifications` runs each minute, persists deduplicated intent, and dispatches `ProcessOperationalNotification`; the job locks the row and appends one attempt before advancing state. The deterministic database transport is acceptance infrastructure, not a real provider, and never sets `delivered`.
+
+## 2026-09-13 ticket-backed check-in vertical slice
+
+The implemented arrival command stays inside the Laravel modular monolith: one policy/controller transaction locks the active tenant, actor, accessible branch, ticket and child; rechecks ticket/family eligibility; blocks a tenant-wide active duplicate child (paused is deferred) and hard branch capacity; then consumes the ticket and creates one `play_sessions` row, append-only `play_session_events`, `ticket_scans` evidence and audit. Same UUID/fingerprint replay returns the existing session; changed reuse conflicts. The tenant lock is the intentionally simple MVP serialization boundary and can move to a measured per-branch/per-child strategy only if throughput evidence requires it.
+
+`GET /app/sessions` uses scoped Eloquent queries and server-side filters with 25-row pagination. Cashier receives masked board data and no check-in command. The server stores UTC times and the immutable ticket pricing/timezone snapshot; one pure integer service derives a non-persisted Active-session estimate at a single server time. The Blade page renders branch-local start/expected end, elapsed time, grace/overtime/tax breakdown and an explicit non-final/no-checkout notice. Invalid snapshots hide the estimate without breaking the board.
+
+## 2026-09-13 ticket-only vertical slice
+
+Ticketing uses native Laravel models, policies, one controller, transactions, composite tenant foreign keys, and session-authenticated Blade forms. It reuses existing fixed branch authorization and the tenant command lock; there is no additional service framework. Issue captures immutable operating/pricing/timezone facts; validation logs every accepted/rejected attempt without consuming or creating a session. First successful validation atomically locks the holder. Active verified family, current child-data consent, and emergency safeguards are shared across issue, correction, and accepted validation. QR generation uses the local installed `qrcode` frontend dependency, never an external service. Audits contain scoped IDs/reasons/state, not QR, phone, or safety data. Financial reversal and atomic session consumption remain later bounded slices.
+
+## T18-T20 owner access and staff administration amendment
+
+The authorized next wave extends explicit tenant ownership to active own-tenant branch listing/selection/reads. Ordinary branch staff still require active assignment and permitted role. Owner-only administration covers existing non-owner account status and fixed branch assignments, using fresh authorization, tenant-scoped row locks, expected-state conflict detection and atomic successful-change audit. This supersedes the prior T14 read-only exception for these named operations only. Platform access and ownership transfer remain excluded.
+
+## T14 bounded owner-read implementation
+
+For `/app/tenant` only, explicit tenant_owners membership grants a tenant-global read boundary without a branch assignment. Branch operational routes continue to require active assignments and BranchPolicy; the tenant-global read exception does not grant branch operations or resolve future owner-wide branch selection. Generic RBAC and platform identity remain later work.
+
 **Document ID:** PN-ARC-001  
 **Status:** Draft implementation baseline pending product, safety, finance, and technical approval  
 **Scope:** Phase 1 MVP  
@@ -31,11 +53,11 @@ This design is the shortest safe path to a pilot: one deployable application, on
 | Payments, refunds, and receipts | FR-009, BR-006–BR-007 | POS & Payments |
 | Revenue, attendance, session, and staff reports | FR-010 | Reporting |
 | Ending alerts and digital receipts | MVP scope | Notifications |
-| Basic incident records | Section 8.12; OQ-20 | Safety — conditional; do not release unless OQ-20 adds it to MVP |
+| Basic incident records | Section 8.12; OQ-20 | Safety — explicitly deferred from Egypt V1; do not expose without a later approved contract |
 
 ### 2.2 Deliberately deferred
 
-Memberships, loyalty, wallet, birthdays, advanced inventory, HR, cashier-shift/cash-drawer management, games/queues/slots/participation, native apps, marketplace, white-label, franchise features, AI, online payment gateways, marketing/campaign sending, and external accounting integrations remain outside the MVP. They must not add tables, routes, permissions, migrations, packages, or background services until their phase is approved. Basic incident recording/search is conditional on OQ-20 because the PRD describes it in the Safety module but omits it from the explicit MVP inventory.
+Memberships, loyalty, wallet, birthdays, advanced inventory, HR, cashier-shift/cash-drawer management, games/queues/slots/participation, native apps, marketplace, white-label, franchise features, AI, online payment gateways, marketing/campaign sending, and external accounting integrations remain outside the MVP. They must not add tables, routes, permissions, migrations, packages, or background services until their phase is approved. Basic incident recording/search is explicitly deferred from Egypt V1 by OQ-20.
 
 ### 2.3 Assumptions requiring product confirmation
 
@@ -43,7 +65,7 @@ Memberships, loyalty, wallet, birthdays, advanced inventory, HR, cashier-shift/c
 - **Working assumption for OQ-02:** QR/barcode scanners behave as keyboard input; proprietary wristband drivers are not required.
 - **Working assumption for OQ-03:** the product stays online during operations. Offline mode is a separate product capability, not a transparent implementation detail.
 - English and Arabic are supported at the UI/content layer; persisted operational timestamps remain UTC.
-- **Proposed model pending OQ-06:** each branch operates in one configured currency, and a tenant-wide accounting currency may additionally be retained for reporting. Do not enforce equality between tenant and branch currency until launch-market and finance policy is approved. Branches may have distinct time zones and tax settings.
+- **Approved OQ-06 model:** Egypt V1 uses EGP and `Africa/Cairo`; branch tax remains configurable and requires Finance validation. Branches retain explicit currency, time-zone, and tax settings.
 
 ## 3. Quality goals
 
@@ -156,7 +178,7 @@ The folder names are boundaries for ownership, not independently deployable comp
 | Sessions | Session state, pauses, adjustments, checkout verification | Session events |
 | Ticketing | Ticket types, tickets, scans | Ticket validated/consumed |
 | POS | Products, orders, one full payment, full refunds, receipts | Sale paid/refunded |
-| Safety | Conditional basic incidents and append-only follow-up | Incident events; module disabled unless OQ-20 is approved |
+| Safety | Deferred basic incidents and append-only follow-up | Incident events; module absent under approved OQ-20 until a later contract is approved |
 | Notifications | Allowlisted operational templates, delivery jobs, attempt logs | Consumes session-ending and receipt events |
 | Reporting | Read queries and exports | Reads committed operational data |
 | Audit | Immutable security/business audit records | Consumes explicit audit entries |
@@ -238,19 +260,19 @@ Permissions are deny-by-default. Role permission names and approval rules are sp
 Execute one MySQL transaction:
 
 1. Lock the child row and verify it belongs to the current tenant.
-2. Verify the branch is active and assigned to the actor. Apply no hard/override capacity behavior until OQ-11 is approved; branch capacity may be displayed as information in the interim.
+2. Verify the branch is active and assigned to the actor. Enforce the approved hard, non-overridable branch capacity check under the same tenant transaction lock.
 3. Verify the child has at least one active guardian relationship.
-4. Reject if an active/paused session already exists for the child.
+4. Reject if an active session already exists for the child; paused is a historical target state and is not created in the Egypt MVP.
 5. Lock and validate the ticket, or snapshot the selected pricing rule.
 6. Create the session, ticket association, and initial session event.
 7. Mark a single-use ticket `consumed` when its policy requires consumption at check-in.
 8. Write the audit record and commit.
 
-Return the committed server timestamp and charge preview. Idempotent replay returns the same session.
+Return the committed server timestamp and immutable session facts. Idempotent replay returns the same session; no final charge is created at check-in.
 
-### 10.2 Pause/resume
+### 10.2 Pause/resume (historical target; deferred for Egypt MVP)
 
-Lock the session row. Verify its current state and `lock_version`. A pause creates an open `session_pause`; a resume closes the one open pause. Update session status/version and append an immutable session event in the same transaction. Only pause types configured to exclude time reduce billable duration.
+The pause interval design is retained as historical target material only. No pause/resume route, state transition, table, or permission is part of the approved Egypt MVP.
 
 ### 10.3 Checkout and guardian verification
 
@@ -272,21 +294,23 @@ sequenceDiagram
 
 The pricing calculation is a pure deterministic service that accepts timestamps, pause intervals, extensions, pricing snapshots, rounding rules, and adjustments. Persist its inputs and outputs on checkout; never recompute historical receipts from a later pricing rule. A session cannot become `completed` while its required linked order has an amount due; no unpaid exception is implemented unless separately approved.
 
-**Open decision OQ-19 — station/payment handoff:** Product and Operations must decide whether Reception performs quote, payment, and completion at one station or hands a draft order to Cashier before Reception completes release. The architecture does not assign that ownership. The contract intentionally keeps quote/order creation, payment posting, and final session completion as separately idempotent, recoverable commands so either approved station model can use the same invariants. Paid-but-not-completed remains visible and retryable; payment is never silently rolled back because a later guardian-verification/completion command fails.
+**Approved OQ-19 — station/payment handoff:** Reception or an assigned Manager verifies the guardian and freezes the quote into `pending_payment`; Cashier or another authorized transaction actor posts the exact matching cash payment. Order, payment, receipt and final session completion commit atomically, and identical retries return the original result. No unpaid exception is implemented.
 
-**Open decision OQ-12 — guardian verification:** `relationship`, `code`, phone/photo/manual checks, and other candidate methods are not approved enum values yet. The checkout command accepts only the allowlist selected by Safety/Legal; manager override remains separately permissioned and audited.
+**Approved OQ-12 — guardian verification:** checkout uses session/ticket QR plus registered-guardian phone last four digits or a handoff code; failure blocks completion. Manager override is separately permissioned, reason-required, single-use and audited. This approved contract remains unimplemented because M4 has not started.
 
 ### 10.4 POS payment
 
-Under planning assumptions ASM-08/ASM-10 pending OQ-09, lock the draft order within one transaction, recalculate line totals from immutable price snapshots, validate discount approval, require one payment for the full amount due, create an append-only posted payment, mark the order paid, allocate the receipt number, and audit. The API never accepts client-calculated totals as authoritative. Split/partial payments and cashier shifts are not exposed by this draft baseline; an OQ-09/OQ-24 decision can change that only through synchronized requirements/schema/API/test updates.
+Under the approved OQ-09/OQ-24 baseline, lock the draft order within one transaction, reconcile server-priced immutable lines, validate and consume any discount approval, require one exact EGP cash payment, create an append-only posted payment, mark the order paid, allocate the receipt number, and audit. Split/partial payments and cashier shifts are not exposed.
 
 ### 10.5 Refund
 
-Refunds do not edit or delete payments. The ASM-10 planning baseline pending OQ-09 supports one full reversal only: a permitted actor requests a full refund with reason; an authorized manager/owner approves it; execution locks the paid order/payment, rejects any prior refund, derives the entire posted amount server-side, creates one append-only posted refund, and marks the order refunded in one transaction. Partial refunds are not exposed by this draft contract. A provider call, if added later, occurs through an idempotent job and stores external references.
+Refunds do not edit or delete payments. OQ-09 permits one full cash reversal at the original branch on the same branch-local business date: a permitted actor requests with reason, a separate manager/owner approves, and execution locks the paid order/payment, derives the entire amount server-side, records the refund and marks the order refunded atomically. Partial refunds and provider calls are absent.
 
 ## 11. State models and invariants
 
 ### 11.1 Session
+
+Current Egypt MVP states are `active`, `pending_payment`, `completed`, and `cancelled`; pause/resume is historical target material and deferred.
 
 ```mermaid
 stateDiagram-v2
@@ -312,14 +336,14 @@ stateDiagram-v2
 
 ### 11.3 Order and payment
 
-Under ASM-08/ASM-10 pending OQ-09, order states are `draft`, `paid`, `refunded`, `voided`. A draft order receives exactly one full posted payment and becomes paid; a paid order receives at most one full posted refund and becomes refunded. Split/partial payment and partial refund are not represented by this draft state's request fields.
+Under approved OQ-09, order states are `draft`, `paid`, `refunded`, `voided`. A draft order receives exactly one full posted cash payment and becomes paid; an eligible paid order receives at most one full refund and becomes refunded. Split/partial payment and refund are not represented.
 
 ## 12. Pricing and money
 
 - Store money as signed `BIGINT` minor units plus ISO 4217 currency code; never use binary floating point.
 - Store tax/discount rates as integer basis points (`10000 = 100%`).
 - Snapshot product/ticket description, unit price, tax rate, and pricing-rule inputs on the order/session.
-- The pricing engine calculates elapsed seconds from UTC timestamps, subtracts eligible pauses, applies base duration/price, rounds chargeable overtime by the configured rule, and adds approved adjustments.
+- The pricing engine calculates elapsed seconds from UTC timestamps, applies base duration/price, rounds chargeable overtime by the configured rule, and adds approved adjustments. Pause subtraction is historical target behavior and is deferred for the Egypt MVP.
 - The server produces a quote with calculation lines. Checkout locks the session and recalculates before persisting to prevent stale totals.
 - All rounding occurs once at line level according to the branch's documented tax mode; order totals are sums of stored line totals.
 
@@ -470,5 +494,9 @@ Implementation may start when:
 - permissions and approval rules in `08-Permission-Matrix.md` are accepted;
 - the OpenAPI contract passes structural validation;
 - games/queues/participation and cashier-shift migrations/routes remain absent from the MVP release;
-- OQ-01, OQ-03, OQ-06, OQ-08, OQ-11, OQ-12, OQ-15, OQ-17, OQ-19, OQ-20, and OQ-24 have owners; any schema, enum, route, or milestone affected by them is not frozen prematurely;
+- approved OQ-01, OQ-03, OQ-06, OQ-08, OQ-09, OQ-11, OQ-12, OQ-15, OQ-17 and OQ-19 are reflected in the contract; OQ-20 and OQ-24 are explicitly deferred;
 - at least one end-to-end OQ-19 station flow is approved: guardian search → child selection → check-in → pause/resume/extend → quote/order → full payment → verified checkout → receipt → report.
+
+## Approved MVP decision amendment — 2026-09-10
+
+The first Egypt MVP uses branch-scoped immutable receipt numbers, QR plus registered-guardian confirmation for checkout, and fixed-duration pricing with a 10-minute grace period and 30-minute overtime units. Pause is deferred. All money remains integer minor units; branch tax configuration is snapshotted at checkout. Guardian verification failure blocks completion unless an audited manager override is approved.
