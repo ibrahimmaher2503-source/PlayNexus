@@ -3,7 +3,7 @@
 @section('title', __('families.page_title').' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--pn-border)] pb-5">
             <div>
                 <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant->name }}</p>

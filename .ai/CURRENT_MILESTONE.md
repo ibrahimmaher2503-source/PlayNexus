@@ -1,5 +1,70 @@
 # Current Milestone
 
+## 2026-09-15 available-gap closure
+
+Fresh isolated MySQL 8.4.11/InnoDB acceptance also passes 410/410 tests / 3,411 assertions under strict mode and `ONLY_FULL_GROUP_BY`.
+
+GAP-01–06 and GAP-09 plus DOC-01–09 are closed in the current uncommitted shared worktree. The follow-up delivers working locale submit, branch-manager administration limited to Reception/Cashier in managed branches, occurrence-based revenue breakdowns, branch currency/timezone and Net presentation, complete immutable session-history detail, and authentication/security-denial audit. Final SQLite regression is 410 total / 406 passed / 4 MySQL-only skips / 3,313 assertions; grouped browser acceptance passes EN/AR, manager staff mutation, USD/America-New_York reports and RTL with no console errors.
+
+No safe local implementation item remains in the gap ledger without an approved contract or named gate. GAP-07 behavior is product-approved and awaits implementation plus Security/Legal release validation. GAP-08 has an approved engineering baseline; destructive execution remains disabled pending the final Legal/DPO schedule. Bounded OQ-04 is approved and SQLite-green but still lacks its MySQL/browser acceptance. OQ-05/OQ-13 provider procurement inputs and the separately registered OQ-22 security values remain open; OQ-21 workload counts are release-test inputs. The application is not `PILOT_READY`.
+
+## 2026-09-15 GAP-01 closed — usable POS ticket sale
+
+The POS now captures one eligible tenant-scoped guardian/child relationship and a native service date for ticket lines, preserves those facts through quote, draft and discount payloads, and rechecks eligibility at draft creation and payment before ticket issuance. Family options are masked and are not loaded for Reception users who cannot transact. Central evidence passes 27 tests / 230 assertions, scoped Pint and Vite, plus an isolated authenticated Cashier browser journey from validation through EGP 150.00 quote, paid order, issued ticket and immutable receipt. This closes GAP-01 only; GAP-02 is next and `PILOT_READY` remains externally gated.
+
+## 2026-09-15 UI wireframe/sidebar follow-up
+
+The approved UI baseline is now mapped surface-by-surface in `docs/10-UI-UX-Wireframes.md`. The authenticated shell uses grouped permission-aware navigation, persistent expanded/collapsed desktop states, a responsive drawer, branch-local context and an offline unsafe-write guard. WF-03 now renders committed branch operations, money, attendance and audit summaries. Focused checks pass 24/154 plus authentication/navigation 21/161; the full SQLite suite passes 401 total / 397 passed / 4 MySQL-only skips / 3,232 assertions; authenticated English/Arabic desktop/responsive browser checks and offline emulation pass with no console errors. Provider delivery/manual resend and incident workflows remain outside the approved contract.
+
+
+## 2026-09-15 M6 locally engineering-accepted
+
+The bounded M6 implementation now includes committed-source revenue/attendance/session/staff reports, per-branch half-open UTC date filters, bounded pagination/sorting and filter-identical non-PII CSV; durable provider-neutral operational notification intents/attempts, queue/scheduler collection, idempotent processing and truthful local `sent` state; expanded scoped audit filtering/actions/export; bilingual responsive UI; environment-guarded synthetic pilot data; and a release/migration/restore/monitoring/support/staff-walkthrough runbook. No provider SDK, real message, incident module, microservice or reporting/export dependency was added.
+
+Final evidence passes: focused M6 24/150; full SQLite on PHP 8.4.21 and 8.5.8 at 398 total / 394 passed / 4 explicit MySQL-only skips / 3,206 assertions; isolated MySQL 8.4.11/InnoDB at 398/398 / 3,304 assertions; real concurrency 3/76; migration rollback/reapply; isolated dump restore including append-only audit triggers; dependency/secret checks; Pint/Vite/Blade/routes/docs/whitespace; and authenticated Owner/Reception/Cashier English LTR and Arabic RTL desktop acceptance with no browser warnings/errors. The final 1,000-row occurrence-based report profile observed 194 ms p95/max over ten navigations. M6 is `LOCALLY_ENGINEERING_ACCEPTED`; `PILOT_READY` remains externally gated by staging, deployed monitoring, Finance/Legal approval, staff rehearsal/sign-off and named go/no-go.
+
+## 2026-09-15 M5 final review: locally engineering-accepted
+
+CodeGraph plus direct Laravel review found and closed the remaining local payment/UI gaps. Cash settlement now fails closed unless the branch explicitly enables cash, while identical successful retries still return the original receipt even if branch configuration later changes. The POS now exposes the approved discount request, separate Manager/Owner decision, and approved Cashier payment states with role-correct visibility; Reception receives no approval history.
+
+Focused M5 regression passes 55 tests / 368 assertions. Full SQLite passes on PHP 8.4.21 and PHP 8.5.8: 383 total / 379 passed / 4 explicit MySQL-only skips / 3,131 assertions. Full isolated MySQL 8.4.11/InnoDB passes 383 tests / 3,229 assertions; the dedicated two-process M5 race passes 1 / 29 and proves one settlement and one refund execution under duplicate contention. Global Pint, Vite, Blade cache, routes, documentation validation and whitespace pass. Authenticated Arabic RTL desktop review confirms correct Owner visibility and no browser warnings/errors. M5 is locally engineering-closed, not production-ready; Finance/Legal, hosted CI and operational release controls remain separate.
+
+## Historical 2026-09-15 M5 SQLite/browser checkpoint — superseded above
+
+Coordinator review found and fixed four integration defects after worker delivery: ordinary POS authorization omitted Tenant Owner/Branch Manager, ordinary receipts snapshotted the opening user as the seller name instead of the tenant legal/display name, the ordinary receipt sequence used a Query Builder `whereKey` call that did not advance the counter, and transaction history omitted branch currency while calculating refund eligibility. Focused regressions cover the corrections, including consecutive `000001`/`000002` receipt allocation.
+
+Final process-local SQLite regression passes 379 total / 376 passed / 3 explicit environment skips / 3,109 assertions. Global Pint, Vite build, route inspection, documentation validation (34 Markdown files, 0 errors / 2 historical marker warnings), and `git diff --check` pass. Authenticated desktop browser acceptance on isolated task-local SQLite at `127.0.0.1:8207` passes an Owner catalog item → server quote → draft → exact cash payment → immutable receipt `000002` journey, QR rendering, legal seller name, transaction-history eligibility, English LTR and Arabic RTL, with no browser console errors.
+
+M5 is locally accepted for SQLite and the tested browser path, not fully closed or production-ready. The required isolated MySQL 8.4/InnoDB concurrency gate is unavailable: port 3306 is XAMPP MariaDB 10.4.32 and Docker/MySQL 8.4 tooling is absent. The optional external `openapi-spec-validator` Python module is also absent; the repository validator parses the contract successfully. Shift/drawer, provider delivery, partial/card payments and production Finance/Legal validation remain intentionally deferred.
+
+## Historical 2026-09-15 M5 remediation in progress — superseded above
+
+Three Luna/xhigh workers resumed partial files after usage-limit interruptions. POS security/selected-branch/global-catalog changes have focused worker evidence; coordinator review also required Owner-only global management and fresh locked authorization. Coordinator follow-ups now pass receipt/refund/settlement 14 tests / 115 assertions and ordinary order/payment/discount/ticket 9 tests / 74 assertions, superseding the earlier receipt-return and outdated discount-fixture failures. Ordinary receipt consistency and visible POS/history/refund controls remain active. ERD, API/OpenAPI and traceability now describe the bounded cash-pilot domain records instead of a speculative generic approval schema. See `.ai/TEST_RESULTS.md`; no final combined green/MySQL/browser/print or M5 closure is claimed.
+
+## 2026-09-14 M5 CORE BACKEND AND POS QUOTE LOCALLY GREEN; ACCEPTANCE PARTIAL
+
+The approved Egypt M5 foundation is implemented locally: tenant/branch-safe financial tables, exact cash settlement of a frozen `pending_payment` session, immutable branch/year receipt snapshots, atomic session completion, a branch product catalog and server-priced desktop POS quote, payload-bound positive-discount approval, and one full same-branch/same-local-day cash refund with separate Manager/Owner approval. Shift/drawer remains deferred and zero-total checkout remains disabled.
+
+Focused M5 SQLite coverage passes 21 tests / 127 assertions, and the full SQLite regression passes 350 of 353 tests with three environment skips / 2,901 assertions. M5 is not complete: ordinary POS order/payment posting and ticket issuance, transaction-history UI, discount consumption inside payment, refund UI, real MySQL concurrency, bilingual browser/print acceptance, and canonical API/ERD/traceability reconciliation remain open.
+
+## 2026-09-14 M5 IMPLEMENTATION STARTED
+
+The owner approved the M5 cash/refund/discount/shift defaults recorded in `.ai/DECISIONS.md`. Implementation starts with the financial schema and critical `pending_payment` cash-settlement/receipt/session-completion vertical slice, then the reusable catalog/cart, approval and same-day full-refund slices. Shift/drawer and provider delivery remain deferred.
+
+## 2026-09-14 M5 PLANNING READY; IMPLEMENTATION NOT STARTED
+
+The complete M5 implementation plan is recorded at the top of `docs/agent-plan.md`. The first deliverable is the existing `pending_payment` handoff through one exact in-person cash payment, immutable branch/year receipt and atomic verified session completion; the same financial core then supports a small catalog/cart POS. No code or migration for M5 has started.
+
+Owner decisions remain required for OQ-09 refund policy, OQ-24 shift inclusion/deferral, the zero-basis-point discount approval baseline, and zero-total behavior. Recommended defaults are: full same-branch/same-local-day cash refund with separate manager/owner approval; defer shifts; every positive discount requires approval; do not enable zero-total checkout initially. Refund/shift/discount implementation must not be inferred before those decisions are recorded.
+
+## 2026-09-14 M4 UI and runtime gates LOCALLY ACCEPTED; M5 NOT STARTED
+
+The current M0–M4 workspace is integrated and the M4 desktop follow-up is closed. Operational pages now use the available 1440px desktop canvas; ticket tables remain tables from 1024px upward; sparse branch and session boards expand instead of leaving tablet-like dead space. Arabic operational copy is simple, meaningful Modern Standard Arabic familiar to Egyptian staff without dialect or backend terminology.
+
+Audit history now includes M4 session events and tenant-scoped employee, branch, record-type and local-date filters. Family profiles show recent visits for active children only, with tenant/child constraints and branch-local time. Full SQLite passes 329 of 332 with three explicit environment skips and 2,774 assertions. Full isolated MySQL 8.4.11/InnoDB passes all 332 tests with 2,843 assertions. Pint, Vite, documentation and whitespace checks pass. Authenticated Arabic RTL desktop acceptance at 1920×1080 covers eleven operational pages with no horizontal page overflow or raw translation keys.
+
+This is local acceptance, not production release. Hosted CI/brand approval remain external gates. Payment, completion, receipt, refund, child release and all M5 behavior remain out of scope and unimplemented.
+
 ## 2026-09-14 M0 repair LOCALLY ACCEPTED; hosted CI pending
 
 The bounded M0 audit repairs are implemented: safe project-local SQLite setup with an explicit MySQL target guard, deterministic local/testing-only two-tenant role fixtures, aligned PHP 8.4+/PHPUnit 12 tooling, and a minimal hosted gate for MySQL 8.4 M0 tests plus full SQLite regression, Pint, Vite and documentation. Local SQLite passes 314 total / 311 passed / 3 skipped / 2,659 assertions; the focused isolated MySQL 8.4.11 gate passes 7 tests / 49 assertions after all 21 migrations. Composer validation, Pint, build, docs and whitespace pass.
@@ -28,7 +93,7 @@ M3 is locally accepted, not production-released. Per the product owner's stop in
 
 ## 2026-09-13 check-in/session stage CLOSED
 
-IMPLEMENTED / LOCALLY ACCEPTED: atomic idempotent ticket-backed check-in, one Active play session with immutable pricing/time facts, tenant-wide Active/Paused child uniqueness, hard branch capacity, append-only session/scan/audit evidence and a bilingual masked live board. Owner/assigned Manager/Reception may check in; Cashier is read-only. Full MySQL passes 272 / 2,385, SQLite and PHP 8.5 pass 270 of 272 / 2,338 with two MySQL-only skips, true concurrency passes 2 / 47, and authenticated responsive Edge QA passes. Existing port 8206 was untouched.
+IMPLEMENTED / LOCALLY ACCEPTED: atomic idempotent ticket-backed check-in, one Active play session with immutable pricing/time facts, tenant-wide active-child uniqueness (paused is deferred), hard branch capacity, append-only session/scan/audit evidence and a bilingual masked live board. Owner/assigned Manager/Reception may check in; Cashier is read-only. Full MySQL passes 272 / 2,385, SQLite and PHP 8.5 pass 270 of 272 / 2,338 with two MySQL-only skips, true concurrency passes 2 / 47, and authenticated responsive Edge QA passes. Existing port 8206 was untouched.
 
 This closes the bounded check-in/session stage, not production readiness or checkout/finance. M4 did not start. If the owner explicitly resumes it, first freeze the smallest checkout/time-and-charge contract and OQ-19 station ownership before implementing any release verification, final charge, payment or refund behavior.
 

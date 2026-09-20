@@ -123,6 +123,64 @@ class PlaySessionAdjustmentTest extends TestCase
         $this->assertDatabaseCount('play_session_adjustments', 0);
     }
 
+    public function test_foreign_tenant_session_is_hidden_without_mutation(): void
+    {
+        [, , $manager, , $session] = $this->fixture();
+        [, , , , $foreignSession] = $this->fixture();
+        $before = $this->adjustmentMutationSnapshot($foreignSession);
+
+        $this->actingAs($manager)
+            ->postJson($this->url($foreignSession), [
+                'expected_lock_version' => $foreignSession->lock_version,
+                'adjustment_minor' => 100,
+                'reason' => 'Cross-tenant attempt',
+                'idempotency_key' => (string) Str::uuid(),
+            ])
+            ->assertNotFound();
+
+        $this->assertSame($before, $this->adjustmentMutationSnapshot($foreignSession));
+    }
+
+    public function test_unassigned_branch_session_is_hidden_without_mutation(): void
+    {
+        [$tenant, , $manager, , $session] = $this->fixture();
+        DB::table('branch_user')
+            ->where('tenant_id', $tenant->id)
+            ->where('branch_id', $session->branch_id)
+            ->where('user_id', $manager->id)
+            ->delete();
+        $before = $this->adjustmentMutationSnapshot($session);
+
+        $this->actingAs($manager)
+            ->postJson($this->url($session), [
+                'expected_lock_version' => $session->lock_version,
+                'adjustment_minor' => 100,
+                'reason' => 'Unassigned branch attempt',
+                'idempotency_key' => (string) Str::uuid(),
+            ])
+            ->assertNotFound();
+
+        $this->assertSame($before, $this->adjustmentMutationSnapshot($session));
+    }
+
+    public function test_inactive_branch_session_is_hidden_without_mutation(): void
+    {
+        [, , $manager, , $session] = $this->fixture();
+        DB::table('branches')->where('id', $session->branch_id)->update(['is_active' => false]);
+        $before = $this->adjustmentMutationSnapshot($session);
+
+        $this->actingAs($manager)
+            ->postJson($this->url($session), [
+                'expected_lock_version' => $session->lock_version,
+                'adjustment_minor' => 100,
+                'reason' => 'Inactive branch attempt',
+                'idempotency_key' => (string) Str::uuid(),
+            ])
+            ->assertNotFound();
+
+        $this->assertSame($before, $this->adjustmentMutationSnapshot($session));
+    }
+
     public function test_checkout_freezes_the_deterministic_quote_with_prior_adjustments(): void
     {
         [$tenant, $owner, $manager, , $session] = $this->fixture();
@@ -230,5 +288,65 @@ class PlaySessionAdjustmentTest extends TestCase
     private function url(PlaySession $session): string
     {
         return route('sessions.adjustments.store', ['session' => $session->id]);
+    }
+
+    /** @return array<string, mixed> */
+    private function adjustmentMutationSnapshot(PlaySession $session): array
+    {
+        $fresh = $session->fresh();
+        $sessionFields = [
+            'tenant_id', 'branch_id', 'child_id', 'guardian_id', 'ticket_id', 'pricing_rule_id', 'status',
+            'started_at', 'expected_end_at', 'ended_at', 'pricing_snapshot_json', 'lock_version',
+            'checkout_idempotency_key', 'checkout_fingerprint', 'checkout_guardian_id', 'checkout_verification_method',
+            'checkout_override_reason', 'checkout_verified_by_user_id', 'checkout_verified_at', 'checkout_prepared_at',
+            'checkout_snapshot_json', 'checkout_amount_due_minor',
+        ];
+        $sessionSnapshot = [];
+        foreach ($sessionFields as $field) {
+            $sessionSnapshot[$field] = $fresh->getRawOriginal($field);
+        }
+        $quote = $fresh->checkout_snapshot_json;
+
+        return [
+            'branch' => DB::table('branches')->where('id', $fresh->branch_id)->get(['tenant_id', 'id', 'is_active', 'lock_version'])->map(static fn ($row): array => (array) $row)->all(),
+            'session' => $sessionSnapshot,
+            'adjustments' => DB::table('play_session_adjustments')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->where('session_id', $fresh->id)
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'commands' => DB::table('play_session_commands')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->where('session_id', $fresh->id)
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'events' => DB::table('play_session_events')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->where('session_id', $fresh->id)
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'audits' => DB::table('audit_logs')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'payment' => [
+                'amount_due_minor' => $fresh->checkout_amount_due_minor,
+                'currency' => data_get($quote, 'currency'),
+                'status' => $fresh->status === 'pending_payment' ? 'pending' : 'not_recorded',
+            ],
+            'totals' => [
+                'subtotal_minor' => data_get($quote, 'subtotal_minor'),
+                'tax_minor' => data_get($quote, 'tax_minor'),
+                'total_minor' => data_get($quote, 'total_minor'),
+            ],
+        ];
     }
 }

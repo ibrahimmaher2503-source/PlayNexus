@@ -340,6 +340,33 @@ class PlaySessionCheckInTest extends TestCase
         $this->assertSame(0, $pausedTicket->fresh()->uses_count);
     }
 
+    public function test_pending_payment_no_longer_occupies_play_capacity(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $branch->forceFill(['capacity' => 1])->save();
+        $rule = $this->rule($tenant, $branch, $owner, 'PENDING-CAPACITY-RULE');
+        $type = $this->type($tenant, $branch, $rule, $owner, 'PENDING-CAPACITY-TYPE');
+        [$firstGuardian, $firstChild] = $this->family($tenant, $owner);
+        [$secondGuardian, $secondChild] = $this->family($tenant, $owner);
+        $date = $this->openForToday($branch);
+        $firstTicket = $this->issue($owner, $branch, $type, $firstGuardian, $firstChild, $date);
+        $secondTicket = $this->issue($owner, $branch, $type, $secondGuardian, $secondChild, $date);
+
+        $sessionId = $this->actingAs($owner)
+            ->postJson(route('sessions.check-in'), $this->checkInPayload($branch, $firstTicket))
+            ->assertCreated()
+            ->json('session_id');
+        DB::table('play_sessions')->where('id', $sessionId)->update(['status' => 'pending_payment']);
+
+        $this->actingAs($owner)
+            ->postJson(route('sessions.check-in'), $this->checkInPayload($branch, $secondTicket))
+            ->assertCreated()
+            ->assertJsonPath('result', 'accepted');
+
+        $this->assertDatabaseCount('play_sessions', 2);
+    }
+
     public function test_check_in_audit_failure_rolls_back_ticket_session_event_and_audit(): void
     {
         [$tenant, $owner] = $this->owner();

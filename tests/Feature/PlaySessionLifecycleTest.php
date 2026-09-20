@@ -46,7 +46,7 @@ class PlaySessionLifecycleTest extends TestCase
             ->assertJsonPath('extension_seconds_added', 1800);
 
         $updated = $session->fresh();
-        $this->assertSame(1, DB::table('play_session_adjustments')->where('session_id', $session->id)->sum('extension_units'));
+        $this->assertSame(1, (int) DB::table('play_session_adjustments')->where('session_id', $session->id)->sum('extension_units'));
         $this->assertSame($session->started_at->addSeconds(5400)->timestamp, $updated->expected_end_at->timestamp);
         $this->assertDatabaseHas('play_session_events', ['session_id' => $session->id, 'event_type' => 'extended']);
         $this->assertDatabaseHas('audit_logs', ['tenant_id' => $tenant->id, 'action' => 'session.extended']);
@@ -168,6 +168,21 @@ class PlaySessionLifecycleTest extends TestCase
         $this->assertSame('active', $session->fresh()->status);
     }
 
+    public function test_family_profile_shows_scoped_visit_history(): void
+    {
+        [, $owner, , , $session] = $this->fixture();
+        $foreignSession = $this->fixture()[4];
+
+        $this->actingAs($owner)
+            ->get(route('families.show', $session->guardian))
+            ->assertOk()
+            ->assertSee(__('families.visit_history_heading'))
+            ->assertSee($session->child->full_name)
+            ->assertSee($session->branch->name)
+            ->assertDontSee($foreignSession->child->full_name)
+            ->assertDontSee($foreignSession->branch->name);
+    }
+
     public function test_mysql_parallel_lifecycle_commands_are_serialized_and_idempotent(): void
     {
         if (DB::connection()->getDriverName() !== 'mysql') {
@@ -227,6 +242,19 @@ class PlaySessionLifecycleTest extends TestCase
         ]);
         $guardian = Guardian::factory()->create(['tenant_id' => $tenant->id, 'created_by_user_id' => $owner->id, 'updated_by_user_id' => $owner->id]);
         $child = Child::factory()->create(['tenant_id' => $tenant->id, 'created_by_user_id' => $owner->id, 'updated_by_user_id' => $owner->id]);
+        DB::table('guardian_child')->insert([
+            'tenant_id' => $tenant->id,
+            'guardian_id' => $guardian->id,
+            'child_id' => $child->id,
+            'relationship_type' => 'parent',
+            'can_consent' => true,
+            'can_check_out' => true,
+            'is_active' => true,
+            'created_by_user_id' => $owner->id,
+            'updated_by_user_id' => $owner->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
         $type = TicketType::query()->create([
             'tenant_id' => $tenant->id, 'branch_id' => $branch->id, 'pricing_rule_id' => $rule->id,
             'code' => 'LIFECYCLE-'.Str::upper(Str::random(8)), 'name' => 'Lifecycle test', 'price_minor' => 15000,
@@ -297,7 +325,7 @@ PHP;
         $processes = [];
         DB::beginTransaction();
         try {
-            DB::table('tenants')->whereKey($actor->tenant_id)->lockForUpdate()->first();
+            DB::table('tenants')->where('id', $actor->tenant_id)->lockForUpdate()->first();
             for ($index = 0; $index < 2; $index++) {
                 $processPayload = $payload;
                 if (! $sameKey) {

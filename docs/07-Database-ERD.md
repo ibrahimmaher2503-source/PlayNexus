@@ -1,10 +1,18 @@
 # PlayNexus Database ERD and Schema Specification
 
+## 2026-09-15 actual-schema boundary
+
+The migrations are the authority for the implemented schema: conventional bigint identifiers, explicit tenant/branch composite constraints, workflow-specific idempotency records, and implemented `plans`, `subscriptions`, and `subscription_billing_records`. Provider events remain target-only; Egypt MVP explicitly excludes pause.
+
+## 2026-09-15 M6 notification implementation subset
+
+Migration `2026_09_15_000023_create_operational_notifications` implements `notification_messages` and append-only `notification_attempts` with explicit tenant and optional branch/guardian/session/order scope, encrypted and masked destination, allowlisted purpose/template, dedupe identity, attempts/timestamps and truthful terminal state. Provider callback events remain unimplemented with external providers blocked by OQ-05/OQ-13; incident tables remain absent under OQ-20.
+
 ## 2026-09-13 check-in/session implementation subset
 
 Migration `2026_09_13_000015_create_play_sessions` adds conventional bigint `play_sessions` and append-only `play_session_events`, while adding the composite ticket key needed for `(tenant_id,branch_id,ticket_id)` integrity. A session carries explicit tenant, branch, child, guardian, ticket, pricing rule, status, UTC start/expected/end times, immutable pricing snapshot, actor and lock version. Composite foreign keys prevent cross-tenant/cross-branch ticket, pricing, family or actor references; one tenant/ticket can create at most one session. Event rows carry transition, reason, actor, UTC occurrence, bounded metadata and request ID.
 
-The application serializes accepted check-in through the tenant lock and treats both Active and Paused rows as occupying child/capacity state. MySQL and SQLite cannot express the intended conditional uniqueness identically without a generated-column design, so the current safe MVP invariant is transactional and covered by a real InnoDB multi-process test. There is no authentication-table collision because the aggregate is named `play_sessions`. No pause/checkout/payment/receipt tables or commands are introduced by this subset.
+The application serializes accepted check-in through the tenant lock and treats Active rows as occupying child/capacity state. Paused rows are historical target material and cannot be created in the Egypt MVP. MySQL and SQLite cannot express the intended conditional uniqueness identically without a generated-column design, so the current safe MVP invariant is transactional and covered by a real InnoDB multi-process test. There is no authentication-table collision because the aggregate is named `play_sessions`. No pause/checkout/payment/receipt tables or commands are introduced by this subset.
 
 The M3 live estimate adds no table or column: it reads `play_sessions.started_at` and `pricing_snapshot_json` at one server time and returns an in-memory view attribute only. Final checkout inputs/outputs must use their later immutable persistence contract rather than reusing this display estimate as financial evidence.
 
@@ -120,7 +128,7 @@ erDiagram
     INCIDENTS ||--o{ INCIDENT_UPDATES : follows_up_if_enabled
 ```
 
-Games, queues, participation, cashier shifts/cash-drawer balancing, birthdays, membership, loyalty, wallet, inventory, HR, marketplace, and online-payment tables are intentionally absent from the MVP schema. No migration, model, permission seed, or API route for those deferred capabilities may ship in Phase 1. Incident tables shown in this proposed ERD are conditional and remain out of the migration set unless OQ-20 is approved.
+Games, queues, participation, cashier shifts/cash-drawer balancing, birthdays, membership, loyalty, wallet, inventory, HR, marketplace, online-payment, and incident-management tables are intentionally absent from the Egypt V1 schema. OQ-20 explicitly defers incidents; a later approved contract is required before any such migration, model, permission, or route ships.
 
 ## 3. Platform and access tables
 
@@ -128,12 +136,17 @@ Games, queues, participation, cashier shifts/cash-drawer balancing, birthdays, m
 
 | Column | Type | Null/default | Constraints/notes |
 |---|---|---|---|
-| `id` | CHAR(26) | no | PK |
+| `id` | BIGINT UNSIGNED | no | PK |
 | `code` | VARCHAR(50) | no | unique immutable code |
 | `name` | VARCHAR(120) | no | display name |
-| `status` | ENUM | `active` | `draft`, `active`, `retired` |
-| `limits_json` | JSON | no | bounded plan limits; validated in application |
-| `features_json` | JSON | no | enabled capability codes |
+| `description` | VARCHAR(500) | yes | editable description |
+| `status` | VARCHAR(20) | `active` | application-restricted to `active`, `inactive` |
+| `limits_json` | JSON | no | canonical `branches` and `users` quantitative limits |
+| `features_json` | JSON | no | empty for OQ-04; feature gating is not approved |
+| `monthly_price_minor`, `annual_price_minor` | BIGINT UNSIGNED | yes | EGP plan prices in minor units |
+| `annual_discount_bps` | INT UNSIGNED | `0` | annual discount in basis points |
+| `currency` | CHAR(3) | `EGP` | OQ-04 catalog currency |
+| `lock_version` | INT UNSIGNED | `1` | optimistic concurrency |
 | `created_at`, `updated_at` | DATETIME(6) | no | UTC |
 
 Indexes: `UNIQUE(code)`, `INDEX(status)`.
@@ -143,13 +156,13 @@ Indexes: `UNIQUE(code)`, `INDEX(status)`.
 | Column | Type | Null/default | Constraints/notes |
 |---|---|---|---|
 | `id` | CHAR(26) | no | PK |
-| `plan_id` | CHAR(26) | no | FK → `plans.id` |
+| `current_subscription_id` | BIGINT UNSIGNED | yes | authoritative current subscription; composite FK with tenant id |
 | `legal_name` | VARCHAR(190) | no | business name |
 | `display_name` | VARCHAR(190) | no | UI name |
 | `slug` | VARCHAR(100) | no | unique login/URL identifier |
 | `status` | ENUM | `pending` | `pending`, `active`, `suspended`, `closed` |
-| `billing_status` | ENUM | `trial` | `trial`, `current`, `past_due`, `cancelled` |
-| `currency` | CHAR(3) | no | proposed tenant reporting/accounting currency pending OQ-06 |
+| `billing_status` | VARCHAR(20) | `trial` | denormalized display value; never the access authority |
+| `currency` | CHAR(3) | no | approved Egypt V1 accounting currency is EGP under OQ-06 |
 | `locale` | VARCHAR(10) | `en` | e.g. `en`, `ar` |
 | `settings_json` | JSON | no | approved tenant-wide operational settings |
 | `activated_at` | DATETIME(6) | yes | UTC |
@@ -161,7 +174,11 @@ Indexes: `UNIQUE(slug)`, `INDEX(plan_id,status)`, `INDEX(billing_status)`.
 
 ### 3.3 `subscriptions`
 
-Tenant-owned. Columns: `plan_id CHAR(26)`, `status ENUM('trialing','active','past_due','cancelled','expired')`, `starts_at DATETIME(6)`, `trial_ends_at DATETIME(6) NULL`, `current_period_starts_at DATETIME(6)`, `current_period_ends_at DATETIME(6)`, `cancelled_at DATETIME(6) NULL`, `external_reference VARCHAR(190) NULL`, standard timestamps. Indexes: `(tenant_id,status,current_period_ends_at)`, `(external_reference)`. Only one current subscription is enforced by the Platform application action under a tenant-row lock.
+Tenant-owned historical rows. Important columns are `tenant_id`, `plan_id`, approved lifecycle `status`, `billing_interval`, immutable `price_amount_minor`/`price_currency`/`price_annual_discount_bps` snapshots, `custom_limits_json`, optional `custom_limits_override_until`, mandatory override reason/actor fields, `starts_at`, trial/grace/current-period boundaries, cancellation facts, `lock_version`, and timestamps. `tenants.current_subscription_id` is the sole effective pointer and is protected by a composite `(tenant_id,id)` foreign key; plan changes append history rather than overwriting it.
+
+### 3.3.1 `subscription_billing_records`
+
+Manual PlayNexus SaaS billing only, separate from venue POS. Stores tenant/subscription, tenant-scoped unique reference, integer minor-unit amount, EGP currency, billing-period boundaries, payment timestamp/method, notes, recording actor, and timestamps. A composite tenant/subscription foreign key prevents cross-tenant invoice attachment.
 
 ### 3.4 `branches`
 
@@ -314,7 +331,7 @@ Tenant-owned.
 | `child_id` | CHAR(26) | no | tenant-aware FK |
 | `ticket_id` | CHAR(26) | yes | one-to-one when used; unique `(tenant_id,ticket_id)` |
 | `pricing_rule_id` | CHAR(26) | no | source rule |
-| `status` | ENUM | `active` | `active`, `paused`, `completed`, `cancelled` |
+| `status` | ENUM | `active` | `active`, `pending_payment`, `completed`, `cancelled` (paused is historical target only) |
 | `started_at` | DATETIME(6) | no | server UTC |
 | `expected_end_at` | DATETIME(6) | yes | for operational alerting only |
 | `ended_at` | DATETIME(6) | yes | set on completed/cancelled |
@@ -338,7 +355,7 @@ Tenant-owned.
 | `lock_version` | INT UNSIGNED | `1` | increment every transition |
 | standard timestamps | DATETIME(6) | no | UTC |
 
-Indexes: `(tenant_id,branch_id,status,started_at)`, `(tenant_id,child_id,status)`, `(tenant_id,status,expected_end_at)`, `(tenant_id,started_at)`, unique ticket and order links. Check end/state consistency. Duplicate active sessions are prevented by locking the child row and checking active/paused sessions in the same transaction; no alternate write path may bypass the session action.
+Indexes: `(tenant_id,branch_id,status,started_at)`, `(tenant_id,child_id,status)`, `(tenant_id,status,expected_end_at)`, `(tenant_id,started_at)`, unique ticket and order links. Check end/state consistency. Duplicate active sessions are prevented by locking the child row and checking active sessions in the same transaction; no alternate write path may bypass the session action.
 
 ### 5.7 `session_pauses`
 
@@ -376,7 +393,7 @@ Tenant-owned and append-only. Columns: `order_id`, `method ENUM('cash','card_ter
 
 ### 6.5 `refunds`
 
-Tenant-owned and append-only. Columns: `order_id`, `payment_id`, `status ENUM('posted')`, `amount_minor BIGINT`, `currency CHAR(3)`, `reason VARCHAR(500)`, `requested_by_user_id`, `approval_record_id`, `posted_by_user_id`, `posted_at`, `external_reference NULL`, `idempotency_key`, timestamps. Unique `(tenant_id,order_id)`, `(tenant_id,payment_id)`, and `(tenant_id,idempotency_key)`; index `(tenant_id,posted_at)`. The server derives `amount_minor` and `currency` from the one posted payment; they are not writable refund input. Posting requires no prior refund and `amount_minor = payment.amount_minor = order.paid_minor = order.total_minor`; partial refunds are future scope.
+The approved cash pilot uses one tenant/branch-owned request record with `order_id`, `payment_id`, `requested_by_user_id`, `approved_by_user_id NULL`, `executed_by_user_id NULL`, `amount_minor`, `currency`, `reason`, `expected_order_lock_version`, request/execution idempotency keys and fingerprints, and requested/approved/executed UTC timestamps. State is `requested → approved → refunded`. Approval and execution are distinct; requester cannot approve. Executed financial facts are immutable. Unique `(tenant_id,order_id)` and tenant-scoped request/execution keys prevent duplicate reversal. Composite payment linkage must bind tenant, branch, order and payment together. The server derives full amount/currency from the original posted cash payment; execution requires the original branch and same branch-local date, no prior refund, and `amount_minor = payment.amount_minor = order.paid_minor = order.total_minor`. Every linked ticket must be unused with no accepted scan or session; execution invalidates refunded tickets atomically. Original receipt commercial snapshots are retained, with current refund state returned separately. Partial refunds and a generic shared approval framework are outside this pilot.
 
 ### 6.6 `branch_sequences`
 
@@ -386,7 +403,7 @@ Tenant-owned. Columns: `branch_id`, `sequence_name VARCHAR(50)`, `current_value 
 
 ### 7.1 `approval_records`
 
-Tenant-owned and append-only after decision. Columns: `branch_id NULL`, `action ENUM('discount','refund','session_adjustment','checkout_override','ticket_cancel','order_void')`, `subject_type VARCHAR(80)`, `subject_id CHAR(26)`, `subject_lock_version INT UNSIGNED`, `status ENUM('pending','approved','rejected','expired','consumed')`, `requested_by_user_id`, `request_reason VARCHAR(500)`, `request_payload_json JSON`, `decided_by_user_id NULL`, `decision_reason VARCHAR(500) NULL`, `decided_at NULL`, `expires_at`, `consumed_at NULL`, `consumed_request_id CHAR(36) NULL`, `lock_version INT UNSIGNED DEFAULT 1`, timestamps. Indexes `(tenant_id,branch_id,status,expires_at)`, `(tenant_id,subject_type,subject_id)`, `(tenant_id,requested_by_user_id,created_at)`. The requester cannot approve their own request except an explicitly audited Tenant Owner emergency override; approvals are single-use and action/subject/payload/version bound.
+The bounded pilot table holds discount approvals only: explicit tenant/branch/order references, requester/approver/rejecter/consumer references, fixed `discount_minor`, currency, reason/rejection reason, server-derived reviewable `request_payload_json`, payload fingerprint, expected order lock version, ten-minute expiry and decision/consumption timestamps. State is `requested → approved/rejected`, and approved records can be consumed once inside the payment transaction. Expired or changed-cart requests fail closed. The requester cannot approve their own request; there is no emergency self-approval exception in this pilot. The fingerprint binds the locked persisted server-priced lines, totals, currency, exact discount and version, not arbitrary client JSON. Empty-line drafts are ineligible. Discount allocation preserves unit prices and reconciles line totals with the discounted order. Refund decisions stay in their dedicated request table; other sensitive session/ticket commands retain their existing audited domain contracts rather than introducing a speculative generic approval framework.
 
 ### 7.2 `notification_messages`
 
@@ -410,37 +427,37 @@ Tenant-owned for tenant activity; platform activity uses a separate `platform_au
 
 Tenant-owned. Columns: `actor_user_id`, `route_fingerprint VARCHAR(190)`, `idempotency_key VARCHAR(100)`, `request_hash CHAR(64)`, `state ENUM('processing','completed','failed')`, `response_status SMALLINT UNSIGNED NULL`, `response_headers_json JSON NULL`, `response_body_json JSON NULL`, `locked_until DATETIME(6)`, `expires_at DATETIME(6)`, `created_at`, `updated_at`. Unique `(tenant_id,actor_user_id,route_fingerprint,idempotency_key)`; index `(tenant_id,expires_at)`. Never store secrets or unmasked payment data in cached responses.
 
-## 8. Basic incidents — conditional on OQ-20
+## 8. Basic incidents — deferred by OQ-20
 
 Games, game queues, participation, and game capacity are future scope. Their tables are not part of this migration plan.
 
 ### 8.1 `incidents`
 
-This table is a conditional design, not an approved MVP migration. If OQ-20 is approved, use these tenant-owned columns: `branch_id`, `child_id NULL`, `session_id NULL`, `category_code VARCHAR(80)`, `severity ENUM('low','medium','high','critical')`, `status ENUM('open','under_review','closed')`, `title VARCHAR(190)`, `description_encrypted LONGTEXT`, `reported_by_user_id`, `assigned_to_user_id NULL`, `occurred_at`, `closed_at NULL`, `lock_version`, timestamps. Proposed indexes are `(tenant_id,branch_id,status,occurred_at)`, `(tenant_id,child_id,occurred_at)`, `(tenant_id,reported_by_user_id,occurred_at)`, `(tenant_id,severity,status)`. Incident content is sensitive and masked/permission-controlled. Category allowlist, transition/reopen rules, and severity policy remain proposed pending OQ-20.
+This table is a historical proposed design, not an approved Egypt V1 migration. OQ-20 defers the module; any reopening requires a newly approved incident contract before these fields may be treated as authoritative: `branch_id`, `child_id NULL`, `session_id NULL`, `category_code VARCHAR(80)`, `severity ENUM('low','medium','high','critical')`, `status ENUM('open','under_review','closed')`, `title VARCHAR(190)`, `description_encrypted LONGTEXT`, `reported_by_user_id`, `assigned_to_user_id NULL`, `occurred_at`, `closed_at NULL`, `lock_version`, timestamps. Historical proposed indexes were `(tenant_id,branch_id,status,occurred_at)`, `(tenant_id,child_id,occurred_at)`, `(tenant_id,reported_by_user_id,occurred_at)`, `(tenant_id,severity,status)`.
 
 ### 8.2 `incident_updates`
 
-Conditional on OQ-20. Tenant-owned and append-only. Columns: `incident_id`, `from_status ENUM('open','under_review','closed')`, `to_status ENUM('open','under_review','closed')`, `note_encrypted LONGTEXT`, `created_by_user_id`, `occurred_at`, `request_id CHAR(36)`. Index `(tenant_id,incident_id,occurred_at)`. Update operations append here and change only the incident's current status/assignment/version; they never replace the original report.
+Deferred by OQ-20. The historical proposal was tenant-owned and append-only with columns: `incident_id`, `from_status ENUM('open','under_review','closed')`, `to_status ENUM('open','under_review','closed')`, `note_encrypted LONGTEXT`, `created_by_user_id`, `occurred_at`, `request_id CHAR(36)`. It is not an active Egypt V1 contract.
 
 ## 9. Canonical enums and transitions
 
 Application enums must mirror database values exactly. Do not accept arbitrary state strings.
 
-The order/payment/refund values below implement planning assumptions ASM-08/ASM-10 and are not finance-approved until OQ-09 closes. If OQ-09 permits split/partial behavior, revise the financial aggregates, invariants, API, receipt, report, and tests before migration freeze.
+The order/payment/refund values below implement the approved OQ-09 cash-only, one-full-refund baseline. Split/partial behavior remains deferred and requires a later synchronized aggregate, API, receipt, report and test change.
 
 | Aggregate | Values | Allowed transitions |
 |---|---|---|
 | Tenant | `pending`, `active`, `suspended`, `closed` | pending→active/suspended; active→suspended/closed; suspended→active/closed |
 | Branch | `active`, `inactive` | either direction; inactive blocks new operational records |
 | User | `invited`, `active`, `suspended`, `disabled` | invited→active/disabled; active↔suspended; any→disabled |
-| Session | `active`, `paused`, `completed`, `cancelled` | active↔paused; active/paused→completed/cancelled |
+| Session | `active`, `pending_payment`, `completed`, `cancelled` | active?pending_payment?completed; active?cancelled (paused is historical target only) |
 | Ticket | `issued`, `consumed`, `cancelled`, `expired` | issued→consumed/cancelled/expired |
 | Order | `draft`, `paid`, `refunded`, `voided` | draft→paid/voided; paid→refunded |
 | Payment | `posted`, `voided` | append as posted; posted→voided only through authorized correction |
 | Refund | `posted` | append once for the full posted payment; no partial/refund state machine |
 | Approval | `pending`, `approved`, `rejected`, `expired`, `consumed` | pending→approved/rejected/expired; approved→consumed/expired |
 | Notification | `queued`, `sending`, `sent`, `delivered`, `failed_retryable`, `failed_permanent`, `stale` | queued→sending/stale; sending→sent/failed_retryable/failed_permanent/stale; failed_retryable→queued/failed_permanent/stale; sent→delivered; terminal states never regress |
-| Incident | `open`, `under_review`, `closed` | exact transition/reopen policy is blocked by OQ-20; stored codes are canonical |
+| Incident | N/A in Egypt V1 | OQ-20 defers the module; historical proposed codes are not an active contract |
 
 Use state transition actions, not generic model update endpoints.
 
@@ -544,13 +561,13 @@ Migrations must be small and reversible until data-bearing destructive changes. 
 10. `sessions` without `order_id` FK; then `session_pauses`, `session_extensions`, `session_adjustments`, `session_events`, `ticket_scans`.
 11. `orders`, `order_items`, `payments`, `refunds`.
 12. Add deferred cycle FKs: `tickets.order_item_id`, `sessions.order_id`; add order/session unique links.
-13. If and only if OQ-20 approves incident scope: `incidents`, `incident_updates`.
+13. Only after a later decision reopens and approves incident scope: `incidents`, `incident_updates`.
 14. `notification_messages`, `notification_attempts`, `notification_provider_events`.
 15. `audit_logs`, `platform_audit_logs`, `idempotency_requests`.
 16. Framework `jobs`, `job_batches` if used, and `failed_jobs`.
 17. Seed immutable roles, MVP permissions, role-permission mappings, allowlisted operational notification templates, and a controlled initial Super Admin. Do not seed games, shifts, marketing, parent self-service, or incident permissions unless their scope is approved.
 
-OQ-06, OQ-08, OQ-12, OQ-15, OQ-17, and the M2 handling of OQ-20 are decided. OQ-20 incident tables remain deferred and OQ-24 remains open for later POS scope. Production privacy notice/licensing and Finance/Legal deployment sign-off remain operational gates, not permission to invent new schema behavior.
+OQ-06, OQ-08, OQ-09, OQ-12, OQ-15, OQ-17 and OQ-19 are decided. OQ-20 incident tables and OQ-24 cashier shifts remain deferred. Production privacy notice/licensing and Finance/Legal deployment sign-off remain operational gates.
 
 For the first migration set, use fresh schema creation rather than a long series of rename/alter migrations. Once production contains data, all migration changes become forward-only operational changes with explicit rollback/roll-forward instructions.
 
@@ -574,7 +591,7 @@ refunded order has exactly one posted full refund and refunded_minor = paid_mino
 refund amount/currency = linked payment amount/currency; partial values are impossible
 session.total_minor = session.subtotal_minor + session.tax_minor + session.adjustment_minor
 completed session has ended_at, checkout verifier, calculation snapshot, and order link
-active/paused session has ended_at IS NULL
+active or pending_payment session has ended_at IS NULL
 cancelled session has ended_at, cancelled_by_user_id, and cancellation_reason
 child has at least one active checkout-capable guardian relationship
 every cross-tenant reference has matching tenant_id

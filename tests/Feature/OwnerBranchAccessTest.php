@@ -25,8 +25,8 @@ class OwnerBranchAccessTest extends TestCase
         $this->actingAs($owner)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee([$first->name, $second->name])
-            ->assertDontSee([$inactive->name, $foreign->name]);
+            ->assertSee([$first->name, $second->name, $inactive->name])
+            ->assertDontSee($foreign->name);
 
         $this->post(route('branch-context.store', $second))
             ->assertRedirect(route('dashboard'))
@@ -34,7 +34,7 @@ class OwnerBranchAccessTest extends TestCase
         $this->get(route('dashboard'))
             ->assertOk()
             ->assertSee($second->name)
-            ->assertSee(__('dashboard.workspace_title'));
+            ->assertSee(__('actor_dashboard.titles.owner'));
 
         $this->getJson('/branches/'.$first->id)
             ->assertOk()

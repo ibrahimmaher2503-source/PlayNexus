@@ -1,5 +1,51 @@
 # Progress
 
+## 2026-09-15 GAP-02–06/09 and DOC-01–09 closure
+
+- Fresh isolated MySQL 8.4.11/InnoDB PASS: 410/410 tests / 3,411 assertions under strict mode and `ONLY_FULL_GROUP_BY`.
+
+- Reviewed Luna/xhigh outputs centrally after the agents reached their usage limit; fixed the shared report tuple regression and security-denial middleware response path.
+- Closed locale submission, scoped Branch Manager staff/assignment management, revenue breakdown/currency/timezone/Net, session-history detail, and authentication/security audit.
+- Browser PASS on isolated local data: EN↔AR, Manager branch/staff mutation, USD/America-New_York report context, Arabic RTL and zero console errors.
+- Final SQLite PASS: 410 total / 406 passed / 4 MySQL-only skips / 3,313 assertions. Documentation is reconciled without erasing historical evidence.
+- Remaining ledger items need explicit Commercial/Security/Legal/DPO/Operations decisions; they are not authorized implementation work.
+
+## 2026-09-15 GAP-01 POS ticket-sale closure
+
+- Luna/xhigh implemented the bounded POS family/date slice but hit its usage limit before its final report; the coordinator reviewed and accepted the shared-worktree changes independently.
+- Added masked eligible family selection and a native service date; the same ticket facts now bind quote, draft, discount approval and payment-time issuance, with server-side tenant eligibility checks.
+- Central PASS: 27 tests / 230 assertions, scoped Pint, Vite build, and authenticated isolated browser quote → draft → cash payment → receipt with the expected issued ticket. GAP-02 remains next.
+
+## 2026-09-15 UI wireframe audit and shell redesign
+
+- Audited all fifteen wireframe surfaces against current routes, controllers and rendered pages; added a canonical status matrix to `docs/10-UI-UX-Wireframes.md` separating implemented outcomes from provider/incident decisions that remain explicitly deferred.
+- Rebuilt the authenticated sidebar into permission-aware operational groups with persistent 248/80px desktop states, branch/time context, notification access, user/tenant identity, a responsive native drawer, bilingual RTL/LTR behavior and unique accessible section IDs.
+- Filled the approved WF-03 gap with branch-scoped committed live-session, attendance, net-revenue and recent-audit summaries. Added a native online/offline safety banner that disables unsafe submits while disconnected; no offline writes were introduced.
+
+
+## 2026-09-15 M6 local engineering closure
+
+- CodeGraph incremental index exposed zero nodes; a forced rebuild parsed 277 files and confirmed no existing report/durable-notification subsystem to reuse. Existing audit, financial, session, queue and scheduler paths were traced before implementation.
+- Implemented reports, streamed CSV, durable local notifications, scheduler/queue processing, audit extension, bilingual UI, synthetic pilot seed and operations/restore runbook.
+- Closed MySQL `ONLY_FULL_GROUP_BY` portability in the shared revenue summary, hid unauthorized report/purpose choices in role-specific UI, and added bounded notification retry backoff.
+- Luna/xhigh review found five material gaps; central fixes now reconcile refunds on execution time, enforce per-branch multi-role staff scope, stale obsolete session alerts, implement the required session filters and enforce append-only audit rows with database triggers. A second Luna pass was requested but hit its usage limit, so only central test evidence is accepted.
+- Final PASS: focused M6 24/150; SQLite PHP 8.4 and 8.5 each 398 total / 394 passed / 4 MySQL-only skips / 3,206 assertions; MySQL 8.4.11/InnoDB 398/398 / 3,304; concurrency 3/76; rollback/reapply and isolated restore; dependency/secret/static/build/docs gates; authenticated Owner/Reception/Cashier English/Arabic browser acceptance; and final 1,000-row report p95/max 194 ms.
+- Status is `LOCALLY_ENGINEERING_ACCEPTED`, not `PILOT_READY`; external release gates remain in `.ai/BLOCKERS.md`.
+
+## 2026-09-15 M5 final review
+
+- Refreshed CodeGraph and manually traced the financial web routes through controllers, policies, locked actions, models and database writes.
+- Closed explicit-cash fail-open behavior, preserved idempotent replay across later configuration changes, and added the missing role-correct discount UI lifecycle.
+- Focused M5 checks pass 55 / 368; full SQLite passes on PHP 8.4.21 and PHP 8.5.8 with 379 of 383 and four MySQL-only skips / 3,131 assertions. Full isolated MySQL 8.4.11/InnoDB passes 383 / 3,229, including a two-process settlement/refund race at 1 / 29. Pint, build, Blade, routes, docs, whitespace and authenticated Arabic desktop inspection pass.
+- Status is `LOCALLY_ENGINEERING_ACCEPTED`; production Finance/Legal, hosted CI and operational release controls remain separate.
+
+## 2026-09-15 M5 coordinator integration review
+
+- Reviewed all three Luna/xhigh deliveries and fixed the cross-slice permission, legal seller snapshot, receipt-sequence update and transaction eligibility hydration defects.
+- Final SQLite regression PASS: 379 total / 376 passed / 3 environment skips / 3,109 assertions. Pint, Vite, routes, documentation and whitespace gates pass.
+- Authenticated isolated desktop browser journey PASS in English and Arabic RTL: catalog, quote, draft, exact cash payment, sequential immutable QR receipt and transaction/refund review; no console errors.
+- Status is `LOCALLY_ACCEPTED_SQLITE_BROWSER / MYSQL_8_4_PENDING`. The available database service is MariaDB 10.4.32, so no MySQL 8.4/concurrency or production claim is made.
+
 ## 2026-09-14 M0 scaffold repair
 
 - Added a minimal hosted M0 gate, safe database-target validation, a project-local SQLite default and deterministic local/testing-only tenant/branch/role fixtures.
@@ -30,7 +76,7 @@
 ## 2026-09-13 M3 ticket-backed check-in and live sessions
 
 - Added atomic idempotent ticket consumption plus one Active `play_session`, immutable ticket/pricing/time facts, append-only session event, privacy-safe scan evidence and audit under a fresh tenant command lock.
-- Enforced current role/branch scope, active verified family/consent/emergency eligibility, tenant-wide Active/Paused child uniqueness and hard branch capacity with no override. Owner/assigned Manager/Reception may check in; Cashier receives a masked read-only board.
+- Enforced current role/branch scope, active verified family/consent/emergency eligibility, tenant-wide active-child uniqueness (paused is deferred) and hard branch capacity with no override. Owner/assigned Manager/Reception may check in; Cashier receives a masked read-only board.
 - Added a bilingual responsive session surface with branch/occupancy context, server-side family/status filters, explicit consume-and-start consequence, validation/conflict/no-change states, branch-local start/expected end, elapsed time and 25-row pagination.
 - Full SQLite and PHP 8.5 suites pass 270 of 272 tests / 2,338 assertions with two explicit MySQL-only skips. Full MySQL passes 272 / 2,385; the two-process concurrency gate passes 2 / 47. Authenticated Edge QA passes Owner/Cashier, RTL/LTR and mobile/tablet/desktop checks. Existing port 8206 was untouched.
 - This check-in stage is locally accepted. Checkout, time transitions, final charge/tax quote, guardian release verification, payments/refunds and production gates remain outside it.

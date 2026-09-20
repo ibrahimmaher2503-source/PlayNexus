@@ -10,6 +10,23 @@ return [
         'arabic' => 'العربية',
         'change' => 'تغيير',
     ],
+    'navigation' => [
+        'label' => 'تنقل المنصة',
+        'tenants' => 'المنشآت',
+        'plans' => 'الباقات',
+        'subscriptions' => 'الاشتراكات',
+        'support' => 'وصول الدعم',
+    ],
+    'support' => [
+        'page_title' => 'وصول الدعم المنضبط', 'exception_label' => 'استثناء ذو صلاحية عالية', 'description' => 'هذا منح دعم مؤقت ومحدد للمنشأة. لا يمثل شخصية مستخدم المنشأة ولا يعرض السجلات التشغيلية.', 'validation_failed' => 'راجع تفاصيل وصول الدعم الموضحة.', 'request_heading' => 'تفويض منح دعم مؤقت', 'request_description' => 'اختر أقل نطاق معتمد ومدة لا تتجاوز :minutes دقيقة. السبب وكلمة المرور الحالية مطلوبان.', 'tenant' => 'المنشأة', 'choose_tenant' => 'اختر منشأة', 'scope' => 'نطاق أقل صلاحية', 'duration' => 'المدة بالدقائق', 'reason' => 'سبب الدعم', 'reason_hint' => 'اكتب حاجة الدعم. يبقى السبب في السجل الظاهر لمالك المنشأة.', 'ticket' => 'تذكرة الدعم (اختياري)', 'password' => 'أكد كلمة المرور الحالية', 'authorize' => 'تفويض وصول الدعم المؤقت', 'boundary_heading' => 'حدود الوصول', 'boundary_one' => 'يقتصر الوصول على المنشأة المحددة والنطاق المعتمد للقراءة فقط.', 'boundary_two' => 'ينتهي المنح تلقائياً ويمكن إلغاؤه صراحة قبل ذلك.', 'boundary_three' => 'يمكن لمالك المنشأة رؤية سجل هذا الاستثناء دون هويات مسؤولي المنصة.', 'history_heading' => 'سجل وصول الدعم', 'empty' => 'لا توجد منح وصول دعم مسجلة.', 'expires' => 'ينتهي', 'state' => 'الحالة', 'actions' => 'إجراءات', 'active' => 'نشط', 'expired' => 'منتهي', 'revoked' => 'ملغى', 'review' => 'مراجعة الحدود', 'revoke' => 'إلغاء الوصول', 'confirm_revoke' => 'تأكيد الإلغاء', 'review_title' => 'حدود وصول الدعم النشط', 'review_description' => 'هذه الشاشة تتضمن النطاق الإداري المختار فقط ولا تتضمن الأطفال أو أولياء الأمور أو الجلسات أو التذاكر أو الطلبات أو المدفوعات أو نقاط البيع أو انتحال شخصية مستخدم.', 'grant_details' => 'تفاصيل المنح', 'granted' => 'مُنع في', 'back_to_history' => 'العودة إلى سجل الدعم', 'tenant_summary' => 'ملخص آمن للمنشأة', 'branch_count' => 'الفروع', 'user_count' => 'المستخدمون', 'branch_configuration' => 'إعداد الفرع للقراءة فقط', 'branch_name' => 'الفرع', 'branch_code' => 'الرمز', 'timezone' => 'المنطقة الزمنية', 'capacity' => 'السعة',
+        'scopes' => ['tenant_administration_read' => 'إدارة المنشأة (قراءة فقط)', 'branch_configuration_read' => 'إعدادات الفروع (قراءة فقط)'],
+    ],
+    'support_access' => [
+        'granted' => 'تم تفويض وصول الدعم المؤقت.', 'revoked' => 'تم إلغاء وصول الدعم.', 'unavailable' => 'منح وصول الدعم هذا لم يعد متاحاً.', 'already_revoked' => 'تم إلغاء منح وصول الدعم هذا بالفعل.', 'current_password_invalid' => 'تعذر تأكيد كلمة المرور الحالية.',
+    ],
+    'invitation' => [
+        'page_title' => 'إعداد حساب مالك المنشأة', 'heading' => 'أكمل إعداد حساب المالك', 'description' => 'أنشئ كلمة مرور لتفعيل حساب المالك المدعو. يمكن استخدام هذا الرابط مرة واحدة.', 'password' => 'كلمة المرور', 'password_confirmation' => 'تأكيد كلمة المرور', 'submit' => 'تفعيل حساب المالك', 'invalid' => 'هذه الدعوة غير صالحة أو منتهية أو مستخدمة بالفعل.',
+    ],
     'login' => [
         'page_title' => 'تسجيل الدخول إلى المنصة',
         'heading' => 'تسجيل الدخول إلى إدارة المنصة',
@@ -47,12 +64,16 @@ return [
         'status_heading' => 'تغيير حالة المنشأة',
         'row_actions' => 'إجراءات المنشأة',
         'change_status' => 'تغيير الحالة',
+        'view_details' => 'عرض تفاصيل الحساب',
+        'detail_title' => 'تفاصيل حساب المنشأة', 'back_to_list' => 'العودة إلى المنشآت', 'identity_heading' => 'هوية الحساب', 'owner_heading' => 'المالك الأول', 'owner_status' => 'حالة المالك', 'invitation_heading' => 'دعوة المالك', 'invitation_status' => 'حالة الدعوة', 'invitation_expires' => 'تنتهي في', 'invitation_delivery' => 'حالة التسليم', 'invitation_reissue' => 'إعادة إصدار دعوة المالك', 'reissue_reason' => 'سبب إعادة الإصدار', 'invitation_one_time_link' => 'رابط دعوة المالك لمرة واحدة', 'invitation_pending' => 'قيد الانتظار', 'invitation_accepted' => 'مقبولة', 'invitation_expired' => 'منتهية', 'invitation_revoked' => 'ملغاة', 'invitation_manual_delivery' => 'انسخ رابط الدعوة لمرة واحدة عبر قناة معتمدة فقط. لا يتم تخزينه بعد هذه الصفحة.', 'created_at' => 'تاريخ الإنشاء', 'usage_heading' => 'ملخص آمن للحساب', 'branch_count' => 'الفروع', 'user_count' => 'المستخدمون', 'commercial_heading' => 'الملخص التجاري', 'no_commercial_summary' => 'لا يتوفر ملخص تجاري حالي.', 'audit_heading' => 'سجل التدقيق الإداري', 'audit_empty' => 'لا توجد أحداث تدقيق إدارية لهذه المنشأة.', 'audit_action' => 'الإجراء', 'audit_outcome' => 'النتيجة', 'audit_reason' => 'السبب', 'audit_time' => 'الوقت',
         'cancel' => 'إلغاء',
         'confirm_status_change' => 'هل تريد تغيير حالة هذه المنشأة؟ تؤثر حالة دورة الحياة على وصول المنشأة.',
         'status_label' => 'الحالة الجديدة',
         'expected_status' => 'الحالة الحالية المتوقعة',
         'reason_code' => 'رمز السبب',
+        'reason' => 'سبب إجراء دورة الحياة',
         'reason_hint' => 'مطلوب لسجل تدقيق المنصة.',
+        'status_consequence' => 'يمنع الإيقاف عمل المنشأة ويلغي الجلسات النشطة عند أول طلب محمي تالٍ. إعادة التفعيل تحفظ السجل ولا تعيد تفعيل الموظفين الموقوفين فردياً.',
         'reason_placeholder' => 'مثال: onboarding_complete',
         'reasons' => ['setup_change' => 'تغيير الإعداد', 'access_review' => 'مراجعة الوصول', 'correction' => 'تصحيح'],
         'save_status' => 'حفظ الحالة',
@@ -74,5 +95,12 @@ return [
         'next' => 'التالي',
         'next_page' => 'صفحة المنشآت التالية',
         'sign_out' => 'تسجيل الخروج',
+    ],
+    'plans' => [
+        'page_title' => 'الباقات', 'page_description' => 'إدارة باقات البيع والحدود الكمية.', 'open_subscriptions' => 'الاشتراكات', 'open_tenants' => 'المنشآت', 'sign_out' => 'تسجيل الخروج', 'validation_failed' => 'راجع بيانات الباقة المبيّنة.', 'create_heading' => 'إنشاء باقة', 'create_description' => 'تُخزن الأسعار بالجنيه المصري وتُثبت عند تعيين الاشتراك.', 'create_submit' => 'إنشاء باقة', 'created' => 'تم إنشاء الباقة.', 'updated' => 'تم تحديث الباقة.', 'status_updated' => 'تم تحديث حالة البيع.', 'no_change' => 'لا يلزم تغيير الحالة.', 'conflict' => 'تغيرت الباقة قبل التحديث. حدّث الصفحة وحاول مجددًا.',
+        'code' => 'الرمز', 'name' => 'الاسم', 'description' => 'الوصف', 'monthly_price' => 'شهري بالجنيه', 'annual_price' => 'سنوي بالجنيه', 'annual_discount' => 'خصم سنوي (نقاط أساس)', 'price_hint' => 'جنيه مصري، مثل 999.00.', 'discount_hint' => '10% تساوي 1000 نقطة أساس.', 'branches_limit' => 'حد الفروع', 'users_limit' => 'حد المستخدمين', 'blank_unlimited' => 'اتركه فارغًا للحد المخصص/غير المحدود.', 'reason' => 'السبب', 'reason_hint' => 'مطلوب لسجل التدقيق.', 'list_heading' => 'كتالوج الباقات', 'list_description' => 'تبقى الباقات غير النشطة ظاهرة للتاريخ ولا يمكن تعيينها حديثًا.', 'empty' => 'لا توجد باقات بعد.', 'table_caption' => 'كتالوج الباقات التجارية', 'limits' => 'الحدود', 'branches_short' => 'فروع', 'users_short' => 'مستخدمون', 'status' => 'حالة البيع', 'actions' => 'إجراءات', 'edit' => 'تعديل', 'save' => 'حفظ الباقة', 'save_status' => 'حفظ حالة البيع', 'statuses' => ['active' => 'نشطة للبيع', 'inactive' => 'غير نشطة للبيع'],
+    ],
+    'subscriptions' => [
+        'page_title' => 'الاشتراكات', 'page_description' => 'إدارة السجلات التجارية لخدمة PlayNexus SaaS، منفصلة عن مدفوعات وإيصالات نقاط البيع.', 'validation_failed' => 'راجع بيانات الاشتراك المبيّنة.', 'plans' => 'الباقات', 'tenants' => 'المنشآت', 'assign_heading' => 'تعيين أو تغيير الباقة', 'assign_description' => 'يُنشأ سجل اشتراك تجاري جديد ويصبح الاشتراك الحالي المعتمد للمنشأة. التجربة الافتراضية 14 يومًا.', 'assign' => 'تعيين الباقة', 'assigned' => 'تم تعيين الاشتراك.', 'filter' => 'تصفية', 'search' => 'ابحث عن منشأة أو باقة', 'all_statuses' => 'كل الحالات', 'status' => 'الحالة', 'tenant' => 'المنشأة', 'plan' => 'الباقة', 'interval' => 'الفترة', 'monthly' => 'شهري', 'yearly' => 'سنوي', 'trial_end' => 'نهاية التجربة', 'period_end' => 'نهاية الفترة', 'limits_usage' => 'الحدود والاستخدام', 'phase' => 'مرحلة الوصول', 'over_limit' => 'فوق الحد', 'within_limit' => 'ضمن الحد', 'actions' => 'إجراءات تجارية', 'history' => 'السجل', 'empty' => 'لا توجد سجلات اشتراك مطابقة.', 'status_updated' => 'تم تحديث حالة الاشتراك.', 'no_change' => 'لا يلزم تغيير الحالة.', 'conflict' => 'تغير الاشتراك قبل التحديث. حدّث الصفحة وحاول مجددًا.', 'invalid_transition' => 'انتقال الحالة غير مسموح.', 'trial_extended' => 'تم تمديد التجربة.', 'limits_updated' => 'تم تحديث الحدود التجارية.', 'invoice_recorded' => 'تم تسجيل فاتورة SaaS اليدوية.', 'change_status' => 'تغيير الحالة', 'extend_trial' => 'تمديد التجربة', 'override_limits' => 'تجاوز الحدود', 'revoke_override' => 'إزالة التجاوز', 'record_invoice' => 'تسجيل فاتورة SaaS', 'reason' => 'السبب', 'save' => 'حفظ', 'temporary_until' => 'مؤقت حتى', 'permanent' => 'تجاوز دائم', 'branch_limit' => 'حد الفروع', 'user_limit' => 'حد المستخدمين', 'invoice_reference' => 'الفاتورة/المرجع', 'amount' => 'القيمة بالجنيه', 'billing_start' => 'بداية فترة الفوترة', 'billing_end' => 'نهاية فترة الفوترة', 'payment_date' => 'تاريخ الدفع', 'payment_method' => 'طريقة الدفع', 'notes' => 'ملاحظات', 'manual_billing' => 'فوترة SaaS يدوية', 'manual_billing_description' => 'هذا السجل منفصل عن مدفوعات نقاط البيع وإيصالات العملاء وبيانات البطاقات.', 'recent_invoices' => 'فواتير SaaS الحديثة', 'audit_history' => 'سجل التدقيق', 'statuses' => ['trialing' => 'تجريبي', 'active' => 'نشط', 'past_due' => 'متأخر السداد', 'grace_period' => 'فترة سماح', 'suspended' => 'موقوف', 'cancelled' => 'ملغى', 'expired' => 'منتهي'], 'phases' => ['normal' => 'تشغيل عادي', 'grace' => 'سماح، تشغيل عادي', 'restricted' => 'مقيد، البيانات التاريخية متاحة'],
     ],
 ];

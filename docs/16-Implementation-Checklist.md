@@ -2,7 +2,7 @@
 
 ## Product decisions
 
-- [ ] Resolve payment mode, hardware, launch markets, currencies, tax/receipt rules, pricing, pauses, overage, checkout verification, subscriptions, offline requirement, notification providers, incident MVP scope, and minimal cashier-close scope.
+- [~] Core Egypt product decisions are resolved: all OQ items have approved baselines or explicit deferment. Remaining decisions are provider/sender/template/callback/cost procurement inputs, absolute timeout, exact rate limits, audit/log retention and RPO/RTO; OQ-21 workload counts and deployed proof are release evidence. OQ-04 remains approved with partial acceptance; recurring billing, incidents and cashier shifts are explicitly deferred.
 - [ ] Approve BRD, SRS, permission matrix, architecture, ERD, API, and wireframes.
 - [ ] Baseline scope and change-control owner.
 
@@ -34,13 +34,13 @@
   - [x] Live-session acceptance: masked bilingual board, server filters/pagination, Owner/Cashier browser QA, SQLite/PHP 8.5/MySQL regression and real distinct-key concurrency.
   - [x] Read-only estimate: approved tax/time fixtures, exact integer boundaries, non-mutation/fail-closed behavior, full MySQL/SQLite/PHP 8.5 and bilingual responsive browser evidence.
   - [x] M3 local closure. Checkout, guardian release and financial workflows remain later; ticket cancellation does not execute a refund.
-- [ ] M4 time engine and checkout.
+- [x] M4 time engine and checkout — locally engineering-accepted within the no-pause Egypt contract.
   - [x] OQ-19 reception-to-cashier preparation: guardian verification or audited manager override, frozen quote, idempotent `pending_payment` handoff.
   - [x] Live-session UI: due/overdue labels, fixed 30-minute extension, manager/owner additive adjustment with reason, and cancellation with explicit no-refund consequence.
   - [x] Pending-payment UI: frozen subtotal/tax/total breakdown with payment, receipt, refund, shift, and child-release controls excluded.
-  - [ ] Final runtime acceptance and remaining checkout/time-engine gates; pause/resume is intentionally excluded from the Egypt MVP.
-- [ ] M5 POS, payment, refund, and receipt.
-- [ ] M6 reports, notifications, hardening, and pilot.
+  - [x] Runtime, concurrency, bilingual browser and integrated M5 settlement acceptance recorded; pause/resume remains intentionally excluded.
+- [x] M5 POS, payment, refund, and receipt — SQLite/PHP 8.4/PHP 8.5, bilingual desktop, full MySQL 8.4.11/InnoDB and real duplicate settlement/refund contention pass.
+- [x] M6 local engineering scope: reports, local/database notifications, audit completion, hardening, synthetic pilot, MySQL/restore/browser/security/performance evidence. External pilot approvals remain below.
 
 ## Release
 

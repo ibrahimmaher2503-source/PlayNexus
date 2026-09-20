@@ -26,17 +26,21 @@ Pricing rules, ticket types, QR/barcode token, check-in workflow, live session b
 
 ## M4: Time engine and checkout
 
-**Status: PARTIAL — 2026-09-13.** OQ-19 is resolved as a reception-to-cashier handoff: Reception/Manager verifies the guardian or records an audited override, freezes the exact server quote, and moves the session to `pending_payment`; Cashier receives the queue for the later M5 matching-payment command. Preparation is idempotent and lock/version guarded. The live board also supports due/overdue labels, fixed 30-minute extension, manager/owner additive adjustment with reason, and reasoned cancellation with no refund. Payment, receipt, child release, refunds, shifts, pause/resume, provider notifications, and final completion are not implemented.
+**Status: LOCALLY ENGINEERING-ACCEPTED — 2026-09-15.** OQ-19 reception-to-cashier handoff, verified/overridden frozen checkout, due/overdue state, fixed extension, additive adjustment, non-refund cancellation, and the matching M5 cash settlement/completion are integrated and accepted. Pause/resume, shifts, provider delivery, and a separate child-release workflow are excluded from this bounded Egypt contract.
 
-Remaining M4 work is limited to final integration/acceptance of the time-engine and checkout boundaries. Pause/resume is intentionally excluded from the Egypt MVP; provider alerts/notifications, payment, receipts, refunds, shifts, and child release belong to later scopes.
+External release approval remains global; no local M4 implementation item is left open.
 
 ## M5: POS, payment, refund, and receipt
 
 Catalog/cart, tax, discount approval, payment recording, refund audit, digital receipt, and transaction reconciliation.
 
+**Status: LOCALLY ENGINEERING-ACCEPTED — 2026-09-15.** Cash-only ordinary sales and verified session settlement, manager-approved discounts, immutable numbered browser receipts, transaction lookup and one full same-day cash refund are implemented. Full SQLite/PHP 8.4/PHP 8.5, authenticated English/Arabic desktop, full isolated MySQL 8.4.11/InnoDB and real duplicate settlement/refund contention pass. Production Finance/Legal, hosted release controls and M6 provider work remain separate.
+
 ## M6: Reports, notifications, hardening, pilot
 
 Core reports, operational notifications, audit views, localization/accessibility/performance/security passes, backups/restore exercise, pilot seed data, and staff walkthrough. Add basic incident recording/search in this milestone only if its open MVP scope interpretation is approved.
+
+**Status: LOCALLY ENGINEERING-ACCEPTED — 2026-09-15.** Core scoped reports, filter-identical CSV, durable local/database notification intent/attempt processing, expanded audit scope/export, bilingual UI, bounded defaults, synthetic pilot data, MySQL/restore/performance/security evidence and the operations runbook are accepted locally. GAP-02–06/09 follow-up adds working locale submit, branch-manager staff scope, reconciled revenue dimensions, branch currency/timezone, complete session history, and authentication/security auditing. Provider channels, incidents, staging/monitoring, Finance/Legal, staff sign-off and go/no-go remain explicitly external or decision-gated.
 
 Each milestone ships a usable vertical slice and must meet [Definition of Done](17-Definition-of-Done.md).
 

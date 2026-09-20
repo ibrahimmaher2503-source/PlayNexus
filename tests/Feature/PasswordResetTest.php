@@ -16,6 +16,29 @@ class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_unknown_password_reset_requests_are_throttled_without_creating_a_token(): void
+    {
+        foreach (range(1, 5) as $attempt) {
+            $this->from(route('password.request'))->post(route('password.email'), ['email' => 'unknown-rate@example.test'])->assertRedirect();
+        }
+        $this->post(route('password.email'), ['email' => 'unknown-rate@example.test'])->assertTooManyRequests();
+        $this->assertDatabaseCount('password_reset_tokens', 0);
+    }
+
+    public function test_reset_rejects_a_password_below_the_approved_twelve_character_minimum_without_consuming_token(): void
+    {
+        Notification::fake();
+        [, $user] = $this->staff();
+        $this->post(route('password.email'), ['email' => $user->email]);
+        $token = $this->resetToken($user);
+        $this->post(route('password.update'), [
+            'token' => $token, 'email' => $user->email,
+            'password' => 'eightchr', 'password_confirmation' => 'eightchr',
+        ])->assertSessionHasErrors('password');
+        $this->assertTrue(Hash::check('password', $user->fresh()->password));
+        $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
+    }
+
     public function test_forgot_password_form_is_accessible_in_english_and_arabic(): void
     {
         $this->get(route('password.request'))
@@ -49,6 +72,12 @@ class PasswordResetTest extends TestCase
         $this->assertSame($known->getStatusCode(), $unknown->getStatusCode());
         Notification::assertSentTo($user, ResetPassword::class);
         $this->assertDatabaseCount('password_reset_tokens', 1);
+        $this->assertDatabaseHas('audit_logs', [
+            'tenant_id' => $user->tenant_id,
+            'actor_user_id' => $user->id,
+            'action' => 'auth.password_reset_requested',
+            'outcome' => 'success',
+        ]);
     }
 
     public function test_ineligible_accounts_receive_the_same_generic_response_without_a_token_or_notification(): void
@@ -119,11 +148,23 @@ class PasswordResetTest extends TestCase
         $this->assertNotSame($oldRememberToken, $user->remember_token);
         $this->assertSame(2, (int) $user->auth_version);
         $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
+        $this->assertDatabaseHas('audit_logs', [
+            'tenant_id' => $user->tenant_id,
+            'actor_user_id' => $user->id,
+            'action' => 'auth.password_reset_completed',
+            'outcome' => 'success',
+        ]);
 
         $this->actingAs($user)->withSession(['auth_version' => 1])
             ->get(route('dashboard'))
             ->assertRedirect(route('login'));
         $this->assertGuest();
+        $this->assertDatabaseHas('audit_logs', [
+            'tenant_id' => $user->tenant_id,
+            'actor_user_id' => $user->id,
+            'action' => 'auth.session_revoked',
+            'outcome' => 'failure',
+        ]);
 
         $this->from(route('password.reset', ['token' => $token, 'email' => $user->email]))
             ->post(route('password.update'), [

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
+use App\Models\TenantOwnerInvitation;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -73,8 +75,9 @@ class PlatformTenantController extends Controller
         ];
         $payloadHash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
         $actorId = (int) $request->user()->getAuthIdentifier();
+        $requestId = (string) $request->attributes->get('request_id', Str::uuid());
 
-        $tenant = DB::transaction(function () use ($actorId, $data, $payloadHash): Tenant {
+        [$tenant, $invitationUrl, $created] = DB::transaction(function () use ($actorId, $data, $payloadHash, $requestId): array {
             $actor = User::query()
                 ->whereKey($actorId)
                 ->whereNull('tenant_id')
@@ -96,7 +99,7 @@ class PlatformTenantController extends Controller
                     throw new HttpException(409, __('platform.tenants.idempotency_conflict'));
                 }
 
-                return $existing;
+                return [$existing, null, false];
             }
 
             $errors = [];
@@ -138,7 +141,7 @@ class PlatformTenantController extends Controller
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
-            DB::table('platform_audit_logs')->insert([
+            $this->writePlatformAudit([
                 'actor_user_id' => $actor->getKey(),
                 'target_tenant_id' => $tenant->getKey(),
                 'action' => 'tenant.provisioned',
@@ -151,42 +154,159 @@ class PlatformTenantController extends Controller
                     'internal_identifier' => $tenant->internal_identifier,
                     'status' => $tenant->status,
                 ], JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(),
+                'request_id' => $requestId,
                 'occurred_at' => $now,
             ]);
 
-            return $tenant;
+            [$invitation, $token] = $this->issueOwnerInvitation($tenant, $owner, $actor, $now);
+            $this->writePlatformAudit([
+                'actor_user_id' => $actor->getKey(),
+                'target_tenant_id' => $tenant->getKey(),
+                'action' => 'tenant.owner_invitation.issued',
+                'subject_type' => 'user',
+                'subject_id' => (string) $owner->getKey(),
+                'outcome' => 'success',
+                'reason_code' => 'initial_owner_invitation',
+                'before_json' => null,
+                'after_json' => json_encode([
+                    'invitation_id' => $invitation->getKey(),
+                    'delivery_status' => $invitation->delivery_status,
+                    'expires_at' => $invitation->expires_at->toISOString(),
+                ], JSON_THROW_ON_ERROR),
+                'request_id' => $requestId,
+                'occurred_at' => $now,
+            ]);
+
+            return [$tenant, route('owner-invitations.show', ['token' => $token]), true];
         });
 
         if ($request->expectsJson()) {
-            return response()->json(['data' => $this->tenantData($tenant)], 201);
+            return response()->json([
+                'data' => $this->tenantData($tenant),
+                // This is only returned to the authenticated Super Admin at
+                // issuance time. The raw token is never persisted or audited.
+                'owner_invitation_url' => $invitationUrl,
+                'created' => $created,
+            ], $created ? 201 : 200);
         }
 
-        return to_route('platform.tenants.index')->with('success', __('platform.tenants.provision_success'));
+        $response = to_route('platform.tenants.index')->with('success', __('platform.tenants.provision_success'));
+
+        if ($invitationUrl !== null) {
+            $response->with('owner_invitation_url', $invitationUrl);
+        }
+
+        return $response;
     }
 
-    public function updateStatus(Request $request, Tenant $tenant): JsonResponse|RedirectResponse
+    public function show(Request $request, string $tenant): View
     {
+        $tenant = Tenant::query()
+            ->withCount(['branches', 'users'])
+            ->with([
+                'owners' => fn ($query) => $query->select(['users.id', 'users.tenant_id', 'users.name', 'users.email', 'users.status']),
+                'currentSubscription.plan:id,code,name',
+            ])
+            ->findOrFail($tenant);
+
+        $owner = $tenant->owners->first();
+        $invitation = $owner
+            ? TenantOwnerInvitation::query()->where('owner_user_id', $owner->getKey())->first()
+            : null;
+        $auditHistory = DB::table('platform_audit_logs')
+            ->where('target_tenant_id', $tenant->getKey())
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->limit(25)
+            ->get(['action', 'subject_type', 'subject_id', 'outcome', 'reason_code', 'before_json', 'after_json', 'occurred_at']);
+
+        return view('platform.tenants.show', compact('tenant', 'owner', 'invitation', 'auditHistory'));
+    }
+
+    public function reissueOwnerInvitation(Request $request, string $tenant): JsonResponse|RedirectResponse
+    {
+        $reason = $request->input('reason');
+        $request->merge(['reason' => is_string($reason) ? trim($reason) : $reason]);
+        $data = $request->validate([
+            'reason' => ['required', 'string', 'min:10', 'max:500'],
+        ]);
+        $actorId = (int) $request->user()->getAuthIdentifier();
+        $requestId = (string) $request->attributes->get('request_id', Str::uuid());
+
+        [$tenant, $invitationUrl] = DB::transaction(function () use ($actorId, $tenant, $requestId, $data): array {
+            $actor = $this->lockedPlatformActor($actorId);
+            $lockedTenant = Tenant::query()->whereKey($tenant)->lockForUpdate()->firstOrFail();
+            $owner = User::query()
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->where('status', 'invited')
+                ->whereExists(fn ($query) => $query->selectRaw('1')->from('tenant_owners')
+                    ->whereColumn('tenant_owners.user_id', 'users.id')
+                    ->whereColumn('tenant_owners.tenant_id', 'users.tenant_id'))
+                ->lockForUpdate()
+                ->first();
+
+            if (! $owner) {
+                throw new HttpException(409, __('platform.tenants.owner_invitation_not_reissuable'));
+            }
+
+            $invitation = TenantOwnerInvitation::query()->where('owner_user_id', $owner->getKey())->lockForUpdate()->firstOrFail();
+            $before = [
+                'invitation_id' => $invitation->getKey(),
+                'delivery_status' => $invitation->delivery_status,
+                'expires_at' => $invitation->expires_at->toISOString(),
+            ];
+            [$invitation, $token] = $this->issueOwnerInvitation($lockedTenant, $owner, $actor, now('UTC'), $invitation);
+            $this->writePlatformAudit([
+                'actor_user_id' => $actor->getKey(),
+                'target_tenant_id' => $lockedTenant->getKey(),
+                'action' => 'tenant.owner_invitation.reissued',
+                'subject_type' => 'user',
+                'subject_id' => (string) $owner->getKey(),
+                'outcome' => 'success',
+                'reason_code' => 'owner_invitation_reissued',
+                'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
+                'after_json' => json_encode([
+                    'invitation_id' => $invitation->getKey(),
+                    'delivery_status' => $invitation->delivery_status,
+                    'expires_at' => $invitation->expires_at->toISOString(),
+                    'reason' => $data['reason'],
+                ], JSON_THROW_ON_ERROR),
+                'request_id' => $requestId,
+                'occurred_at' => now('UTC'),
+            ]);
+
+            return [$lockedTenant, route('owner-invitations.show', ['token' => $token])];
+        });
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'data' => $this->tenantData($tenant),
+                'owner_invitation_url' => $invitationUrl,
+            ]);
+        }
+
+        return to_route('platform.tenants.show', $tenant)
+            ->with('success', __('platform.tenants.owner_invitation_reissued'))
+            ->with('owner_invitation_url', $invitationUrl);
+    }
+
+    public function updateStatus(Request $request, string $tenant): JsonResponse|RedirectResponse
+    {
+        $reason = $request->input('reason');
+        $request->merge(['reason' => is_string($reason) ? trim($reason) : $reason]);
         $data = $request->validate([
             'status' => ['required', 'string', Rule::in(self::STATUSES)],
             'expected_status' => ['required', 'string', Rule::in(self::STATUSES)],
-            'reason_code' => ['required', 'string', Rule::in(self::REASON_CODES)],
+            'reason_code' => ['nullable', 'string', Rule::in(self::REASON_CODES)],
+            'reason' => ['required', 'string', 'min:3', 'max:500'],
         ]);
         $actorId = (int) $request->user()->getAuthIdentifier();
+        $requestId = (string) $request->attributes->get('request_id', Str::uuid());
 
-        [$tenant, $changed] = DB::transaction(function () use ($actorId, $data, $tenant): array {
-            $actor = User::query()
-                ->whereKey($actorId)
-                ->whereNull('tenant_id')
-                ->where('status', 'active')
-                ->lockForUpdate()
-                ->firstOrFail();
-            abort_unless(
-                DB::table('platform_admins')->where('user_id', $actor->getKey())->where('is_active', true)->exists(),
-                403,
-            );
+        [$tenant, $changed] = DB::transaction(function () use ($actorId, $data, $tenant, $requestId): array {
+            $actor = $this->lockedPlatformActor($actorId);
 
-            $lockedTenant = Tenant::query()->whereKey($tenant->getKey())->lockForUpdate()->firstOrFail();
+            $lockedTenant = Tenant::query()->whereKey($tenant)->lockForUpdate()->firstOrFail();
 
             if ($lockedTenant->status !== $data['expected_status']) {
                 throw new HttpException(409, __('platform.tenants.conflict'));
@@ -197,25 +317,29 @@ class PlatformTenantController extends Controller
             }
 
             $before = ['status' => $lockedTenant->status];
-            $after = ['status' => $data['status']];
+            $after = ['status' => $data['status'], 'reason' => $data['reason']];
             $lockedTenant->forceFill([
                 'status' => $data['status'],
                 'is_active' => $data['status'] === 'active',
                 'lock_version' => (int) $lockedTenant->lock_version + 1,
             ])->save();
 
+            if ($data['status'] !== 'active') {
+                User::query()->where('tenant_id', $lockedTenant->getKey())->increment('auth_version');
+            }
+
             $now = now('UTC');
-            DB::table('platform_audit_logs')->insert([
+            $this->writePlatformAudit([
                 'actor_user_id' => $actor->getKey(),
                 'target_tenant_id' => $lockedTenant->getKey(),
                 'action' => 'tenant.status.changed',
                 'subject_type' => 'tenant',
                 'subject_id' => (string) $lockedTenant->getKey(),
                 'outcome' => 'success',
-                'reason_code' => $data['reason_code'],
+                'reason_code' => $data['reason_code'] ?? 'other',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(),
+                'request_id' => $requestId,
                 'occurred_at' => $now,
             ]);
 
@@ -247,5 +371,55 @@ class PlatformTenantController extends Controller
             'created_at',
             'updated_at',
         ]);
+    }
+
+    private function lockedPlatformActor(int $actorId): User
+    {
+        $actor = User::query()
+            ->whereKey($actorId)
+            ->whereNull('tenant_id')
+            ->where('status', 'active')
+            ->lockForUpdate()
+            ->firstOrFail();
+        abort_unless(
+            DB::table('platform_admins')->where('user_id', $actor->getKey())->where('is_active', true)->exists(),
+            403,
+        );
+
+        return $actor;
+    }
+
+    /** @return array{TenantOwnerInvitation, string} */
+    private function issueOwnerInvitation(Tenant $tenant, User $owner, User $actor, \DateTimeInterface $now, ?TenantOwnerInvitation $invitation = null): array
+    {
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = CarbonImmutable::instance($now)
+            ->utc()
+            ->addMinutes(max(1, (int) config('platform.owner_invitation_expiry_minutes', 1440)));
+        $values = [
+            'tenant_id' => $tenant->getKey(),
+            'owner_user_id' => $owner->getKey(),
+            'issued_by_user_id' => $actor->getKey(),
+            'token_hash' => hash('sha256', $token),
+            'destination_email' => $owner->email,
+            'delivery_status' => 'manual_delivery_required',
+            'expires_at' => $expiresAt,
+            'accepted_at' => null,
+            'revoked_at' => null,
+        ];
+
+        if ($invitation) {
+            $invitation->forceFill($values)->save();
+        } else {
+            $invitation = TenantOwnerInvitation::query()->create($values);
+        }
+
+        return [$invitation->refresh(), $token];
+    }
+
+    /** @param array<string, mixed> $values */
+    private function writePlatformAudit(array $values): void
+    {
+        DB::table('platform_audit_logs')->insert($values);
     }
 }

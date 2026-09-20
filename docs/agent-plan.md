@@ -1,5 +1,150 @@
 # PlayNexus Agent Plan
 
+## 2026-09-15 available-gap closure
+
+- MYSQL PASS: isolated 8.4.11/InnoDB, 410/410 tests / 3,411 assertions, strict mode and `ONLY_FULL_GROUP_BY`.
+
+- DONE: GAP-01–06, GAP-09, and DOC-01–09 in the shared integration worktree.
+- PASS: final SQLite 410 total / 406 passed / 4 MySQL-only skips / 3,313 assertions; grouped authenticated EN/AR Manager/report browser acceptance; build/Blade/docs/routes/diff gates.
+- PRODUCT BASELINES APPROVED, RELEASE INPUTS REMAIN: GAP-07/OQ-14 support and GAP-08 retention have approved engineering baselines; Security/Legal/DPO validation remains. OQ-05/OQ-13 channel and retry behavior is approved while DEC-NOT-01–05 remain open. OQ-21 targets and the OQ-22 baseline are approved while workload evidence and DEC-SEC-01–03 remain. Recurring billing remains deferred.
+- Preserve the dirty worktree. No commit/push. Do not implement a blocked item by assumption.
+
+## 2026-09-15 M6 bounded execution plan — LOCALLY_ENGINEERING_ACCEPTED
+
+M6 starts from the locally engineering-accepted M5 baseline recorded immediately below. Preserve all current uncommitted M0-M5 work and change an accepted flow only for a reproducible regression with the smallest shared root-cause fix.
+
+1. **Contract and graph:** refresh CodeGraph; trace report, notification, audit, queue, scheduler and authorization paths; apply approved OQ-05/OQ-13/OQ-21/OQ-22 baselines without inventing the still-open DEC-NOT/DEC-SEC inputs.
+2. **Core reports:** add one scoped report surface for revenue reconciliation, attendance, session facts and staff audit activity. Reuse committed financial/session/audit tables, branch-local half-open UTC date ranges, allowlisted server sorting, bounded pagination and filter-identical CSV exports.
+3. **Durable notifications:** add database-backed notification intent/attempt records and one idempotent queued delivery job using a deterministic local transport. Provider credentials, real messages and provider-specific callbacks remain blocked by OQ-05/OQ-13.
+4. **Audit completion:** extend the existing authorized audit query with allowlisted sorting, bounded pagination and filter-identical CSV while retaining compact masked snapshots and append-only storage. OQ-20 incident management stays absent.
+5. **Hardening and pilot:** extend synthetic local-only pilot data; add focused isolation, reconciliation, date-boundary, export, notification, masking, append-only and bounded-query checks; add migration/rollback, isolated backup/restore, performance, monitoring, staff walkthrough and support runbooks.
+6. **Acceptance:** run focused checks, then full SQLite on PHP 8.4/8.5, isolated MySQL 8.4/InnoDB and relevant concurrency, Pint, Vite, Blade cache, routes, documentation validation, whitespace, secret/dependency checks, migration rollback/restore rehearsal, and authenticated English LTR/Arabic RTL desktop browser journeys with browser warning/error inspection.
+
+All local engineering gates above now have current evidence in `.ai/TEST_RESULTS.md`: focused/full PHP 8.4/8.5 SQLite, full isolated MySQL 8.4.11/InnoDB, real concurrency, rollback/reapply, isolated restore, 1,000-row performance, dependency/secret/static/build/docs and authenticated bilingual multi-role browser checks pass. Status is `LOCALLY_ENGINEERING_ACCEPTED`. `PILOT_READY` still requires a selected staging environment, deployed monitoring, Finance/Legal approval, staff rehearsal/sign-off and named go/no-go approval.
+
+## 2026-09-15 M5 final code review — locally engineering-closed
+
+CodeGraph was refreshed for the financial actions, controllers and focused tests, then the Laravel request/policy/transaction paths were reviewed manually. The review closed three remaining local defects: cash payments now fail closed when the branch has not enabled cash; successful idempotent settlement replay is evaluated before current payment-method configuration; and the complete discount request/review/approved-payment workflow is visible only to the correct roles without exposing the request form to Manager/Owner or approval history to Reception.
+
+Focused M5 regression passes 55 tests / 368 assertions. Full process-local SQLite passes on PHP 8.4.21 and PHP 8.5.8: 383 total / 379 passed / 4 explicit MySQL-only skips / 3,131 assertions. Full official isolated MySQL 8.4.11/InnoDB passes 383 / 3,229, including `M5FinancialConcurrencyTest` at 1 / 29 with two independent PHP processes proving one settlement/payment/receipt/completion and one refund execution/audit under duplicate contention. Global Pint, Vite, Blade cache, route inspection, documentation validation and `git diff --check` pass. Authenticated Arabic RTL desktop review confirms the Owner sees the approval queue but not the Cashier request form; browser warnings/errors are empty. M5 is `LOCALLY_ENGINEERING_ACCEPTED`; production Finance/Legal, hosted CI and operational release controls remain separate.
+
+## Historical 2026-09-15 M5 SQLite/browser checkpoint — superseded above
+
+Coordinator integrated and personally reviewed all three Luna/xhigh deliveries. Four cross-slice defects were corrected centrally: the approved Owner/Manager/Cashier transaction permission matrix, tenant legal/display seller snapshot, explicit ordinary receipt-sequence row update, and branch-currency hydration for transaction refund eligibility. Focused finance suites and the final full SQLite regression are green (379 total / 376 passed / 3 environment skips / 3,109 assertions); Pint, Vite, routes, docs and whitespace pass.
+
+Authenticated desktop QA used an isolated SQLite fixture and completed catalog → quote → draft → exact cash payment → immutable QR receipt → transaction-history review in English and Arabic RTL. Receipt `PN-ALPHA-2026-000002` proved sequence advancement and displayed the tenant legal seller identity; history and receipt agreed on refund eligibility; browser logs contained no errors. No shared database or `.env` was changed. M5 remains `MYSQL_8_4_GATE_PENDING`, because the only available listener is MariaDB 10.4.32 and no Docker/MySQL 8.4 runtime exists. Do not start M6 or claim production readiness from this local result.
+
+## Historical 2026-09-15 M5 remediation in progress — superseded above
+
+Owner requested implementation of all confirmed review findings. Three Luna/xhigh workers own separate slices: POS catalog/XSS/selected-branch/tenant-wide SKU; persisted ordinary POS orders and atomic discount/payment/ticket issuance; settlement permissions, immutable receipt display/print and full-refund integrity. Coordinator owns shared route/schema integration, canonical contract reconciliation and final acceptance. Preserve all pre-existing dirty work; no main merge or push.
+
+The permission matrix remains authoritative: active Tenant Owner and assigned Branch Manager/Cashier may record payment and request/execute an approved refund. Approval is separate and cannot be self-issued. Discount binding must be derived from persisted server-priced lines; empty-line fixture compatibility is not a production contract. Payment consumes approval atomically and line totals must reconcile to the order. Tenant-wide products are available to assigned branches, but management of global products remains Owner-only. Receipt seller is the snapshotted tenant legal/display name, distinct from cashier; refund status is an annotation over immutable issued commercial facts.
+
+Closure requires central review of actual files, focused and full regression, schema negatives, lost-response replay, real MySQL concurrency and authenticated bilingual desktop/print evidence. Worker-reported green checks alone are not acceptance. Usage-limit interruptions left partial files and are not delivery evidence.
+
+## 2026-09-14 M5 implementation plan — DECISIONS APPROVED; IMPLEMENTATION STARTED
+
+### Outcome and governing contract
+
+M5 closes the staff-assisted visit financially: a Cashier receives the existing `pending_payment` handoff, records exactly one in-person cash payment for the frozen EGP amount, allocates one immutable branch/year receipt number, completes the verified session, and can reopen/print the same receipt. It also adds the smallest reusable product catalog and draft cart needed for an ordinary non-session POS sale. All money is integer minor units, all time is server UTC rendered in `Africa/Cairo`, and every tenant/branch relationship is enforced in queries, policies, composite foreign keys, tests, and audit.
+
+The later approved OQ-19 decision in `.ai/DECISIONS.md` governs the implementation: the matching cash-payment command commits order, payment, receipt facts, and session completion in one database transaction. A lost HTTP response is recovered by replaying the same idempotency key and returning the original result, never by posting another payment. Provider delivery is not part of that transaction.
+
+### Approved implementation decisions
+
+1. **OQ-09 — refund policy:** one full cash refund only, at the original branch, during the same branch-local business date, with a non-empty reason and a separate Branch Manager/Tenant Owner approval. Cashier may execute but not approve. Ticket-linked refunds additionally require the approved unused/no-scan/no-session OQ-18 eligibility. No partial refund, store credit, exchange, gateway call, or destructive edit.
+2. **OQ-24 — cashier shifts:** shift open/close, cash drawer and variance handling are deferred. M5 records cashier, branch and server timestamp on each payment; M6 can reconcile by branch-local date without inventing a drawer workflow.
+3. **Discount baseline:** the branch threshold starts at `0` basis points. Every positive discount needs a current, payload-bound, single-use Manager/Owner approval and reason. Discounts are fixed minor-unit amounts, cannot reduce the total to zero, and never change the stored unit price.
+4. **Zero-total behavior:** zero-total checkout is unavailable in the first pilot.
+
+### Explicit non-goals
+
+- Online gateway/card capture, raw card data, split tender, partial payment, partial refund, deposits, credit/store balance, FX or multi-currency orders.
+- Cashier shifts/drawer balancing unless OQ-24 is explicitly approved.
+- Inventory depletion, procurement, recipes, product options, memberships, loyalty, parent portal, marketplace, accounting integration, PDF exports, or advanced reports.
+- Receipt email/SMS/WhatsApp delivery and provider callbacks; M5 supports stable browser display/print only. Provider work remains M6 behind OQ-05/OQ-13.
+- Reopening completed sessions, editing posted commercial facts, or treating session cancellation/ticket cancellation as a financial refund.
+
+### Work packages and order
+
+#### M5-W0 — contract and documentation freeze
+
+- Reconcile stale pre-OQ-19 text in architecture, ERD, API, traceability, milestone and test documents before migrations.
+- Freeze the cash-only state model: `draft → paid` and optional later `paid → refunded`; one payment per order; one receipt identity; one order per session.
+- Add receipt snapshot fields to the canonical ERD/API because current seller/branch/cashier names cannot reproduce historical receipt content after profile changes.
+- Confirm the four decisions above and record approvals in `.ai/DECISIONS.md`. Do not implement the blocked refund/shift/discount behavior by assumption.
+- Exit: documentation validator passes and no canonical file describes M4 as unstarted or OQ-19 as open.
+
+#### M5-W1 — immutable financial foundation
+
+- Add forward migrations for `products`, `orders`, `order_items`, `payments`, and `branch_sequences`; add `approval_records` only when the discount decision is approved, and `refunds` only after OQ-09.
+- Add `discount_approval_bps` to branch settings with default zero when the discount contract is approved.
+- Store immutable order-line and receipt snapshots, `receipt_issued_at`, payment request fingerprint/idempotency key, server actor/timestamps, `lock_version`, currency and tenant/branch IDs.
+- Enforce tenant-aware composite foreign keys, unique `(tenant_id, session_id)`, unique one-payment-per-order, unique idempotency key, and unique branch/year receipt allocation through the locked `branch_sequences` row.
+- Use existing Laravel models, policies, requests/actions and DB transactions; introduce no payment SDK or new dependency.
+- Exit: fresh/upgrade/rollback-or-forward-recovery migration checks pass on SQLite and isolated MySQL 8.4/InnoDB; cross-tenant inserts and duplicate financial identities fail.
+
+#### M5-W2 — critical pending-payment settlement vertical slice
+
+- Add a Cashier-focused queue within `/app/pos` fed only by accessible active branches and `pending_payment` sessions.
+- Show child/guardian masked context, branch, frozen subtotal/tax/total, verification method, preparer/time and one unambiguous action: confirm receipt of the exact cash amount and complete the session.
+- Under one transaction: refetch active tenant/actor/branch; lock session and any existing linked order/payment/sequence; revalidate `pending_payment`, frozen snapshot, amount/currency, guardian verification/override and submitted expected version; create the single session order/line; post one exact cash payment; allocate the receipt number; persist the immutable receipt snapshot; set `ended_at`, final elapsed/billable facts and `completed`; append session event and audit rows.
+- Identical replay returns the original paid/completed receipt. Same key with changed payload, stale version, wrong role/branch, altered amount, missing verification or terminal state changes nothing and returns the safe conflict/denial contract.
+- Receipt printing uses the existing browser-print approach, Arabic RTL/English LTR, a single clean page, and the same stored facts/number every time.
+- Exit: T-CW-005 and T-CW-014 pass, including real two-process MySQL concurrency and retry after a simulated lost response.
+
+#### M5-W3 — reusable catalog and ordinary POS cart
+
+- Product management: Owner and assigned Branch Manager create/retire branch or tenant catalog items; Cashier/Reception can only view active items in scope. Posted snapshots never change when a product changes.
+- POS desktop surface: 1440px two-column layout with searchable/type-filtered catalog on one side and a compact sticky cart/totals/payment panel on the other; keyboard and pointer alternatives; no tablet-sized buttons stretched across tables.
+- Draft cart accepts product/ticket-type identifiers and quantity only. Server resolves current sellability, price, tax and currency, then rebuilds all line/order totals. Manual lines stay absent unless their documented permission is explicitly included.
+- Cash payment reuses the same settlement/receipt action without a session completion step. Empty cart, inactive product, wrong branch/currency, client price/tax and stale catalog/version fail without partial records.
+- For ticket sales, payment must precede ticket issuance and the issued ticket/order item are committed idempotently; do not retrofit already-issued historical tickets.
+- Exit: T-CW-008 passes with ordinary retail and ticket sale, immutable snapshots, retry safety and no cross-tenant/branch disclosure.
+
+#### M5-W4 — discount approval
+
+- Implement only after the discount baseline is confirmed. Cashier submits a reasoned request bound to tenant, branch, order, exact discount payload and current order version; another Manager/Owner approves or rejects within ten minutes.
+- Payment consumes the valid approval in the same transaction. Self-approval, expiry, payload mismatch, stale version, replay and cross-branch use fail closed.
+- UI keeps the cart usable while approval is pending and clearly distinguishes requested, approved, rejected, expired and changed-cart states.
+- Exit: T-CW-009 passes on SQLite/MySQL and policy/UI negative cases prove hidden controls are not the security boundary.
+
+#### M5-W5 — full cash refund
+
+- Retrieve by receipt/transaction reference and show immutable original facts, eligibility and current refund state.
+- Request, approve and execute remain separate permissions. Execution locks order/payment/approval, derives full amount/currency server-side, enforces the approved window and ticket eligibility, appends one refund/reversal and audit evidence, and annotates the original receipt without replacing it.
+- Duplicate/concurrent execution returns the original result or conflict; cumulative refund never exceeds the posted payment. “Approved” never means cash was returned until execution records its actor/time.
+- Exit: T-CW-010 plus real MySQL duplicate-refund concurrency pass.
+
+#### M5-W6 — transaction history and milestone acceptance
+
+- Add a branch-scoped transaction list/search by receipt number, status, date and cashier for operational lookup only; full revenue reporting remains M6.
+- Extend audit filters/actions for order, payment, receipt, discount approval and refund without exposing payment references or child-sensitive data.
+- Run focused feature/policy/money tests after each slice; then fresh SQLite and isolated MySQL 8.4 full suites, MySQL concurrency, PHP 8.4/8.5, Pint, Vite, Blade, routes, docs/OpenAPI validation and `git diff --check`.
+- Authenticated browser acceptance covers Cashier and Manager/Owner, Arabic RTL and English LTR, 1920×1080 desktop plus tablet breakpoint, keyboard-only payment, validation/conflict/replay, receipt print and forbidden states. Confirm no horizontal page overflow, raw translation keys, console errors or misleading payment/release copy.
+- Exit: all included M5 T-CW-005/008/009/014 pass; T-CW-010 is mandatory only after OQ-09 approval. Record exact evidence in `.ai/TEST_RESULTS.md`, update all canonical docs, and keep production/legal/finance/provider/backup gates explicit.
+
+### Suggested isolated implementation ownership
+
+- **Worker A:** W1 schema/models/receipt sequence and migration tests.
+- **Worker B:** W2 session settlement action/policies/concurrency tests.
+- **Worker C:** W3/W4 POS UI, catalog/cart and bilingual browser states.
+- Coordinator owns decision/doc freeze, integration, W5 authorization-sensitive refund, complete regression, MySQL concurrency, browser acceptance and final evidence. Workers use isolated worktrees and return commit SHA, changed files, checks and risks before integration.
+
+### Blast radius and regression surfaces
+
+Primary: branch settings/model, session state/policy/queue, navigation, audit labels/filters, new finance migrations/models/actions/routes/views/translations, ticket issuance when sold through POS, family visit receipt reference and seed/factory data. Mandatory regressions: tenant/branch route binding, owner/manager/reception/cashier role boundaries, M3 ticket lifecycle, M4 frozen quote and idempotency, integer tax/rounding, inactive branch denial, immutable completed sessions, Arabic RTL print and full MySQL locking.
+
+### Milestone completion rule
+
+M5 started after W0 decisions were recorded. Payment/receipt/session completion may be accepted independently, but the milestone is not called complete while any owner-approved included slice lacks SQLite, MySQL, concurrency and browser evidence. OQ-09 is approved as one full eligible cash refund; deferred OQ-24 does not block M5.
+
+## 2026-09-14 integrated desktop and Arabic closure
+
+The current M0–M4 workspace is ready for the next owner-approved milestone. The desktop shell and operational content use the 1440px canvas consistently, responsive ticket cards are limited to sub-1024px screens, and sparse branch/session collections use adaptive columns. Eleven authenticated Arabic RTL pages were checked at 1920×1080 without horizontal page overflow or untranslated keys. Operational Arabic now uses concise, meaningful Modern Standard Arabic suitable for Egyptian teams.
+
+Audit gained tenant-scoped employee, branch, record-type and local-date filters plus M4 session events. Family profiles gained tenant- and child-scoped recent visit history. Full SQLite passes 329 of 332 with three explicit skips and 2,774 assertions; full isolated MySQL 8.4.11/InnoDB passes 332 / 2,843. Pint, Vite, documentation and whitespace gates pass. Do not infer M5: payment, completion, receipts, refunds and child release remain excluded until explicitly started.
+
 ## 2026-09-14 M0 repair wave — local acceptance
 
 Three user-requested `gpt-5.6-luna` / `xhigh` workers owned the CI definition, deterministic demo seed and safe setup/toolchain slices. Coordinator review added the production seed refusal, reconciled the CI shape to run M0 on MySQL plus the full regression on SQLite, corrected the existing import-order formatting gate, and synchronized canonical evidence.
@@ -34,7 +179,7 @@ Acceptance examples for `base=15,000`, `duration=3,600`, `grace=600`, `unit=1,80
 
 At that checkpoint, the user accepted closure of the verified ticket-only stage and authorized the check-in stage. Three reused Luna/xhigh workers delivered backend/session integrity, bilingual UI and adversarial review; the coordinator integrated and verified. The check-in/live-board wave below is now accepted. M4 did not start; if the owner explicitly resumes it, first freeze the bounded checkout/time-and-charge contract and OQ-19 station ownership. Do not implement payments/refunds or guess those decisions.
 
-This wave implements explicit ticket-backed check-in only: authorized Owner/assigned Branch Manager/Reception atomically validates and consumes one issued ticket, permanently locks its holder, creates one Active play session with UTC server start/expected end and immutable ticket pricing facts, and appends scan/session/audit evidence. Cashier can view masked session data but cannot check in. No active/paused session may already exist for the child anywhere in the tenant; enforce capacity under the same transaction and child lock, without overrides. UUID identical retries return the existing session after fresh scope/role checks; changed payloads conflict. Rejected check-in must not consume/lock/create partial state, and identifiable validation failures remain privacy-safe scan evidence.
+This wave implements explicit ticket-backed check-in only: authorized Owner/assigned Branch Manager/Reception atomically validates and consumes one issued ticket, permanently locks its holder, creates one Active play session with UTC server start/expected end and immutable ticket pricing facts, and appends scan/session/audit evidence. Cashier can view masked session data but cannot check in. No active session may already exist for the child anywhere in the tenant; enforce capacity under the same transaction and child lock, without overrides. UUID identical retries return the existing session after fresh scope/role checks; changed payloads conflict. Rejected check-in must not consume/lock/create partial state, and identifiable validation failures remain privacy-safe scan evidence.
 
 Use `play_sessions` to avoid collision with Laravel's existing authentication `sessions` table. The native page supports branch/family/status filtering and paginated live sessions with elapsed/expected-end indicators only; no estimated billing or final charge claim. Direct-pricing check-in, pause/extend/cancel/checkout, payments/refunds, notifications, and retention execution remain later bounded slices. No dependency addition or shared runtime/database restart/migration. Workers edit only their assigned files and must not run shared `view:cache` while tests run.
 

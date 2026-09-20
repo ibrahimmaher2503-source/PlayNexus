@@ -120,7 +120,7 @@ class BranchSettingsTest extends TestCase
             ->assertSee(__('branch_settings.inclusive'));
     }
 
-    public function test_only_an_owner_can_read_or_update_same_tenant_settings(): void
+    public function test_unassigned_staff_cannot_read_or_update_same_tenant_settings(): void
     {
         [$tenant, $owner] = $this->owner();
         $staff = User::factory()->create(['tenant_id' => $tenant->id, 'status' => 'active']);
@@ -129,10 +129,10 @@ class BranchSettingsTest extends TestCase
 
         $this->actingAs($staff)
             ->get(route('branches.settings', $branch))
-            ->assertForbidden();
+            ->assertNotFound();
         $this->patchJson(route('branches.settings.update', $branch), $payload)
-            ->assertForbidden();
-        $this->assertDatabaseCount('audit_logs', 0);
+            ->assertNotFound();
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
 
         $foreignBranch = $this->branch(Tenant::factory()->create(), 'Foreign settings branch');
         $this->actingAs($owner)
@@ -140,6 +140,45 @@ class BranchSettingsTest extends TestCase
             ->assertNotFound();
         $this->patchJson(route('branches.settings.update', $foreignBranch), $payload)
             ->assertNotFound();
+    }
+
+    public function test_assigned_branch_manager_can_update_only_the_managed_branch_and_reception_is_denied(): void
+    {
+        [$tenant] = $this->owner();
+        $managed = $this->branch($tenant, 'Managed settings');
+        $unassigned = $this->branch($tenant, 'Unassigned settings');
+        $manager = User::factory()->create(['tenant_id' => $tenant->id, 'status' => 'active']);
+        $reception = User::factory()->create(['tenant_id' => $tenant->id, 'status' => 'active']);
+        foreach ([[$manager, 'branch_manager'], [$reception, 'reception_staff']] as [$user, $role]) {
+            DB::table('branch_user')->insert([
+                'tenant_id' => $tenant->id,
+                'branch_id' => $managed->id,
+                'user_id' => $user->id,
+                'role' => $role,
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($manager)
+            ->get(route('branches.settings', $managed))
+            ->assertOk();
+        $this->patchJson(route('branches.settings.update', $managed), $this->settingsPayload($managed))
+            ->assertOk()
+            ->assertJsonPath('changed', true);
+        $this->get(route('branches.settings', $unassigned))->assertNotFound();
+
+        $this->actingAs($reception)
+            ->get(route('branches.settings', $managed))
+            ->assertForbidden();
+        $this->patchJson(route('branches.settings.update', $managed), $this->settingsPayload($managed))
+            ->assertForbidden();
+
+        DB::table('branch_user')->where('user_id', $reception->id)->update(['role' => 'cashier']);
+        $this->get(route('branches.settings', $managed))->assertForbidden();
+        DB::table('branch_user')->where('user_id', $manager->id)->update(['is_active' => false]);
+        $this->actingAs($manager)->get(route('branches.settings', $managed))->assertNotFound();
     }
 
     public function test_owner_can_read_and_update_an_inactive_own_branch(): void
@@ -225,6 +264,59 @@ class BranchSettingsTest extends TestCase
         $this->patchJson(route('branches.settings.update', $branch), $reversed)
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['opening_hours.0.closes_at']);
+    }
+
+    public function test_currency_change_is_rejected_after_financial_records_are_posted_and_history_is_unchanged(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $now = now('UTC');
+        $orderId = DB::table('orders')->insertGetId([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $branch->id,
+            'status' => 'paid',
+            'subtotal_minor' => 10_000,
+            'discount_minor' => 0,
+            'tax_minor' => 0,
+            'total_minor' => 10_000,
+            'paid_minor' => 10_000,
+            'refunded_minor' => 0,
+            'currency' => 'EGP',
+            'opened_by_user_id' => $owner->id,
+            'paid_by_user_id' => $owner->id,
+            'paid_at' => $now,
+            'lock_version' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        DB::table('payments')->insert([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $branch->id,
+            'order_id' => $orderId,
+            'method' => 'cash',
+            'status' => 'posted',
+            'amount_minor' => 10_000,
+            'currency' => 'EGP',
+            'posted_by_user_id' => $owner->id,
+            'posted_at' => $now,
+            'idempotency_key' => 'branch-currency-history',
+            'request_fingerprint' => hash('sha256', 'branch-currency-history'),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        $payload = $this->settingsPayload($branch);
+        $payload['currency'] = 'USD';
+
+        $this->actingAs($owner)
+            ->patchJson(route('branches.settings.update', $branch), $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['currency']);
+
+        $this->assertSame('EGP', $branch->fresh()->currency);
+        $this->assertSame('EGP', DB::table('orders')->where('id', $orderId)->value('currency'));
+        $this->assertSame('EGP', DB::table('payments')->where('order_id', $orderId)->value('currency'));
+        $this->assertDatabaseCount('audit_logs', 0);
     }
 
     public function test_stale_version_returns_conflict_and_noop_does_not_bump_or_audit(): void

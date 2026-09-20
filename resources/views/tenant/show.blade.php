@@ -3,7 +3,7 @@
 @section('title', __('tenant.page_title') . ' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-5xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
             <div>
                 <h1 class="text-2xl font-bold">{{ __('tenant.page_title') }}</h1>

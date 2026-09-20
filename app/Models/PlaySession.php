@@ -71,6 +71,16 @@ class PlaySession extends Model
         return $this->belongsTo(Guardian::class);
     }
 
+    public function checkoutGuardian(): BelongsTo
+    {
+        return $this->belongsTo(Guardian::class, 'checkout_guardian_id');
+    }
+
+    public function checkoutVerifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'checkout_verified_by_user_id');
+    }
+
     public function ticket(): BelongsTo
     {
         return $this->belongsTo(Ticket::class);

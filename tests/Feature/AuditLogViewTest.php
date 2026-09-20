@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -101,14 +102,13 @@ class AuditLogViewTest extends TestCase
             ->get(route('audit.index'))
             ->assertOk()
             ->assertSee($actor->name)
-            ->assertDontSee($otherActor->name);
+            ->assertViewHas('logs', fn (LengthAwarePaginator $logs): bool => $logs->total() === 2 && $logs->every(fn (object $log): bool => $log->outcome === 'success'));
 
         $this->actingAs($owner)
             ->get(route('audit.index', ['action' => 'branch.created', 'actor_user_id' => $actor->id]))
             ->assertOk()
             ->assertSee(trans('audit.actions')['branch.created'])
             ->assertSee($actor->name)
-            ->assertDontSee('Other Actor')
             ->assertViewHas('logs', function (LengthAwarePaginator $logs): bool {
                 $this->assertSame(1, $logs->total());
                 $this->assertSame('branch.created', $logs->first()->action);
@@ -142,6 +142,31 @@ class AuditLogViewTest extends TestCase
                 ->assertDontSee(trans('audit.unknown_reason'))
                 ->assertViewHas('logs', fn (LengthAwarePaginator $logs): bool => $logs->total() === 1 && $logs->first()->action === $action);
         }
+    }
+
+    public function test_branch_subject_and_local_date_filters_are_tenant_scoped(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $tenant->update(['timezone' => 'Africa/Cairo']);
+        $actor = $this->user($tenant, 'Session Operator');
+        $branch = $this->branch($tenant, 'Session Branch');
+        $otherBranch = $this->branch($tenant, 'Other Branch');
+        Carbon::setTestNow('2026-09-14 12:00:00 UTC');
+        $this->audit($tenant, $actor, $branch, action: 'session.checkout_prepared');
+        Carbon::setTestNow('2026-09-12 12:00:00 UTC');
+        $this->audit($tenant, $actor, $otherBranch, action: 'branch.created');
+
+        $this->actingAs($owner)
+            ->get(route('audit.index', [
+                'branch_id' => $branch->id,
+                'subject_type' => 'user',
+                'date_from' => '2026-09-14',
+                'date_to' => '2026-09-14',
+            ]))
+            ->assertOk()
+            ->assertSee(trans('audit.actions')['session.checkout_prepared'])
+            ->assertSee($branch->name)
+            ->assertViewHas('logs', fn (LengthAwarePaginator $logs): bool => $logs->total() === 1 && $logs->first()->branch_id === $branch->id);
     }
 
     public function test_foreign_and_nonexistent_actor_filters_have_the_same_validation_error(): void
@@ -228,6 +253,28 @@ class AuditLogViewTest extends TestCase
             ->assertSee(trans('audit.actions', [], 'ar')['staff.branch_assignment.changed'])
             ->assertSee(trans('audit.reasons.access_review', [], 'ar'))
             ->assertSee($branch->name);
+    }
+
+    public function test_audit_rows_are_append_only_at_the_database_boundary(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $this->audit($tenant, $owner, $branch);
+        $id = DB::table('audit_logs')->value('id');
+
+        foreach ([
+            fn () => DB::table('audit_logs')->where('id', $id)->update(['reason_code' => 'rewritten']),
+            fn () => DB::table('audit_logs')->where('id', $id)->delete(),
+        ] as $mutation) {
+            try {
+                $mutation();
+                $this->fail('Audit mutation was not rejected.');
+            } catch (QueryException $exception) {
+                $this->assertStringContainsString('append-only', $exception->getMessage());
+            }
+        }
+
+        $this->assertDatabaseHas('audit_logs', ['id' => $id, 'reason_code' => 'staffing_change']);
     }
 
     /** @return array{Tenant, User} */

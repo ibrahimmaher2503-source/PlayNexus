@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.platform')
 
 @section('title', __('platform.tenants.page_title') . ' · ' . __('platform.brand'))
 
@@ -15,7 +15,7 @@
         ];
     @endphp
 
-    <main class="mx-auto min-h-screen max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
         <header class="flex flex-wrap items-start justify-between gap-5 border-b border-[var(--pn-border)] pb-5">
             <div>
                 <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ __('platform.brand') }}</p>
@@ -23,27 +23,20 @@
                 <h1 class="mt-4 text-2xl font-bold">{{ __('platform.tenants.page_title') }}</h1>
                 <p class="mt-1 max-w-2xl text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('platform.tenants.page_description') }}</p>
             </div>
-            <div class="flex flex-wrap items-end gap-3">
-                <form class="flex items-end gap-2" method="POST" action="{{ route('locale.store') }}">
-                    @csrf
-                    <label class="text-sm font-semibold" for="platform-tenants-locale">{{ __('platform.locale.label') }}</label>
-                    <select class="min-h-11 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-2 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="platform-tenants-locale" name="locale">
-                        <option value="en" @selected(app()->isLocale('en'))>{{ __('platform.locale.english') }}</option>
-                        <option value="ar" @selected(app()->isLocale('ar'))>{{ __('platform.locale.arabic') }}</option>
-                    </select>
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-3 text-sm font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('platform.locale.change') }}</button>
-                </form>
-                <form method="POST" action="{{ route('platform.logout') }}">
-                    @csrf
-                    <button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('platform.tenants.sign_out') }}</button>
-                </form>
-            </div>
         </header>
 
         @if (session('success') || session('status_message') || session('status'))
             <div class="mt-5 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] px-4 py-3 font-semibold text-[var(--pn-primary)]" role="status" aria-live="polite">
                 {{ session('success') ?? session('status_message') ?? session('status') }}
             </div>
+        @endif
+
+        @if (session('owner_invitation_url'))
+            <section class="mt-5 rounded-[14px] border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] p-5" aria-labelledby="new-owner-link-heading">
+                <h2 class="font-bold" id="new-owner-link-heading">{{ __('platform.tenants.invitation_one_time_link') }}</h2>
+                <p class="mt-2 text-sm leading-6">{{ __('platform.tenants.invitation_manual_delivery') }}</p>
+                <p class="mt-3 overflow-x-auto rounded-[10px] bg-[var(--pn-surface)] p-3 font-mono text-sm"><bdi dir="ltr">{{ session('owner_invitation_url') }}</bdi></p>
+            </section>
         @endif
 
         @if (session('conflict'))
@@ -127,19 +120,29 @@
                                 @endphp
                                 <tr class="align-top">
                                     <th class="whitespace-nowrap px-4 py-4 text-start font-semibold" scope="row" data-label="{{ __('platform.tenants.internal_identifier') }}"><bdi class="pn-bidi" dir="ltr">{{ data_get($tenant, 'internal_identifier') }}</bdi></th>
-                                    <td class="px-4 py-4" data-label="{{ __('platform.tenants.name') }}">{{ data_get($tenant, 'name') }}</td>
+                                    <td class="px-4 py-4" data-label="{{ __('platform.tenants.name') }}">
+                                        @if (app('router')->has('platform.tenants.show'))
+                                            <a class="font-semibold text-[var(--pn-primary)] underline decoration-[var(--pn-border-strong)] underline-offset-4 hover:decoration-current focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('platform.tenants.show', $tenantId) }}">{{ data_get($tenant, 'name') }}</a>
+                                        @else
+                                            {{ data_get($tenant, 'name') }}
+                                        @endif
+                                    </td>
                                     <td class="whitespace-nowrap px-4 py-4" data-label="{{ __('platform.tenants.plan_reference') }}"><bdi class="pn-bidi" dir="ltr">{{ data_get($tenant, 'plan_reference') }}</bdi></td>
                                     <td class="px-4 py-4" data-label="{{ __('platform.tenants.status') }}">
                                         <span class="inline-flex rounded-full px-3 py-1 text-sm font-semibold {{ $statusClasses[$tenantStatus] ?? 'bg-[var(--pn-surface-subtle)] text-[var(--pn-ink-muted)]' }}">{{ $tenantStatusLabel }}</span>
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-4" data-label="{{ __('platform.tenants.lock_version') }}"><bdi dir="ltr">{{ data_get($tenant, 'lock_version') }}</bdi></td>
                                     <td class="px-4 py-4" data-label="{{ __('platform.tenants.status_heading') }}">
+                                        @if (app('router')->has('platform.tenants.show'))
+                                            <a class="mb-2 inline-flex min-h-11 items-center rounded-[10px] px-2 text-sm font-semibold text-[var(--pn-primary)] underline decoration-[var(--pn-border-strong)] underline-offset-4 hover:decoration-current focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('platform.tenants.show', $tenantId) }}">{{ __('platform.tenants.view_details') }}</a>
+                                        @endif
                                         <details class="pn-action-details">
                                             <summary class="inline-flex min-h-11 cursor-pointer list-none items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 text-sm font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]">{{ __('platform.tenants.change_status') }}</summary>
                                             <form id="{{ $statusFormId }}" class="mt-3 space-y-3 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-3" method="POST" action="{{ route('platform.tenants.status', $tenantId) }}" data-pn-confirm-form data-pn-confirm-message="{{ __('platform.tenants.confirm_status_change') }}" onsubmit="return window.confirm(this.dataset.pnConfirmMessage)">
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="expected_status" value="{{ $tenantStatus }}">
+                                                <p class="rounded-[10px] border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] px-3 py-2 text-sm leading-6 text-[var(--pn-ink)]">{{ __('platform.tenants.status_consequence') }}</p>
                                                 <div class="grid gap-3 sm:grid-cols-2">
                                                     <div>
                                                         <label class="block text-xs font-semibold" for="{{ $statusFormId }}-status">{{ __('platform.tenants.status_label') }}</label>
@@ -149,15 +152,11 @@
                                                             @endforeach
                                                         </select>
                                                     </div>
-                                                    <div>
-                                                        <label class="block text-xs font-semibold" for="{{ $statusFormId }}-reason">{{ __('platform.tenants.reason_code') }}</label>
-                                                        <select class="mt-1 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-reason" name="reason_code" aria-describedby="{{ $statusFormId }}-reason-hint" required>
-                                                            @foreach (['setup_change', 'access_review', 'correction'] as $reason)
-                                                                <option value="{{ $reason }}">{{ __('platform.tenants.reasons.'.$reason) }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                        <span class="mt-1 block text-xs text-[var(--pn-ink-muted)]" id="{{ $statusFormId }}-reason-hint">{{ __('platform.tenants.reason_hint') }}</span>
-                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-semibold" for="{{ $statusFormId }}-reason">{{ __('platform.tenants.reason') }}</label>
+                                                    <textarea class="mt-1 block min-h-20 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 py-2 text-sm focus:border-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="{{ $statusFormId }}-reason" name="reason" minlength="3" maxlength="500" aria-describedby="{{ $statusFormId }}-reason-hint" required></textarea>
+                                                    <span class="mt-1 block text-xs text-[var(--pn-ink-muted)]" id="{{ $statusFormId }}-reason-hint">{{ __('platform.tenants.reason_hint') }}</span>
                                                 </div>
                                                 <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 text-sm font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('platform.tenants.save_status') }}</button>
                                             </form>

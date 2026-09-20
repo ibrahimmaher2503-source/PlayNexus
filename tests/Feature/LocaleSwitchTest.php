@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class LocaleSwitchTest extends TestCase
@@ -52,7 +53,7 @@ class LocaleSwitchTest extends TestCase
             ->assertOk()
             ->assertSee('lang="ar"', false)
             ->assertSee('dir="rtl"', false)
-            ->assertSee('سياق الفرع');
+            ->assertSee(trans('actor_dashboard.titles.reception', [], 'ar'));
     }
 
     public function test_authenticated_user_stays_on_an_account_settings_page_when_switching_locale(): void
@@ -67,6 +68,33 @@ class LocaleSwitchTest extends TestCase
             ->assertSessionHas('locale', 'ar');
     }
 
+    public function test_platform_admin_stays_on_the_platform_dashboard_when_switching_locale(): void
+    {
+        $admin = User::factory()->create([
+            'tenant_id' => null,
+            'auth_version' => 1,
+            'mfa_confirmed_at' => now(),
+        ]);
+        DB::table('platform_admins')->insert([
+            'user_id' => $admin->id,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->withSession(['platform_auth_version' => 1, 'mfa_auth_version' => 1])
+            ->from(route('platform.dashboard'))
+            ->post(route('locale.store'), ['locale' => 'ar'])
+            ->assertRedirect(route('platform.dashboard'))
+            ->assertSessionHas('locale', 'ar');
+
+        $this->get(route('platform.dashboard'))
+            ->assertOk()
+            ->assertSee('lang="ar"', false)
+            ->assertSee('dir="rtl"', false);
+    }
+
     public function test_locale_rejects_malformed_values_and_ignores_client_redirects(): void
     {
         $this->from(route('login'))
@@ -79,6 +107,15 @@ class LocaleSwitchTest extends TestCase
             ->post(route('locale.store'), ['locale' => ['ar']])
             ->assertRedirect(route('login'))
             ->assertSessionHasErrors('locale');
+    }
+
+    public function test_locale_select_submission_keeps_the_selected_value_enabled(): void
+    {
+        $script = file_get_contents(resource_path('js/app.js'));
+
+        $this->assertIsString($script);
+        $this->assertStringContainsString('select.form?.requestSubmit();', $script);
+        $this->assertStringNotContainsString('select.disabled = true;', $script);
     }
 
     public function test_login_validation_is_localized_after_switching_to_arabic(): void

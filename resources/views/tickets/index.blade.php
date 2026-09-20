@@ -6,7 +6,9 @@
     @php
         $branchList = collect($branches ?? []);
         $typeList = collect($types ?? []);
-        $ticketList = collect($tickets ?? []);
+        $ticketList = $tickets instanceof \Illuminate\Contracts\Pagination\Paginator
+            ? collect($tickets->items())
+            : collect($tickets ?? []);
         $assignmentList = collect($assignments ?? []);
         $scanGroups = collect($scansByTicketId ?? []);
         $issueFormContext = 'ticket-issue';
@@ -48,7 +50,7 @@
         $panelAttributes = static fn (string $tab) => $activeTab === $tab ? '' : 'hidden aria-hidden="true"';
     @endphp
 
-    <main class="mx-auto min-h-screen max-w-7xl px-4 py-6 sm:px-6" data-pn-tickets>
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6" data-pn-tickets>
         <header class="border-b border-[var(--pn-border)] pb-5">
             <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant->name }}</p>
             <h1 class="mt-1 text-2xl font-bold">{{ __('tickets.page_title') }}</h1>
@@ -215,7 +217,7 @@
         </div>
 
         <div id="ticket-tab-issue" data-pn-ticket-panel="issue" {!! $panelAttributes('issue') !!}>
-        <div class="mt-8 max-w-4xl">
+        <div class="mt-8">
             <section aria-labelledby="issue-heading">
                 <div>
                     <h2 class="text-xl font-bold" id="issue-heading">{{ __('tickets.issue_heading') }}</h2>
@@ -447,6 +449,9 @@
                         </tbody>
                     </table>
                 </div>
+                @if ($tickets->hasPages())
+                    <div class="border-t border-[var(--pn-border)] px-4 py-4">{{ $tickets->links() }}</div>
+                @endif
         @endif
         </section>
         </div>

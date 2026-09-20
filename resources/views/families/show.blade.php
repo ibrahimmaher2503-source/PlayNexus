@@ -11,7 +11,7 @@
         $childCreateFormOpen = $oldFormContext === 'child-create';
     @endphp
 
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
             <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('families.index') }}">{{ __('families.back_to_families') }}</a>
             <p class="mt-5 text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant->name }}</p>
@@ -78,6 +78,51 @@
 
         <div class="mt-8 grid items-start gap-8 {{ $canCreateChild ? 'lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]' : '' }}">
             <div class="space-y-8">
+                <section aria-labelledby="visit-history-heading">
+                    <div class="flex flex-wrap items-end justify-between gap-3">
+                        <div>
+                            <h2 class="text-lg font-bold" id="visit-history-heading">{{ __('families.visit_history_heading') }}</h2>
+                            <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('families.visit_history_description') }}</p>
+                        </div>
+                        <span class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ __('families.visit_history_count', ['count' => $visitHistory->count()]) }}</span>
+                    </div>
+                    @if ($visitHistory->isEmpty())
+                        <div class="mt-4 rounded-[14px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-5" role="status">
+                            <p class="font-semibold">{{ __('families.visit_history_empty') }}</p>
+                        </div>
+                    @else
+                        <div class="mt-4 overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm" data-pn-table data-pn-responsive-table role="region" aria-labelledby="visit-history-heading" tabindex="0">
+                            <table class="min-w-full divide-y divide-[var(--pn-border)] text-start">
+                                <thead class="bg-[var(--pn-surface-subtle)] text-sm font-semibold">
+                                    <tr>
+                                        <th class="px-4 py-3 text-start" scope="col">{{ __('families.visit_child') }}</th>
+                                        <th class="px-4 py-3 text-start" scope="col">{{ __('families.visit_branch') }}</th>
+                                        <th class="px-4 py-3 text-start" scope="col">{{ __('families.visit_started_at') }}</th>
+                                        <th class="px-4 py-3 text-start" scope="col">{{ __('families.visit_status') }}</th>
+                                        <th class="px-4 py-3 text-start" scope="col">{{ __('families.visit_total') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[var(--pn-border)]">
+                                    @foreach ($visitHistory as $visit)
+                                        @php
+                                            $visitStarted = \Illuminate\Support\Carbon::parse($visit->started_at, 'UTC')
+                                                ->setTimezone($visit->branch_timezone ?: 'UTC')
+                                                ->format('Y-m-d H:i');
+                                        @endphp
+                                        <tr>
+                                            <td class="px-4 py-3 font-semibold" data-label="{{ __('families.visit_child') }}">{{ $visit->child_name }}</td>
+                                            <td class="px-4 py-3" data-label="{{ __('families.visit_branch') }}">{{ $visit->branch_name }}</td>
+                                            <td class="px-4 py-3 tabular-nums" data-label="{{ __('families.visit_started_at') }}"><bdi dir="ltr">{{ $visitStarted }}</bdi></td>
+                                            <td class="px-4 py-3" data-label="{{ __('families.visit_status') }}">{{ data_get(__('sessions.statuses'), $visit->status, $visit->status) }}</td>
+                                            <td class="px-4 py-3 font-semibold tabular-nums" data-label="{{ __('families.visit_total') }}"><bdi dir="ltr">{{ $visit->checkout_amount_due_minor === null ? '—' : number_format($visit->checkout_amount_due_minor / 100, 2).' EGP' }}</bdi></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </section>
+
                 @if ($canUpdateGuardian)
                 <details class="group rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" aria-labelledby="guardian-edit-heading" @if ($guardianFormOpen) open @endif>
                     <summary class="flex min-h-11 cursor-pointer list-none flex-wrap items-start justify-between gap-3 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--pn-focus)]">
@@ -159,6 +204,8 @@
                                     $relationship = data_get($child->pivot, 'relationship_type');
                                     $childFormContext = 'child-update-'.$child->id;
                                     $isChildFormContext = $oldFormContext === $childFormContext;
+                                    $childDataConsent = data_get($consentStatuses, $child->id.'.child_data');
+                                    $marketingConsent = data_get($consentStatuses, $child->id.'.marketing');
                                 @endphp
                                 <article class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:p-6" aria-labelledby="child-heading-{{ $child->id }}">
                                     <div class="flex flex-wrap items-start justify-between gap-3">
@@ -166,8 +213,33 @@
                                             <p class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ __('families.child_record') }}</p>
                                             <h3 class="mt-1 text-lg font-bold" id="child-heading-{{ $child->id }}">{{ $child->full_name }}</h3>
                                         </div>
-                                        <span class="rounded-full border border-[var(--pn-border)] px-3 py-1 text-sm font-semibold">{{ $relationshipTypes[$relationship] ?? $relationship }}</span>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="rounded-full border border-[var(--pn-border)] px-3 py-1 text-sm font-semibold">{{ $relationshipTypes[$relationship] ?? $relationship }}</span>
+                                            @if ($child->status === 'restricted')
+                                                <span class="rounded-full border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] px-3 py-1 text-sm font-semibold">{{ __('families.restricted') }}</span>
+                                            @endif
+                                        </div>
                                     </div>
+
+                                    @if ($canManageConsent && $childDataConsent)
+                                        <section class="mt-4 rounded-[12px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-4" aria-labelledby="consent-heading-{{ $child->id }}">
+                                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                                <div>
+                                                    <h4 class="font-bold" id="consent-heading-{{ $child->id }}">{{ __('families.consent_evidence_heading') }}</h4>
+                                                    <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('families.consent_evidence_help') }}</p>
+                                                </div>
+                                                <span class="rounded-full border px-3 py-1 text-sm font-semibold {{ $childDataConsent->status === 'granted' ? 'border-[var(--pn-success)] text-[var(--pn-success)]' : 'border-[var(--pn-warning)] text-[var(--pn-warning)]' }}">
+                                                    {{ __('families.consent_status_'.$childDataConsent->status) }}
+                                                </span>
+                                            </div>
+                                            <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                                                <div><dt class="text-[var(--pn-ink-muted)]">{{ __('families.consent_recorded_at') }}</dt><dd class="mt-1 font-semibold" dir="ltr">{{ \Illuminate\Support\Carbon::parse($childDataConsent->occurred_at)->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</dd></div>
+                                                <div><dt class="text-[var(--pn-ink-muted)]">{{ __('families.consent_actor') }}</dt><dd class="mt-1 font-semibold">{{ $childDataConsent->actor_name ?: __('families.system_actor') }}</dd></div>
+                                                <div><dt class="text-[var(--pn-ink-muted)]">{{ __('families.consent_method') }}</dt><dd class="mt-1 font-semibold">{{ __('families.consent_method_'.$childDataConsent->method) }}</dd></div>
+                                                <div><dt class="text-[var(--pn-ink-muted)]">{{ __('families.consent_notice') }}</dt><dd class="mt-1 font-semibold" dir="ltr">{{ $childDataConsent->notice_version }}</dd></div>
+                                            </dl>
+                                        </section>
+                                    @endif
 
                                     @if ($canUpdateChild)
                                     <details class="group mt-5 border-t border-[var(--pn-border)] pt-5" @if ($isChildFormContext) open @endif>
@@ -221,7 +293,7 @@
                                     </details>
                                     @endif
 
-                                    @if ($canManageConsent && data_get($consentStatuses, $child->id.'.child_data') === 'granted')
+                                    @if ($canManageConsent && data_get($childDataConsent, 'status') === 'granted')
                                         <form class="mt-4 border-t border-[var(--pn-border)] pt-4" method="POST" action="{{ route('families.children.consent.withdraw', [$guardian, $child]) }}">
                                             @csrf
                                             @method('PATCH')
@@ -232,7 +304,24 @@
                                         </form>
                                     @endif
 
-                                    @if ($loop->first && $canManageConsent && data_get($consentStatuses, $child->id.'.marketing') === 'granted')
+                                    @if ($canManageConsent && data_get($childDataConsent, 'status') === 'withdrawn')
+                                        <form class="mt-4 rounded-[12px] border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] p-4" method="POST" action="{{ route('families.children.consent.grant', [$guardian, $child]) }}">
+                                            @csrf
+                                            <input type="hidden" name="expected_version" value="{{ $child->lock_version }}">
+                                            <input type="hidden" name="notice_version" value="{{ $noticeVersion }}">
+                                            <label class="flex items-start gap-3">
+                                                <input class="mt-1 size-5 shrink-0 accent-[var(--pn-primary)]" name="child_data_consent" type="checkbox" value="1" required>
+                                                <span>
+                                                    <strong>{{ __('families.restore_child_data_consent') }}</strong>
+                                                    <span class="mt-1 block text-sm text-[var(--pn-ink-muted)]">{{ __('families.restore_child_data_consent_help') }}</span>
+                                                </span>
+                                            </label>
+                                            @error('child_data_consent')<p class="mt-2 text-sm font-semibold text-[var(--pn-danger)]" role="alert">{{ $message }}</p>@enderror
+                                            <button class="mt-3 inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-bold text-white hover:bg-[var(--pn-primary-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('families.confirm_restore_consent') }}</button>
+                                        </form>
+                                    @endif
+
+                                    @if ($loop->first && $canManageConsent && data_get($marketingConsent, 'status') === 'granted')
                                         <form class="mt-4" method="POST" action="{{ route('families.children.consent.withdraw', [$guardian, $child]) }}">
                                             @csrf
                                             @method('PATCH')

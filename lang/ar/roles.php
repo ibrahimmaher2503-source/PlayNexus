@@ -3,7 +3,7 @@
 return [
     'page_title' => 'الأدوار المخصصة',
     'navigation_label' => 'الأدوار والصلاحيات',
-    'hub_label' => 'الموظفون والوصول',
+    'hub_label' => 'الموظفون والصلاحيات',
     'employees_tab' => 'الموظفون',
     'access_tab' => 'وصول الفروع',
     'roles_tab' => 'الأدوار والصلاحيات',

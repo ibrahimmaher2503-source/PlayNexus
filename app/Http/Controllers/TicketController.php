@@ -87,12 +87,12 @@ class TicketController extends Controller
             })
             ->orderByDesc('issued_at')
             ->orderByDesc('id')
-            ->limit(75)
-            ->get();
+            ->paginate(50)
+            ->withQueryString();
 
         $assignments = $this->activeFamilyAssignments($tenant, $familySearch);
         $scansByTicketId = TicketScan::query()->where('tenant_id', $tenant->getKey())
-            ->whereIn('ticket_id', $tickets->modelKeys())->whereIn('branch_id', $branchIds)
+            ->whereIn('ticket_id', $tickets->getCollection()->modelKeys())->whereIn('branch_id', $branchIds)
             ->orderByDesc('scanned_at')->orderByDesc('id')->limit(300)->get()->groupBy('ticket_id');
         $manageableBranchIds = $branches
             ->filter(fn (Branch $branch): bool => $policy->createType($actor, $branch))

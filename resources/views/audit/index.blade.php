@@ -3,12 +3,15 @@
 @section('title', __('audit.page_title') . ' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-7xl px-4 py-6 sm:px-6">
-        <header class="border-b border-[var(--pn-border)] pb-5">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
+        <header class="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--pn-border)] pb-5">
             <div>
                 <h1 class="text-2xl font-bold">{{ __('audit.page_title') }}</h1>
                 <p class="mt-1 max-w-2xl text-sm text-[var(--pn-ink-muted)]">{{ __('audit.page_description') }}</p>
             </div>
+            @if ($canExport)
+                <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold text-[var(--pn-primary)]" href="{{ route('audit.export', request()->query()) }}">{{ __('audit.export_csv') }}</a>
+            @endif
         </header>
 
         @if ($errors->any())
@@ -40,7 +43,7 @@
                     <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('audit.success_only') }}</p>
                 </div>
             </div>
-            <form class="mt-4 grid gap-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4" method="GET" action="{{ route('audit.index') }}" data-pn-form>
+            <form class="mt-4 grid gap-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-6" method="GET" action="{{ route('audit.index') }}" data-pn-form>
                 <div>
                     <label class="block text-sm font-semibold" for="action">{{ __('audit.action_filter') }}</label>
                     <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="action" name="action">
@@ -52,15 +55,40 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold" for="actor_user_id">{{ __('audit.actor_filter') }}</label>
-                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="actor_user_id" name="actor_user_id" type="number" min="1" step="1" inputmode="numeric" placeholder="{{ __('audit.actor_placeholder') }}" value="{{ request('actor_user_id') }}">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold" for="outcome">{{ __('audit.outcome_filter') }}</label>
-                    <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="outcome" name="outcome">
-                        <option value="success" @selected(request('outcome', 'success') === 'success')>{{ is_array($outcomeLabels) ? $outcomeLabels['success'] : __('audit.success_only') }}</option>
+                    <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="actor_user_id" name="actor_user_id">
+                        <option value="">{{ __('audit.all_actors') }}</option>
+                        @foreach ($filterActors as $filterActor)
+                            <option value="{{ $filterActor->id }}" @selected((string) request('actor_user_id') === (string) $filterActor->id)>{{ $filterActor->name }}</option>
+                        @endforeach
                     </select>
                 </div>
-                <div class="flex flex-wrap items-end gap-2">
+                <div>
+                    <label class="block text-sm font-semibold" for="branch_id">{{ __('audit.branch_filter') }}</label>
+                    <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="branch_id" name="branch_id">
+                        <option value="">{{ __('audit.all_branches') }}</option>
+                        @foreach ($filterBranches as $filterBranch)
+                            <option value="{{ $filterBranch->id }}" @selected((string) request('branch_id') === (string) $filterBranch->id)>{{ $filterBranch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold" for="subject_type">{{ __('audit.subject_filter') }}</label>
+                    <select class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="subject_type" name="subject_type">
+                        <option value="">{{ __('audit.all_subjects') }}</option>
+                        @foreach ($subjectLabels as $value => $label)
+                            <option value="{{ $value }}" @selected(request('subject_type') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold" for="date_from">{{ __('audit.date_from') }}</label>
+                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="date_from" name="date_from" type="date" value="{{ request('date_from') }}">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold" for="date_to">{{ __('audit.date_to') }}</label>
+                    <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="date_to" name="date_to" type="date" value="{{ request('date_to') }}">
+                </div>
+                <div class="flex flex-wrap items-end gap-2 sm:col-span-2 xl:col-span-6">
                     <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('audit.apply_filters') }}</button>
                     <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('audit.index') }}">{{ __('audit.clear_filters') }}</a>
                 </div>
@@ -72,7 +100,7 @@
             @if ($logs->isEmpty())
                 <div class="rounded-[14px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-6" role="status">
                     <p class="font-semibold">{{ __('audit.no_logs') }}</p>
-                    @if (request()->hasAny(['action', 'actor_user_id', 'outcome']))
+                    @if (request()->hasAny(['action', 'actor_user_id', 'branch_id', 'subject_type', 'date_from', 'date_to']))
                         <a class="mt-3 inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold text-[var(--pn-primary)] hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('audit.index') }}">{{ __('audit.clear_filters') }}</a>
                     @endif
                 </div>

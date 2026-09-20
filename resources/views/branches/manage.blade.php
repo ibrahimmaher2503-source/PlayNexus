@@ -3,7 +3,7 @@
 @section('title', __('branches.page_title') . ' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
             <div>
                 <h1 class="text-2xl font-bold">{{ __('branches.page_title') }}</h1>
@@ -26,8 +26,9 @@
             </div>
         @endif
 
-        @php($createOpen = old('name') !== null || $errors->has('name'))
-        <section class="mt-6 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5" id="create-branch" aria-labelledby="create-branch-heading">
+        @if ($canCreate)
+            @php($createOpen = old('name') !== null || $errors->has('name'))
+            <section class="mt-6 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5" id="create-branch" aria-labelledby="create-branch-heading">
             <details @if ($createOpen) open @endif>
                 <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 rounded-[10px] px-1 font-semibold text-[var(--pn-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--pn-focus)]">
                     <span>
@@ -47,7 +48,8 @@
                     <button class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('branches.create') }}</button>
                 </form>
             </details>
-        </section>
+            </section>
+        @endif
 
         <section class="mt-8" aria-labelledby="branches-heading">
             <h2 class="text-lg font-bold" id="branches-heading">{{ __('branches.branches_heading') }}</h2>
@@ -84,6 +86,9 @@
                                                 <summary class="inline-flex min-h-11 cursor-pointer list-none items-center rounded-[10px] border border-[var(--pn-border-strong)] px-3 font-semibold outline-none hover:bg-[var(--pn-surface-subtle)] focus-visible:ring-2 focus-visible:ring-[var(--pn-focus)]">{{ __('branches.actions_menu') }}</summary>
                                                 <div class="absolute end-0 top-full z-10 mt-2 min-w-64 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-3 shadow-[0_12px_32px_rgb(23_38_43_/_0.12)]">
                                                     <p class="text-xs leading-5 text-[var(--pn-ink-muted)]" id="{{ $formId }}-consequence">{{ $branch->is_active ? __('branches.deactivate_help') : __('branches.reactivate_help') }}</p>
+                                                    @if ($branch->is_active)
+                                                        <p class="mt-2 text-xs font-semibold">{{ __('branches.active_sessions_warning', ['count' => $branch->active_sessions_count]) }}</p>
+                                                    @endif
                                                     <form class="mt-3" id="{{ $formId }}" method="POST" action="{{ route('branches.status', $branch) }}" aria-describedby="{{ $formId }}-consequence" data-pn-form data-confirm="{{ $branch->is_active ? __('branches.deactivate_confirm') : __('branches.reactivate_confirm') }}">
                                                         @csrf
                                                         @method('PATCH')

@@ -28,7 +28,12 @@ class FamilyProfileController extends Controller
         [$actor, $tenant] = $this->authorizedContext($request);
         $guardian = $this->guardianInTenant($guardian, $tenant);
         Gate::forUser($actor)->authorize('view', $guardian);
-        $children = $this->activeChildren($guardian, $tenant)->get();
+        $canUpdateGuardian = Gate::forUser($actor)->allows('update', $guardian);
+        $canCreateChild = Gate::forUser($actor)->allows('createChild', $guardian);
+        $canUpdateChild = Gate::forUser($actor)->allows('updateChild', $guardian);
+        $canManageConsent = Gate::forUser($actor)->allows('manageConsent', $guardian);
+        $canManageRelationships = Gate::forUser($actor)->allows('manageRelationships', $guardian);
+        $children = $this->profileChildren($guardian, $tenant, $canManageConsent)->get();
         $presenter = new FamilyPresenter($actor);
 
         if ($request->expectsJson()) {
@@ -37,20 +42,29 @@ class FamilyProfileController extends Controller
             return response()->json(['guardian' => $data, 'children' => $data['children']]);
         }
 
-        $canUpdateGuardian = Gate::forUser($actor)->allows('update', $guardian);
-        $canCreateChild = Gate::forUser($actor)->allows('createChild', $guardian);
-        $canUpdateChild = Gate::forUser($actor)->allows('updateChild', $guardian);
-        $canManageConsent = Gate::forUser($actor)->allows('manageConsent', $guardian);
-        $canManageRelationships = Gate::forUser($actor)->allows('manageRelationships', $guardian);
         $noticeVersion = FamilyController::NOTICE_VERSION;
         $consentStatuses = DB::table('family_consent_events')
-            ->where('tenant_id', $tenant->getKey())
-            ->whereIn('child_id', $children->pluck('id'))
+            ->leftJoin('users', function ($join): void {
+                $join->on('users.id', '=', 'family_consent_events.actor_user_id')
+                    ->on('users.tenant_id', '=', 'family_consent_events.tenant_id');
+            })
+            ->where('family_consent_events.tenant_id', $tenant->getKey())
+            ->whereIn('family_consent_events.child_id', $children->pluck('id'))
+            ->select([
+                'family_consent_events.child_id',
+                'family_consent_events.consent_type',
+                'family_consent_events.status',
+                'family_consent_events.notice_version',
+                'family_consent_events.method',
+                'family_consent_events.locale',
+                'family_consent_events.occurred_at',
+                'users.name as actor_name',
+            ])
             ->orderByDesc('occurred_at')
-            ->orderByDesc('id')
+            ->orderByDesc('family_consent_events.id')
             ->get()
             ->groupBy('child_id')
-            ->map(fn ($events) => $events->groupBy('consent_type')->map(fn ($typed) => $typed->first()->status));
+            ->map(fn ($events) => $events->groupBy('consent_type')->map(fn ($typed) => $typed->first()));
         $relationships = DB::table('guardian_child')
             ->join('guardians', function ($join): void {
                 $join->on('guardians.tenant_id', '=', 'guardian_child.tenant_id')
@@ -71,8 +85,32 @@ class FamilyProfileController extends Controller
             ->orderBy('guardian_child.guardian_id')
             ->get()
             ->groupBy('child_id');
+        $visitHistory = DB::table('play_sessions')
+            ->join('children', function ($join): void {
+                $join->on('children.tenant_id', '=', 'play_sessions.tenant_id')
+                    ->on('children.id', '=', 'play_sessions.child_id');
+            })
+            ->join('branches', function ($join): void {
+                $join->on('branches.tenant_id', '=', 'play_sessions.tenant_id')
+                    ->on('branches.id', '=', 'play_sessions.branch_id');
+            })
+            ->where('play_sessions.tenant_id', $tenant->getKey())
+            ->whereIn('play_sessions.child_id', $children->pluck('id'))
+            ->select([
+                'play_sessions.id',
+                'play_sessions.status',
+                'play_sessions.started_at',
+                'play_sessions.ended_at',
+                'play_sessions.checkout_amount_due_minor',
+                'children.full_name as child_name',
+                'branches.name as branch_name',
+                'branches.timezone as branch_timezone',
+            ])
+            ->orderByDesc('play_sessions.started_at')
+            ->limit(25)
+            ->get();
 
-        return view('families.show', compact('actor', 'tenant', 'guardian', 'children', 'canUpdateGuardian', 'canCreateChild', 'canUpdateChild', 'canManageConsent', 'canManageRelationships', 'noticeVersion', 'consentStatuses', 'relationships'));
+        return view('families.show', compact('actor', 'tenant', 'guardian', 'children', 'canUpdateGuardian', 'canCreateChild', 'canUpdateChild', 'canManageConsent', 'canManageRelationships', 'noticeVersion', 'consentStatuses', 'relationships', 'visitHistory'));
     }
 
     public function update(Request $request, Guardian $guardian): JsonResponse|RedirectResponse
@@ -266,7 +304,7 @@ class FamilyProfileController extends Controller
                 'guardian_id' => (string) $lockedGuardian->getKey(),
                 'child_id' => (string) $child->getKey(),
                 'changed_fields' => ['child_name', 'date_of_birth', 'relationship_type'],
-            ], null);
+            ], null, $requestId);
 
             return ['child' => $child->fresh(), 'guardian_id' => (int) $lockedGuardian->getKey()];
         });
@@ -308,6 +346,18 @@ class FamilyProfileController extends Controller
                 return ['conflict_version' => (int) $lockedChild->lock_version];
             }
 
+            $latestStatus = DB::table('family_consent_events')
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->where('guardian_id', $lockedGuardian->getKey())
+                ->where('child_id', $lockedChild->getKey())
+                ->where('consent_type', $data['consent_type'])
+                ->orderByDesc('occurred_at')
+                ->orderByDesc('id')
+                ->value('status');
+            if ($latestStatus === 'withdrawn') {
+                return ['changed' => false];
+            }
+
             FamilyConsentRecorder::record($lockedActor, $lockedTenant, $lockedGuardian, $lockedChild, $data['consent_type'], 'withdrawn', $lockedGuardian->preferred_locale, $requestId);
 
             if ($data['consent_type'] === 'child_data') {
@@ -321,20 +371,103 @@ class FamilyProfileController extends Controller
             $this->audit($lockedActor, $lockedTenant, 'family.consent.withdrawn', 'child', $lockedChild->getKey(), [
                 'child_id' => (string) $lockedChild->getKey(),
                 'consent_type' => $data['consent_type'],
-            ], null);
+            ], null, $requestId);
 
-            return ['child' => $lockedChild->fresh()];
+            return ['changed' => true, 'child' => $lockedChild->fresh()];
         });
 
         if (isset($result['conflict_version'])) {
             return $this->conflictResponse($request, (int) $result['conflict_version']);
         }
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => __('families.consent_withdrawn')]);
+        $message = $result['changed'] ? __('families.consent_withdrawn') : __('families.no_change');
+
+        return $request->expectsJson()
+            ? response()->json(['message' => $message, 'changed' => $result['changed']])
+            : to_route('families.show', $guardian)->with($result['changed'] ? 'success' : 'status_message', $message);
+    }
+
+    public function grantConsent(Request $request, Guardian $guardian, Child $child): JsonResponse|RedirectResponse
+    {
+        [$actor, $tenant] = $this->authorizedContext($request);
+        $guardian = $this->guardianInTenant($guardian, $tenant);
+        $child = $this->childInGuardian($child, $guardian, $tenant, true);
+        Gate::forUser($actor)->authorize('manageConsent', $guardian);
+        $data = Validator::make($request->all(), [
+            'expected_version' => ['required', 'integer', 'min:1'],
+            'notice_version' => ['required', Rule::in([FamilyController::NOTICE_VERSION])],
+            'child_data_consent' => ['accepted'],
+        ])->validate();
+        $requestId = (string) $request->attributes->get('request_id', Str::uuid());
+
+        $result = DB::transaction(function () use ($actor, $tenant, $guardian, $child, $data, $requestId): array {
+            [$lockedActor, $lockedTenant] = $this->lockedContext($actor, $tenant);
+            $lockedGuardian = $this->lockedGuardian($guardian, $lockedTenant);
+            Gate::forUser($lockedActor)->authorize('manageConsent', $lockedGuardian);
+            $lockedChild = $this->lockedChildInGuardian($child, $lockedGuardian, $lockedTenant, true);
+
+            if ((int) $lockedChild->lock_version !== (int) $data['expected_version']) {
+                return ['conflict_version' => (int) $lockedChild->lock_version];
+            }
+
+            $relationship = DB::table('guardian_child')
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->where('guardian_id', $lockedGuardian->getKey())
+                ->where('child_id', $lockedChild->getKey())
+                ->where('is_active', true)
+                ->lockForUpdate()
+                ->first();
+            if (! $relationship || ! $relationship->can_consent || ! $relationship->verified_at
+                || ! in_array($relationship->relationship_type, ['mother', 'father', 'legal_guardian'], true)) {
+                return ['guardian_cannot_consent' => true];
+            }
+
+            if (! filled($lockedChild->emergency_contact_name) || ! filled($lockedChild->emergency_contact_phone_e164)) {
+                return ['emergency_contact_required' => true];
+            }
+
+            $latestStatus = DB::table('family_consent_events')
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->where('guardian_id', $lockedGuardian->getKey())
+                ->where('child_id', $lockedChild->getKey())
+                ->where('consent_type', 'child_data')
+                ->orderByDesc('occurred_at')
+                ->orderByDesc('id')
+                ->value('status');
+            if ($latestStatus === 'granted' && $lockedChild->status === 'active') {
+                return ['changed' => false];
+            }
+
+            FamilyConsentRecorder::record($lockedActor, $lockedTenant, $lockedGuardian, $lockedChild, 'child_data', 'granted', $lockedGuardian->preferred_locale, $requestId);
+            $lockedChild->forceFill([
+                'status' => 'active',
+                'updated_by_user_id' => $lockedActor->getKey(),
+                'lock_version' => (int) $lockedChild->lock_version + 1,
+            ])->save();
+            $this->audit($lockedActor, $lockedTenant, 'family.consent.granted', 'child', $lockedChild->getKey(), [
+                'child_id' => (string) $lockedChild->getKey(),
+                'consent_type' => 'child_data',
+                'notice_version' => FamilyController::NOTICE_VERSION,
+            ], null, $requestId);
+
+            return ['changed' => true];
+        });
+
+        if (isset($result['conflict_version'])) {
+            return $this->conflictResponse($request, (int) $result['conflict_version']);
+        }
+        if (isset($result['guardian_cannot_consent'])) {
+            return $this->consentBlockedResponse($request, __('families.consent_guardian_not_eligible'));
+        }
+        if (isset($result['emergency_contact_required'])) {
+            return $this->consentBlockedResponse($request, __('families.consent_emergency_required'));
         }
 
-        return to_route('families.show', $guardian)->with('success', __('families.consent_withdrawn'));
+        $message = $result['changed'] ? __('families.consent_granted') : __('families.no_change');
+
+        return $request->expectsJson()
+            ? response()->json(['message' => $message, 'changed' => $result['changed']])
+            : to_route('families.show', $guardian)->with($result['changed'] ? 'success' : 'status_message', $message);
     }
 
     public function storeRelationship(Request $request, Guardian $guardian, Child $child): JsonResponse|RedirectResponse
@@ -568,27 +701,30 @@ class FamilyProfileController extends Controller
             ->firstOrFail();
     }
 
-    private function childInGuardian(Child $child, Guardian $guardian, Tenant $tenant): Child
+    private function childInGuardian(Child $child, Guardian $guardian, Tenant $tenant, bool $includeRestricted = false): Child
     {
-        $child = Child::query()
+        $query = Child::query()
             ->where('tenant_id', $tenant->getKey())
-            ->where('status', 'active')
-            ->whereKey($child->getKey())
-            ->firstOrFail();
+            ->whereKey($child->getKey());
+        $includeRestricted
+            ? $query->whereIn('status', ['active', 'restricted'])
+            : $query->where('status', 'active');
+        $child = $query->firstOrFail();
 
         abort_unless($this->activeLinkExists($guardian, $child, $tenant), 404);
 
         return $child;
     }
 
-    private function lockedChildInGuardian(Child $child, Guardian $guardian, Tenant $tenant): Child
+    private function lockedChildInGuardian(Child $child, Guardian $guardian, Tenant $tenant, bool $includeRestricted = false): Child
     {
-        $child = Child::query()
+        $query = Child::query()
             ->where('tenant_id', $tenant->getKey())
-            ->where('status', 'active')
-            ->whereKey($child->getKey())
-            ->lockForUpdate()
-            ->firstOrFail();
+            ->whereKey($child->getKey());
+        $includeRestricted
+            ? $query->whereIn('status', ['active', 'restricted'])
+            : $query->where('status', 'active');
+        $child = $query->lockForUpdate()->firstOrFail();
 
         abort_unless($this->activeLinkExists($guardian, $child, $tenant), 404);
 
@@ -605,15 +741,18 @@ class FamilyProfileController extends Controller
             ->exists();
     }
 
-    private function activeChildren(Guardian $guardian, Tenant $tenant)
+    private function profileChildren(Guardian $guardian, Tenant $tenant, bool $includeRestricted)
     {
-        return $guardian->children()
+        $query = $guardian->children()
             ->where('children.tenant_id', $tenant->getKey())
-            ->where('children.status', 'active')
             ->wherePivot('tenant_id', $tenant->getKey())
             ->wherePivot('is_active', true)
             ->select(['children.id', 'children.tenant_id', 'children.full_name', 'children.date_of_birth', 'children.emergency_contact_name', 'children.emergency_contact_phone_e164', 'children.safety_notes_encrypted', 'children.status', 'children.lock_version'])
             ->orderBy('children.id');
+
+        return $includeRestricted
+            ? $query->whereIn('children.status', ['active', 'restricted'])
+            : $query->where('children.status', 'active');
     }
 
     /** @return array<string, mixed> */
@@ -711,7 +850,7 @@ class FamilyProfileController extends Controller
         ];
     }
 
-    private function audit(User $actor, Tenant $tenant, string $action, string $subjectType, int $subjectId, array $after, ?array $before): void
+    private function audit(User $actor, Tenant $tenant, string $action, string $subjectType, int $subjectId, array $after, ?array $before, ?string $requestId = null): void
     {
         DB::table('audit_logs')->insert([
             'tenant_id' => $tenant->getKey(),
@@ -725,7 +864,7 @@ class FamilyProfileController extends Controller
             'reason_code' => 'family_profile_maintenance',
             'before_json' => $before === null ? null : json_encode($before, JSON_THROW_ON_ERROR),
             'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-            'request_id' => (string) Str::uuid(),
+            'request_id' => $requestId ?? (string) request()->attributes->get('request_id', Str::uuid()),
             'occurred_at' => now('UTC'),
         ]);
     }
@@ -778,5 +917,14 @@ class FamilyProfileController extends Controller
         }
 
         return back()->withErrors(['verification_value' => __('families.relationship_verification_failed')])->withInput();
+    }
+
+    private function consentBlockedResponse(Request $request, string $message): JsonResponse|RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], 422);
+        }
+
+        return back()->withErrors(['child_data_consent' => $message])->withInput();
     }
 }

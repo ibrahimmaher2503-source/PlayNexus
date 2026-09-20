@@ -18,9 +18,13 @@ class TenantSettingsController extends Controller
 {
     public function edit(Request $request): View
     {
-        [, $tenant] = $this->context($request);
+        [$actor, $tenant] = $this->context($request);
+        $contactOwner = $tenant->owners()
+            ->where('users.status', 'active')
+            ->orderBy('tenant_owners.created_at')
+            ->first(['users.id', 'users.name', 'users.email']) ?? $actor;
 
-        return view('tenant.settings', compact('tenant'));
+        return view('tenant.settings', compact('tenant', 'contactOwner'));
     }
 
     public function update(Request $request): RedirectResponse
@@ -40,8 +44,8 @@ class TenantSettingsController extends Controller
         ]);
 
         $changed = DB::transaction(function () use ($actor, $tenant, $data): bool {
-            $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
             $lockedTenant = Tenant::query()->whereKey($tenant->getKey())->where('is_active', true)->lockForUpdate()->firstOrFail();
+            $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
             Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
 
             if ((int) $lockedTenant->lock_version !== (int) $data['expected_lock_version']) {
@@ -64,7 +68,7 @@ class TenantSettingsController extends Controller
                 'reason_code' => 'setup_change',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(), 'occurred_at' => now('UTC'),
+                'request_id' => (string) request()->attributes->get('request_id', Str::uuid()), 'occurred_at' => now('UTC'),
             ]);
 
             return true;

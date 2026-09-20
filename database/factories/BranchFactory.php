@@ -13,6 +13,6 @@ class BranchFactory extends Factory
 
     public function definition(): array
     {
-        return ['tenant_id' => Tenant::factory(), 'name' => fake()->city(), 'is_active' => true];
+        return ['tenant_id' => Tenant::factory(), 'name' => fake()->city(), 'payment_methods' => ['cash'], 'is_active' => true];
     }
 }

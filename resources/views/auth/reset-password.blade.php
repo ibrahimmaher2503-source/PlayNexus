@@ -31,14 +31,15 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold" for="password">{{ __('passwords.new_password') }}</label>
-                    <input class="mt-2 block min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 outline-none focus:border-[var(--pn-primary)] focus:ring-2 focus:ring-[var(--pn-focus)]" id="password" name="password" type="password" autocomplete="new-password" minlength="8" required @error('password') aria-invalid="true" aria-describedby="password-reset-password-error" @enderror>
+                    <input class="mt-2 block min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 outline-none focus:border-[var(--pn-primary)] focus:ring-2 focus:ring-[var(--pn-focus)]" id="password" name="password" type="password" autocomplete="new-password" minlength="12" required @error('password') aria-invalid="true" aria-describedby="password-reset-password-error" @enderror>
+                    <p class="mt-2 text-sm text-[var(--pn-ink-muted)]">{{ __('passwords.validation.password_invalid') }}</p>
                     @error('password')
                         <p class="mt-2 text-sm text-[var(--pn-danger)]" id="password-reset-password-error">{{ $message }}</p>
                     @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-semibold" for="password_confirmation">{{ __('passwords.confirm_password') }}</label>
-                    <input class="mt-2 block min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 outline-none focus:border-[var(--pn-primary)] focus:ring-2 focus:ring-[var(--pn-focus)]" id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required>
+                    <input class="mt-2 block min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 outline-none focus:border-[var(--pn-primary)] focus:ring-2 focus:ring-[var(--pn-focus)]" id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="12" required>
                 </div>
                 <button class="min-h-11 w-full rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">{{ __('passwords.reset_submit') }}</button>
             </form>

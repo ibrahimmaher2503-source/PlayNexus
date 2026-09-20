@@ -23,8 +23,9 @@ class BranchSettingsController extends Controller
 
     public function edit(Request $request, Branch $branch): View
     {
-        [$actor, $tenant] = $this->authorizedContext($request);
+        [$actor, $tenant] = $this->tenantContext($request);
         $branch = $this->branchInTenant($branch, $tenant);
+        Gate::forUser($actor)->authorize('updateSettings', $branch);
         $storedHours = DB::table('branch_opening_hours')
             ->where('tenant_id', $tenant->getKey())
             ->where('branch_id', $branch->getKey())
@@ -39,8 +40,9 @@ class BranchSettingsController extends Controller
 
     public function update(Request $request, Branch $branch): JsonResponse|RedirectResponse
     {
-        [$actor, $tenant] = $this->authorizedContext($request);
+        [$actor, $tenant] = $this->tenantContext($request);
         $branch = $this->branchInTenant($branch, $tenant);
+        Gate::forUser($actor)->authorize('updateSettings', $branch);
         $payload = $this->normalizedPayload($request);
         $validator = Validator::make($payload, [
             'code' => [
@@ -123,13 +125,12 @@ class BranchSettingsController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
             $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
-            Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
-
             $lockedBranch = Branch::query()
                 ->where('tenant_id', $lockedTenant->getKey())
                 ->whereKey($branch->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
+            Gate::forUser($lockedActor)->authorize('updateSettings', $lockedBranch);
             $storedHours = DB::table('branch_opening_hours')
                 ->where('tenant_id', $lockedTenant->getKey())
                 ->where('branch_id', $lockedBranch->getKey())
@@ -195,7 +196,7 @@ class BranchSettingsController extends Controller
                 'reason_code' => 'setup_change',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(),
+                'request_id' => (string) request()->attributes->get('request_id', Str::uuid()),
                 'occurred_at' => $now,
             ]);
 
@@ -221,15 +222,13 @@ class BranchSettingsController extends Controller
     }
 
     /** @return array{User, Tenant} */
-    private function authorizedContext(Request $request): array
+    private function tenantContext(Request $request): array
     {
-        $actor = User::query()->findOrFail($request->user()->getAuthIdentifier());
+        $actor = User::query()->whereKey($request->user()->getAuthIdentifier())->where('status', 'active')->firstOrFail();
         $tenant = Tenant::query()
             ->whereKey($actor->tenant_id)
             ->where('is_active', true)
             ->firstOrFail();
-
-        Gate::forUser($actor)->authorize('view', $tenant);
 
         return [$actor, $tenant];
     }

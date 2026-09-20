@@ -18,9 +18,94 @@ menu?.addEventListener('click', (event) => {
 });
 menu?.addEventListener('close', () => menuTrigger?.focus());
 
+document.querySelectorAll('[data-pn-password-toggle]').forEach((toggle) => {
+    const input = document.getElementById(toggle.getAttribute('aria-controls'));
+    if (!input) return;
+    toggle.addEventListener('click', () => {
+        const visible = input.type === 'password';
+        input.type = visible ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(visible));
+        toggle.textContent = visible ? toggle.dataset.hideLabel : toggle.dataset.showLabel;
+    });
+});
+
+const shell = document.querySelector('[data-pn-shell]');
+const sidebarToggle = document.querySelector('[data-pn-sidebar-toggle]');
+if (shell && sidebarToggle) {
+    const setSidebarCollapsed = (collapsed) => {
+        shell.dataset.pnSidebarCollapsed = collapsed ? 'true' : 'false';
+        sidebarToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        const label = collapsed ? sidebarToggle.dataset.collapsedLabel : sidebarToggle.dataset.expandedLabel;
+        sidebarToggle.setAttribute('aria-label', label);
+        sidebarToggle.setAttribute('title', label);
+    };
+
+    let collapsed = false;
+    try {
+        collapsed = window.localStorage.getItem('playnexus.sidebar.collapsed') === 'true';
+    } catch {
+        // Storage can be unavailable in restricted browser sessions; expanded remains safe.
+    }
+    setSidebarCollapsed(collapsed);
+    sidebarToggle.addEventListener('click', () => {
+        collapsed = shell.dataset.pnSidebarCollapsed !== 'true';
+        setSidebarCollapsed(collapsed);
+        try {
+            window.localStorage.setItem('playnexus.sidebar.collapsed', String(collapsed));
+        } catch {
+            // The control still works for the current page without persistence.
+        }
+    });
+}
+
+document.querySelectorAll('[data-pn-branch-clock]').forEach((clock) => {
+    const timezone = clock.dataset.timezone;
+    if (!timezone) return;
+    const formatter = new Intl.DateTimeFormat(document.documentElement.lang, {
+        timeZone: timezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
+    const updateClock = () => {
+        const now = new Date();
+        const value = formatter.format(now);
+        const bidi = clock.querySelector('bdi');
+        if (bidi) bidi.textContent = value;
+        else clock.textContent = value;
+        clock.dateTime = now.toISOString();
+    };
+    updateClock();
+    window.setInterval(updateClock, 30000);
+});
+
+const offlineBanner = document.querySelector('[data-pn-offline-banner]');
+if (offlineBanner) {
+    const setConnectionState = () => {
+        const offline = !window.navigator.onLine;
+        offlineBanner.classList.toggle('hidden', !offline);
+        document.querySelectorAll('form').forEach((form) => {
+            const method = (form.getAttribute('method') || 'get').toLowerCase();
+            if (method === 'get' || form.action.endsWith('/logout')) return;
+            form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((control) => {
+                if (offline && !control.disabled) {
+                    control.disabled = true;
+                    control.dataset.pnOfflineDisabled = 'true';
+                } else if (!offline && control.dataset.pnOfflineDisabled === 'true') {
+                    control.disabled = false;
+                    delete control.dataset.pnOfflineDisabled;
+                }
+            });
+        });
+    };
+    window.addEventListener('online', setConnectionState);
+    window.addEventListener('offline', setConnectionState);
+    offlineBanner.querySelector('[data-pn-offline-retry]')?.addEventListener('click', () => window.location.reload());
+    setConnectionState();
+}
+
 document.querySelectorAll('[data-pn-locale-select]').forEach((select) => {
     select.addEventListener('change', () => {
-        select.disabled = true;
         select.form?.requestSubmit();
     });
 });
@@ -200,6 +285,32 @@ document.querySelectorAll('[data-pn-ticket-branch-select]').forEach((branchSelec
     branchSelect.addEventListener('change', () => syncTicketOptions(branchSelect));
 });
 
+document.querySelectorAll('[data-pn-checkout-form]').forEach((form) => {
+    const method = form.elements.namedItem('verification_method');
+    if (!(method instanceof HTMLSelectElement)) return;
+
+    const syncVerificationMethod = () => {
+        const managerOverride = method.value === 'manager_override';
+        form.querySelectorAll('[data-pn-checkout-verification="guardian"]').forEach((group) => {
+            group.hidden = managerOverride;
+            group.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.disabled = managerOverride;
+                field.required = !managerOverride;
+            });
+        });
+        form.querySelectorAll('[data-pn-checkout-verification="override"]').forEach((group) => {
+            group.hidden = !managerOverride;
+            group.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.disabled = !managerOverride;
+                field.required = managerOverride;
+            });
+        });
+    };
+
+    syncVerificationMethod();
+    method.addEventListener('change', syncVerificationMethod);
+});
+
 document.querySelectorAll('[data-pn-print-ticket]').forEach((button) => {
     button.addEventListener('click', () => window.print());
 });
@@ -257,6 +368,8 @@ document.querySelectorAll('[data-pn-confirm-dialog]').forEach((dialog) => {
         .filter((element) => !element.disabled && element.offsetParent !== null);
 
     document.querySelectorAll('[data-pn-confirm-form]').forEach((form) => {
+        // Keep native confirmation as a no-JS fallback, not a second dialog.
+        form.removeAttribute('onsubmit');
         form.addEventListener('submit', (event) => {
             if (form.dataset.pnConfirmWhen === 'deactivate' && form.elements.is_active?.value !== '0') {
                 return;

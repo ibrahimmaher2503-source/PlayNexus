@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'page_title' => 'Subscription and usage',
+    'back_to_dashboard' => 'Back to dashboard',
+    'description' => 'Review your platform-managed subscription and current capacity. Contact PlayNexus support to change commercial terms.',
+    'restricted_heading' => 'Subscription access is restricted',
+    'restricted_description' => 'New sessions, sales, branches, and staff are unavailable. Your historical reports and data remain available.',
+    'grace_heading' => 'Subscription grace period',
+    'grace_description' => 'Normal operations remain available during the grace period. Contact PlayNexus to restore the subscription before it ends.',
+    'commercial_heading' => 'Commercial context',
+    'usage_heading' => 'Capacity usage',
+    'plan' => 'Plan',
+    'status' => 'Status',
+    'billing_interval' => 'Billing interval',
+    'price' => 'Commercial amount',
+    'trial_ends_at' => 'Trial ends',
+    'period_ends_at' => 'Current period ends',
+    'grace_ends_at' => 'Grace ends',
+    'branches' => 'Branches',
+    'users' => 'Staff users',
+    'custom' => 'Custom',
+    'over_limit' => 'Current use is above the effective limit. Existing data is retained; additional creation is blocked.',
+    'no_subscription' => 'No current subscription has been assigned. Contact PlayNexus support.',
+    'unknown' => 'Unknown',
+    'intervals' => ['monthly' => 'Monthly', 'yearly' => 'Yearly'],
+    'statuses' => ['trialing' => 'Trialing', 'active' => 'Active', 'past_due' => 'Past due', 'grace_period' => 'Grace period', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled', 'expired' => 'Expired'],
+];

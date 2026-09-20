@@ -1,5 +1,26 @@
 # PlayNexus REST API Specification
 
+## 2026-09-15 contract boundary
+
+The implemented product is the session-authenticated `/app` web contract listed in the dated sections below and in Laravel routes. The `/api/v1` paths, Sanctum bearer security, ULID schemas, pause operations, and provider callbacks in the remainder of this document are an unpublished target contract, not implemented routes. Its acceptance checklist validates that target only and must not be used to claim current `/api/v1` availability.
+
+## 2026-09-15 M6 first-party web contract
+
+The implemented first-party routes are `GET /app/reports/{revenue|attendance|sessions|staff}`, `GET /app/reports/{type}/export`, `GET /app/notifications`, `GET /app/audit`, and `GET /app/audit/export`. They use the authenticated tenant session and accessible branch set. CSV is non-PII, synchronous, streamed in bounded chunks, and uses the same validated filters as the visible report. The provider-neutral database transport implements intent/attempt acceptance only; the provider callback and arbitrary/manual-send REST endpoints below remain planned and unavailable until OQ-05/OQ-13 approval.
+
+## 2026-09-15 M5 first-party remediation contract
+
+| First-party route | Contract |
+|---|---|
+| `POST /app/pos/orders` | Active scoped payment-capable staff create a server-priced persisted draft with `branch_id`, UUID `idempotency_key`, and `items` containing kind, product/ticket-type identifier and quantity. Ticket lines additionally require active guardian/child assignment and service date. Client commercial amounts are prohibited; identical creation replay must reuse the draft. |
+| `POST /app/pos/orders/{order}/payments` | Exact cash posting with `expected_order_lock_version`, `amount_minor`, `currency=EGP`, UUID `idempotency_key`, optional `approval_id`. Approval belongs to this locked order and is consumed within the same payment/receipt/ticket transaction. Replays return original facts; mismatches conflict. |
+
+The current implementation is session-authenticated under `/app`, not an implemented external `/api/v1` service. Approved M5 cash posting is atomic with order/payment/receipt and, for the frozen session handoff, session completion. Refund policy is now approved: full cash only, original branch, same branch-local date, separate Manager/Owner approval; requester cannot approve. Shift/drawer and provider resend/delivery remain deferred. These later decisions supersede older pending OQ-09 and separate station-completion assumptions below.
+
+Registered receipt boundary: `GET /app/orders/{order}/receipt` (`receipts.show`) retrieves immutable issued commercial facts and separate current refund annotation; `POST /app/orders/{order}/receipt/reprint` (`receipts.reprint`) audits reprint without allocating a payment or new number. Browser HTML/QR/print acceptance must be recorded separately from JSON response tests. A route labelled resend must not imply email/SMS/provider delivery in the cash pilot.
+
+Discount request/review routes live at `/app/orders/{order}/discount-approvals` and `/app/discount-approvals/{approval}/approve|reject`. Approval binds a reviewable server-derived persisted cart snapshot, exact discount and current version. Only payment may consume it atomically; a standalone consume command must not change financial facts. Ordinary POS draft/payment and ticket-sale acceptance remain incomplete until their registered routes, durable replay, tests and visible cashier controls have been centrally verified. Quote calculation alone does not create an order or payment.
+
 ## 2026-09-13 implemented session-authenticated check-in subset
 
 The following first-party web routes extend the ticket subset without claiming the planned external `/api/v1` operations:
@@ -42,7 +63,7 @@ An active ticket type owns its immutable price and source pricing version. Later
 
 The REST API supports approved PlayNexus clients and future integrations without forcing the Laravel web UI to become an API client. The first-party Blade/Livewire application uses secure session-authenticated web routes. API clients use Laravel Sanctum bearer tokens.
 
-The API covers the MVP operational core: authentication/password reset, tenant/branch/staff administration, guardian/child registration, tickets, sessions, approvals, POS/payment/refund/receipt records, operational notifications, reports, and audit access. The request shapes implement the full-payment/full-refund planning assumptions ASM-08/ASM-10 pending OQ-09; they are not a hidden finance approval. Basic-incident routes are a conditional contract section and must stay disabled unless OQ-20 is approved. Games/queues/participation, cashier shifts, online payment processing, parent self-service, birthday bookings, memberships, loyalty, marketing campaigns, and payment webhooks are deferred. An authenticated notification-delivery callback is included only to distinguish `sent` from provider-confirmed `delivered`.
+The API covers the MVP operational core: authentication/password reset, tenant/branch/staff administration, guardian/child registration, tickets, sessions, approvals, POS/payment/refund/receipt records, operational notifications, reports, and audit access. The request shapes reflect the approved exact-payment and full-refund baseline under OQ-09. Basic-incident routes are a historical proposed contract and remain disabled under approved OQ-20. Games/queues/participation, cashier shifts, online payment processing, parent self-service, birthday bookings, memberships, loyalty, marketing campaigns, and payment webhooks are deferred. A notification-delivery callback remains conditional on DEC-NOT-04 and may never be used to claim delivery without verified provider evidence.
 
 ## 2. General conventions
 
@@ -491,7 +512,7 @@ Idempotency-Key: b9ff5132-d11c-4f8a-b8c7-09dd3ef07989
 }
 ```
 
-The planned external API below still does not define the later payment/completion contract. The implemented web boundary resolves OQ-19 as Reception/Manager guardian verification plus frozen quote handoff to the Cashier `pending_payment` queue; Cashier cannot prepare or alter it. Payment, receipt, release, refund, notifications and shift behavior remain later scopes. **OQ-12 is approved for the implemented phone-last-four or audited manager-override preparation path.**
+The planned external API below remains distinct from the implemented first-party web contract. The web contract resolves OQ-19 through Reception/Manager verification and a frozen `pending_payment` handoff, then M5 atomically posts the exact cash payment, receipt and session completion. M5 also implements ordinary cash orders, discount approval, immutable receipt retrieval/reprint and approved full same-day refunds. Provider delivery, shifts and external `/api/v1` publication remain later scopes.
 
 ## 9. Approvals
 
@@ -616,7 +637,7 @@ Execute refund:
 
 The refund endpoint never accepts an amount or currency. It derives and reverses the one full posted payment, rejects a second refund, and returns an immutable posted refund plus `order.status=refunded`. Partial payments, split tender, partial refunds, shifts, and cash-drawer balancing return no route/capability in MVP.
 
-## 11. Basic incidents — conditional on OQ-20
+## 11. Basic incidents — deferred by OQ-20
 
 Games, queues, participation, and game-capacity routes are not registered in MVP. The incident routes below are proposed for implementation only if Product/Safety/Legal approve OQ-20; otherwise they are not registered or granted.
 
@@ -712,7 +733,7 @@ Online-payment webhooks remain future scope. The MVP notification-status callbac
 
 ## 18. Contract acceptance checklist
 
-- `contracts/openapi.yaml` parses as OpenAPI 3.1 and contains all implemented MVP routes.
+- `contracts/openapi.yaml` parses as OpenAPI 3.1 and labels the unpublished external target separately from the implemented `/app` route inventory.
 - Every operation has a unique `operationId`, security declaration, permission mapping, request validation, success schema, and shared problem responses.
 - Tenant-owned request schemas contain no writable `tenant_id`.
 - All critical create/money/state commands require `Idempotency-Key`.

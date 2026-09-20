@@ -31,7 +31,10 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold" for="password">{{ __('Password') }}</label>
-                    <input class="mt-2 block min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 outline-none focus:border-[var(--pn-primary)] focus:ring-2 focus:ring-[var(--pn-focus)]" id="password" name="password" type="password" autocomplete="current-password" required>
+                    <div class="relative mt-2">
+                        <input class="block min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 pe-28 outline-none focus:border-[var(--pn-primary)] focus:ring-2 focus:ring-[var(--pn-focus)]" id="password" name="password" type="password" autocomplete="current-password" required data-pn-password>
+                        <button class="absolute inset-y-0 end-1 my-1 min-h-9 rounded-[8px] px-3 text-sm font-semibold text-[var(--pn-primary)] hover:bg-[var(--pn-primary-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="button" data-pn-password-toggle data-show-label="{{ __('Show password') }}" data-hide-label="{{ __('Hide password') }}" aria-controls="password" aria-pressed="false">{{ __('Show password') }}</button>
+                    </div>
                     @error('password')
                         <p class="mt-2 text-sm text-[var(--pn-danger)]" role="alert">{{ $message }}</p>
                     @enderror

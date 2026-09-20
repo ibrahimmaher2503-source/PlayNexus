@@ -13,9 +13,11 @@ use App\Models\TicketType;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Tests\TestCase;
 
 class PlaySessionCheckoutPreparationTest extends TestCase
@@ -57,7 +59,7 @@ class PlaySessionCheckoutPreparationTest extends TestCase
         $this->assertSame($guardian->id, $session->checkout_guardian_id);
         $this->assertSame('phone_last_four', $session->checkout_verification_method);
         $this->assertSame(25650, $session->checkout_amount_due_minor);
-        $this->assertSame([
+        $this->assertEqualsCanonicalizing([
             'elapsed_seconds' => 4201,
             'included_seconds' => 4200,
             'overtime_seconds' => 1,
@@ -178,6 +180,11 @@ class PlaySessionCheckoutPreparationTest extends TestCase
             ->assertOk()
             ->assertSee('data-pn-frozen-invoice', false)
             ->assertSee(__('sessions.checkout.frozen_invoice_heading'))
+            ->assertSee(__('sessions.checkout.base_price'))
+            ->assertSee(__('sessions.checkout.included_duration'))
+            ->assertSee(__('sessions.checkout.overtime_charge'))
+            ->assertSee(__('sessions.checkout.adjustment'))
+            ->assertSee(__('sessions.checkout.verification_methods.phone_last_four'))
             ->assertSee(__('sessions.checkout.pending_handoff'))
             ->assertSee('256.50 EGP')
             ->assertDontSee('name="payment_method"', false)
@@ -228,13 +235,13 @@ class PlaySessionCheckoutPreparationTest extends TestCase
         [$guardian, $child] = $this->family($tenant, $owner);
         $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
         $reception = $this->staff($tenant, $branch, 'reception_staff');
-        $before = $session->fresh()->only(['status', 'lock_version', 'checkout_guardian_id']);
 
         DB::table('guardian_child')
             ->where('tenant_id', $tenant->id)
             ->where('guardian_id', $guardian->id)
             ->where('child_id', $child->id)
             ->update(['can_check_out' => false]);
+        $before = $this->checkoutMutationSnapshot($session);
 
         $this->actingAs($reception)
             ->postJson($this->checkoutUrl($session), $this->checkoutPayload($session, $guardian))
@@ -258,8 +265,67 @@ class PlaySessionCheckoutPreparationTest extends TestCase
             ->postJson($this->checkoutUrl($session), $this->checkoutPayload($session, $foreignGuardian))
             ->assertNotFound();
 
-        $this->assertSame($before, $session->fresh()->only(['status', 'lock_version', 'checkout_guardian_id']));
-        $this->assertSame(0, DB::table('play_session_events')->where('event_type', 'checkout_prepared')->count());
+        $this->assertSame($before, $this->checkoutMutationSnapshot($session));
+    }
+
+    public function test_foreign_tenant_session_resource_is_hidden_without_mutation(): void
+    {
+        [$tenant] = $this->owner();
+        $branch = $this->branch($tenant);
+        $reception = $this->staff($tenant, $branch, 'reception_staff');
+
+        [$foreignTenant, $foreignOwner] = $this->owner();
+        $foreignBranch = $this->branch($foreignTenant);
+        $foreignRule = $this->rule($foreignTenant, $foreignBranch, $foreignOwner);
+        [$foreignGuardian, $foreignChild] = $this->family($foreignTenant, $foreignOwner);
+        $foreignSession = $this->makeSession($foreignOwner, $foreignBranch, $foreignRule, $foreignGuardian, $foreignChild);
+        $before = $this->checkoutMutationSnapshot($foreignSession);
+
+        $this->actingAs($reception)
+            ->postJson($this->checkoutUrl($foreignSession), $this->checkoutPayload($foreignSession, $foreignGuardian))
+            ->assertNotFound();
+
+        $this->assertSame($before, $this->checkoutMutationSnapshot($foreignSession));
+    }
+
+    public function test_unassigned_branch_session_is_hidden_without_mutation(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        $reception = $this->staff($tenant, $branch, 'reception_staff');
+        DB::table('branch_user')
+            ->where('tenant_id', $tenant->id)
+            ->where('branch_id', $branch->id)
+            ->where('user_id', $reception->id)
+            ->delete();
+        $before = $this->checkoutMutationSnapshot($session);
+
+        $this->actingAs($reception)
+            ->postJson($this->checkoutUrl($session), $this->checkoutPayload($session, $guardian))
+            ->assertNotFound();
+
+        $this->assertSame($before, $this->checkoutMutationSnapshot($session));
+    }
+
+    public function test_inactive_branch_session_is_hidden_without_mutation(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        $reception = $this->staff($tenant, $branch, 'reception_staff');
+        $branch->update(['is_active' => false]);
+        $before = $this->checkoutMutationSnapshot($session);
+
+        $this->actingAs($reception)
+            ->postJson($this->checkoutUrl($session), $this->checkoutPayload($session, $guardian))
+            ->assertNotFound();
+
+        $this->assertSame($before, $this->checkoutMutationSnapshot($session));
     }
 
     public function test_cashier_cannot_prepare_a_checkout(): void
@@ -406,6 +472,92 @@ class PlaySessionCheckoutPreparationTest extends TestCase
 
         $this->assertSame('pending_payment', $session->fresh()->status);
         $this->assertSame(1, DB::table('play_session_events')->where('event_type', 'checkout_prepared')->count());
+    }
+
+    public function test_board_searches_ticket_qr_code_and_service_date_without_exposing_paused_state(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        $reception = $this->staff($tenant, $branch, 'reception_staff');
+        $ticket = $session->ticket()->firstOrFail();
+
+        $this->actingAs($reception)
+            ->get(route('sessions.index', ['q' => $ticket->code_payload_encrypted, 'service_date' => $ticket->service_date->format('Y-m-d')]))
+            ->assertOk()
+            ->assertSee($child->full_name)
+            ->assertSee($ticket->display_code)
+            ->assertDontSee('value="paused"', false);
+
+        $this->actingAs($reception)
+            ->get(route('sessions.index', ['service_date' => $ticket->service_date->addDay()->format('Y-m-d')]))
+            ->assertOk()
+            ->assertDontSee($child->full_name);
+
+        $this->actingAs($reception)
+            ->getJson(route('sessions.index', ['status' => 'paused']))
+            ->assertUnprocessable();
+    }
+
+    public function test_checkout_failure_during_audit_rolls_back_quote_verification_and_state(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        $reception = $this->staff($tenant, $branch, 'reception_staff');
+        $before = $this->checkoutMutationSnapshot($session);
+        $dispatcher = DB::connection()->getEventDispatcher();
+        DB::listen(function (QueryExecuted $query): void {
+            if (str_starts_with(strtolower(trim($query->sql)), 'insert') && str_contains($query->sql, 'audit_logs')) {
+                throw new RuntimeException('checkout audit failure');
+            }
+        });
+
+        try {
+            $this->withoutExceptionHandling()
+                ->actingAs($reception)
+                ->postJson($this->checkoutUrl($session), $this->checkoutPayload($session, $guardian));
+            $this->fail('The injected checkout audit failure should escape the request.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('checkout audit failure', $exception->getMessage());
+        } finally {
+            DB::connection()->setEventDispatcher($dispatcher);
+        }
+
+        $this->assertSame($before, $this->checkoutMutationSnapshot($session));
+    }
+
+    public function test_completed_history_keeps_release_verification_and_manager_override_visible(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant);
+        $rule = $this->rule($tenant, $branch, $owner);
+        [$guardian, $child] = $this->family($tenant, $owner);
+        $session = $this->makeSession($owner, $branch, $rule, $guardian, $child);
+        $manager = $this->staff($tenant, $branch, 'branch_manager');
+        $reason = 'Identity confirmed against venue safety procedure';
+
+        $this->actingAs($manager)
+            ->postJson($this->checkoutUrl($session), $this->checkoutPayload($session, $guardian, [
+                'verification_method' => 'manager_override',
+                'guardian_id' => null,
+                'phone_last_four' => null,
+                'override_reason' => $reason,
+            ]))
+            ->assertCreated();
+        $session->refresh()->forceFill(['status' => 'completed', 'ended_at' => now('UTC')])->save();
+
+        $this->actingAs($manager)
+            ->get(route('sessions.index', ['status' => 'completed']))
+            ->assertOk()
+            ->assertSee(__('sessions.checkout.release_history_heading'))
+            ->assertSee(__('sessions.checkout.verification_methods.manager_override'))
+            ->assertSee($reason)
+            ->assertSee('data-pn-manager-override-history', false);
     }
 
     private function owner(): array
@@ -580,5 +732,67 @@ class PlaySessionCheckoutPreparationTest extends TestCase
             'phone_last_four' => substr($guardian->phone_e164, -4),
             'idempotency_key' => Str::uuid()->toString(),
         ], $overrides);
+    }
+
+    /** @return array<string, mixed> */
+    private function checkoutMutationSnapshot(PlaySession $session): array
+    {
+        $fresh = $session->fresh();
+        $sessionFields = [
+            'tenant_id', 'branch_id', 'child_id', 'guardian_id', 'ticket_id', 'pricing_rule_id', 'status',
+            'started_at', 'expected_end_at', 'ended_at', 'pricing_snapshot_json', 'lock_version',
+            'checkout_idempotency_key', 'checkout_fingerprint', 'checkout_guardian_id', 'checkout_verification_method',
+            'checkout_override_reason', 'checkout_verified_by_user_id', 'checkout_verified_at', 'checkout_prepared_at',
+            'checkout_snapshot_json', 'checkout_amount_due_minor',
+        ];
+        $sessionSnapshot = [];
+        foreach ($sessionFields as $field) {
+            $sessionSnapshot[$field] = $fresh->getRawOriginal($field);
+        }
+
+        $quote = $fresh->checkout_snapshot_json;
+
+        return [
+            'branch' => DB::table('branches')->where('id', $fresh->branch_id)->get(['tenant_id', 'id', 'is_active', 'lock_version'])->map(static fn ($row): array => (array) $row)->all(),
+            'session' => $sessionSnapshot,
+            'adjustments' => DB::table('play_session_adjustments')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->where('session_id', $fresh->id)
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'commands' => DB::table('play_session_commands')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->where('session_id', $fresh->id)
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'events' => DB::table('play_session_events')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->where('session_id', $fresh->id)
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'audits' => DB::table('audit_logs')
+                ->where('tenant_id', $fresh->tenant_id)
+                ->where('action', '!=', 'security.request_denied')
+                ->orderBy('id')
+                ->get()
+                ->map(static fn ($row): array => (array) $row)
+                ->all(),
+            'payment' => [
+                'amount_due_minor' => $fresh->checkout_amount_due_minor,
+                'currency' => data_get($quote, 'currency'),
+                'status' => $fresh->status === 'pending_payment' ? 'pending' : 'not_recorded',
+            ],
+            'totals' => [
+                'subtotal_minor' => data_get($quote, 'subtotal_minor'),
+                'tax_minor' => data_get($quote, 'tax_minor'),
+                'total_minor' => data_get($quote, 'total_minor'),
+            ],
+        ];
     }
 }

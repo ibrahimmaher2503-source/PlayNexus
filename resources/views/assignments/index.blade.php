@@ -3,7 +3,7 @@
 @section('title', __('assignments.page_title') . ' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
             <div>
                 <h1 class="text-2xl font-bold">{{ __('assignments.page_title') }}</h1>
@@ -14,7 +14,9 @@
         <nav class="mt-5 flex flex-wrap gap-2" aria-label="{{ __('assignments.hub_label') }}">
             <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('staff.index') }}">{{ __('assignments.employees_tab') }}</a>
             <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-primary)] bg-[var(--pn-primary-soft)] px-4 font-semibold text-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('assignments.index') }}" aria-current="page">{{ __('assignments.access_tab') }}</a>
-            <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('roles.index') }}">{{ __('assignments.roles_tab') }}</a>
+            @if ($isOwner)
+                <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('roles.index') }}">{{ __('assignments.roles_tab') }}</a>
+            @endif
         </nav>
 
         @if (session('status'))
@@ -59,14 +61,14 @@
                 @if ($staff->isNotEmpty())
                     <div class="mt-5" aria-labelledby="assignment-results-heading">
                         <h3 class="text-sm font-bold" id="assignment-results-heading">{{ __('assignments.results_heading') }}</h3>
-                        <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                        <div class="mt-2 grid min-w-0 gap-2 xl:grid-cols-2">
                             @foreach ($staff as $member)
-                                <a class="flex min-h-16 items-center justify-between gap-3 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-4 py-3 hover:border-[var(--pn-primary)] hover:bg-[var(--pn-primary-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('assignments.index', ['user_id' => $member->id, 'q' => $search]) }}" @if ($selectedUser?->is($member)) aria-current="true" @endif>
+                                <a class="flex min-h-16 min-w-0 flex-col items-stretch justify-between gap-2 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-4 py-3 hover:border-[var(--pn-primary)] hover:bg-[var(--pn-primary-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] sm:flex-row sm:items-center xl:flex-col xl:items-stretch 2xl:flex-row 2xl:items-center" href="{{ route('assignments.index', ['user_id' => $member->id, 'q' => $search]) }}" @if ($selectedUser?->is($member)) aria-current="true" @endif>
                                     <span class="min-w-0">
                                         <span class="block truncate font-semibold">{{ $member->name }}</span>
                                         <span class="mt-1 block truncate text-sm text-[var(--pn-ink-muted)]"><bdi class="pn-bidi" dir="ltr">{{ $member->email }}</bdi></span>
                                     </span>
-                                    <span class="shrink-0 text-sm font-semibold text-[var(--pn-primary)]">{{ __('assignments.open_access') }}</span>
+                                    <span class="text-sm font-semibold text-[var(--pn-primary)] sm:shrink-0 xl:shrink 2xl:shrink-0">{{ __('assignments.open_access') }}</span>
                                 </a>
                             @endforeach
                         </div>
@@ -122,10 +124,12 @@
         @if ($selectedUser)
             @php
                 $roles = array_merge(__('assignments.roles'), $customRoles->all());
-                $assignableRoles = array_merge(
-                    array_intersect_key(__('assignments.roles'), array_flip(['branch_manager', 'reception_staff', 'cashier'])),
-                    $customRoles->all(),
-                );
+                $assignableRoles = $isOwner
+                    ? array_merge(
+                        array_intersect_key(__('assignments.roles'), array_flip(['branch_manager', 'reception_staff', 'cashier'])),
+                        $customRoles->all(),
+                    )
+                    : array_intersect_key(__('assignments.roles'), array_flip(['reception_staff', 'cashier']));
             @endphp
             <section class="mt-8" aria-labelledby="branches-heading">
                 <div>
@@ -140,7 +144,7 @@
                 @if ($branches->isEmpty())
                     <p class="mt-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-6 text-[var(--pn-ink-muted)]" role="status">{{ __('assignments.branch_empty') }}</p>
                 @else
-                    <div class="mt-4 space-y-4 md:hidden">
+                    <div class="mt-4 space-y-4 lg:hidden">
                         @foreach ($branches as $branch)
                             @php
                                 $current = $assignments->get($branch->id);
@@ -182,7 +186,7 @@
                         @endforeach
                     </div>
 
-                    <div class="mt-4 hidden overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm md:block" role="region" aria-labelledby="branches-heading" tabindex="0" data-pn-table>
+                    <div class="mt-4 hidden max-w-full overflow-x-auto rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] shadow-sm lg:block" role="region" aria-labelledby="branches-heading" tabindex="0" data-pn-table>
                         <table class="min-w-full divide-y divide-[var(--pn-border)] text-start">
                             <caption class="sr-only">{{ __('assignments.branches_heading') }}</caption>
                             <thead class="bg-[var(--pn-surface-subtle)] text-sm font-semibold">

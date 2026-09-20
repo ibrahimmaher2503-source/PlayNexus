@@ -113,7 +113,7 @@ class BranchViewAuthorizationTest extends TestCase
         }
 
         $tenant->update(['is_active' => false]);
-        $this->getJson('/branches/'.$assigned->id)->assertNotFound();
+        $this->getJson('/branches/'.$assigned->id)->assertUnauthorized();
     }
 
     /** @return array{Tenant, User, Branch} */

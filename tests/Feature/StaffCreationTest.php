@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Plan;
+use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
@@ -50,7 +52,7 @@ class StaffCreationTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseMissing('users', ['email' => 'invalid']);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_staff_account_is_tenant_scoped_normalized_unverified_active_and_audited(): void
@@ -189,6 +191,14 @@ class StaffCreationTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $plan = Plan::factory()->create(['limits_json' => ['branches' => 50, 'users' => 50]]);
+        $subscription = Subscription::factory()->create([
+            'tenant_id' => $tenant->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'current_period_ends_at' => now('UTC')->addMonth(),
+        ]);
+        $tenant->update(['current_subscription_id' => $subscription->id]);
 
         return [$tenant, $owner];
     }

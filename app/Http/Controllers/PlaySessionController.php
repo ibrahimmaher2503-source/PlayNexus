@@ -36,7 +36,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PlaySessionController extends Controller
 {
-    private const STATUSES = ['active', 'all', 'paused', 'pending_payment', 'completed', 'cancelled'];
+    private const STATUSES = ['active', 'all', 'pending_payment', 'completed', 'cancelled'];
 
     public function index(Request $request): View
     {
@@ -55,9 +55,11 @@ class PlaySessionController extends Controller
         $filters = Validator::make($request->query(), [
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', Rule::in(self::STATUSES)],
+            'service_date' => ['nullable', 'date_format:Y-m-d'],
         ])->validate();
         $search = trim((string) ($filters['q'] ?? ''));
         $status = $filters['status'] ?? 'active';
+        $serviceDate = $filters['service_date'] ?? null;
         $branchIds = $branches->modelKeys();
 
         $sessionsQuery = PlaySession::query()
@@ -74,6 +76,8 @@ class PlaySessionController extends Controller
                     ->orderBy('guardians.full_name'),
                 'guardian:id,tenant_id,full_name',
                 'ticket:id,tenant_id,branch_id,display_code,price_snapshot_json',
+                'checkoutGuardian:id,tenant_id,full_name',
+                'checkoutVerifier:id,tenant_id,name',
                 'adjustments:id,session_id,extension_units,adjustment_minor',
             ]);
 
@@ -85,15 +89,23 @@ class PlaySessionController extends Controller
         }
         if ($search !== '') {
             $phone = PhoneNormalizer::normalize($search);
-            $sessionsQuery->where(function (EloquentBuilder $query) use ($search, $phone): void {
+            $codeHash = hash('sha256', $search);
+            $displayCode = Str::upper($search);
+            $sessionsQuery->where(function (EloquentBuilder $query) use ($search, $phone, $codeHash, $displayCode): void {
                 $query->whereHas('child', fn (EloquentBuilder $child): EloquentBuilder => $child->where('full_name', 'like', '%'.$search.'%'))
                     ->orWhereHas('guardian', function (EloquentBuilder $guardian) use ($search, $phone): void {
                         $guardian->where('full_name', 'like', '%'.$search.'%');
                         if ($phone !== null) {
                             $guardian->orWhere('phone_e164', $phone);
                         }
-                    });
+                    })
+                    ->orWhereHas('ticket', fn (EloquentBuilder $ticket): EloquentBuilder => $ticket
+                        ->where('display_code', $displayCode)
+                        ->orWhere('code_hash', $codeHash));
             });
+        }
+        if ($serviceDate !== null) {
+            $sessionsQuery->whereHas('ticket', fn (EloquentBuilder $ticket): EloquentBuilder => $ticket->whereDate('service_date', $serviceDate));
         }
 
         $sessions = $sessionsQuery
@@ -165,7 +177,7 @@ class PlaySessionController extends Controller
             'branches' => $branches,
             'selectedBranchId' => $selectedBranchId,
             'sessions' => $sessions,
-            'filters' => ['q' => $search, 'status' => $status],
+            'filters' => ['q' => $search, 'status' => $status, 'service_date' => $serviceDate],
             'serverNow' => $serverNow,
             'checkInKey' => (string) Str::uuid(),
             'checkInBranchIds' => $checkInBranchIds,

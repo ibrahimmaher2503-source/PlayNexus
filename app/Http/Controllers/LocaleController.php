@@ -21,6 +21,7 @@ class LocaleController extends Controller
         $isLocalPage = is_string($previousPath) && (
             $previousPath === route('login', absolute: false)
             || $previousPath === route('dashboard', absolute: false)
+            || $previousPath === route('platform.dashboard', absolute: false)
             || str_starts_with($previousPath, '/app/')
             || str_starts_with($previousPath, '/platform/')
         );
@@ -31,6 +32,10 @@ class LocaleController extends Controller
             return redirect()->to($previousPath.$query);
         }
 
-        return redirect()->route($request->user() ? 'dashboard' : 'login');
+        if ($request->user()) {
+            return redirect()->route($request->user()->tenant_id === null ? 'platform.dashboard' : 'dashboard');
+        }
+
+        return redirect()->route('login');
     }
 }

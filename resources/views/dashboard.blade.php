@@ -1,183 +1,108 @@
 @extends('layouts.app')
 
-@php
-    $hasBranchContext = $selectedBranch !== null;
-    $isTenantOwner = $tenant !== null && auth()->user()->can('view', $tenant);
-    $assignment = $hasBranchContext
-        ? auth()->user()->branches()->whereKey($selectedBranch->getKey())->first()?->pivot
-        : null;
-    $roleKey = $isTenantOwner ? 'owner' : (string) ($assignment?->role ?? 'staff');
-    $roleLabel = __('dashboard.roles.'.$roleKey);
-    if ($roleLabel === 'dashboard.roles.'.$roleKey) {
-        $roleLabel = __('dashboard.roles.staff');
-    }
-    $actions = collect([
-        [
-            'route' => 'families.index',
-            'label' => __('dashboard.actions.find_family'),
-            'description' => __('dashboard.actions.find_family_description'),
-            'visible' => app('router')->has('families.index') && auth()->user()->can('viewAny', \App\Models\Guardian::class),
-        ],
-        [
-            'route' => 'tickets.index',
-            'label' => __('dashboard.actions.issue_ticket'),
-            'description' => __('dashboard.actions.issue_ticket_description'),
-            'visible' => app('router')->has('tickets.index') && class_exists(\App\Models\Ticket::class) && auth()->user()->can('viewAny', \App\Models\Ticket::class),
-        ],
-        [
-            'route' => 'sessions.index',
-            'label' => __('dashboard.actions.view_sessions'),
-            'description' => __('dashboard.actions.view_sessions_description'),
-            'visible' => app('router')->has('sessions.index') && class_exists(\App\Models\PlaySession::class) && auth()->user()->can('viewAny', \App\Models\PlaySession::class),
-        ],
-    ])->filter(fn (array $action): bool => $action['visible'])->values();
-@endphp
-
-@section('title', __($hasBranchContext ? 'dashboard.workspace_title' : 'Branch context').' · PlayNexus')
+@section('title', __('actor_dashboard.titles.'.$role).' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-7xl px-4 py-6 sm:px-6 lg:py-8" data-pn-dashboard>
-        <header class="flex flex-wrap items-end justify-between gap-5 border-b border-[var(--pn-border)] pb-5">
-            <div class="min-w-0">
-                <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ $hasBranchContext ? __('dashboard.workspace_eyebrow') : __('dashboard.gate_eyebrow') }}</p>
-                <h1 class="mt-1 text-2xl font-bold sm:text-[1.75rem]">{{ $hasBranchContext ? __('dashboard.workspace_title') : __('Branch context') }}</h1>
-                <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--pn-ink-muted)]">
-                    {{ $hasBranchContext
-                        ? __('dashboard.workspace_description', ['role' => $roleLabel, 'branch' => $selectedBranch->name])
-                        : __('Signed in as :user', ['user' => auth()->user()->name]) }}
-                </p>
+<main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6 lg:py-8" data-pn-dashboard data-pn-actor="{{ $role }}">
+    <header class="flex flex-wrap items-end justify-between gap-5 border-b border-[var(--pn-border)] pb-5">
+        <div class="min-w-0">
+            <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ __('dashboard.roles.'.$role) }}</p>
+            <h1 class="mt-1 text-2xl font-bold sm:text-[1.75rem]">{{ __('actor_dashboard.titles.'.$role) }}</h1>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.descriptions.'.$role) }}</p>
+        </div>
+        @if ($selectedBranch)
+            <div class="flex min-h-14 items-center gap-3 rounded-[12px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-4" aria-label="{{ __('actor_dashboard.current_branch') }}">
+                <span class="size-2.5 rounded-full bg-[var(--pn-success)]" aria-hidden="true"></span>
+                <span><small class="block text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.current_branch') }}</small><strong class="block max-w-56 truncate"><bdi dir="auto">{{ $selectedBranch->name }}</bdi></strong></span>
             </div>
-            @if ($hasBranchContext)
-                <div class="flex shrink-0 items-center gap-3 rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-4 py-3" aria-label="{{ __('dashboard.current_workspace') }}">
-                    <span class="grid size-10 place-items-center rounded-[10px] bg-[var(--pn-primary-soft)] text-[var(--pn-primary)]" aria-hidden="true">
-                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-                    </span>
-                    <span class="min-w-0">
-                        <span class="block text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('dashboard.current_workspace') }}</span>
-                        <strong class="block max-w-56 truncate text-sm">{{ $selectedBranch->name }}</strong>
-                    </span>
+        @endif
+    </header>
+
+    @if ($owner && $accountPhase === \App\Support\SubscriptionAccess::RESTRICTED)
+        <a class="mt-5 block rounded-[12px] border border-[var(--pn-danger)] bg-[var(--pn-danger-soft)] px-4 py-3 font-semibold text-[var(--pn-danger)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('tenant.subscription.show') }}" role="alert">{{ __('actor_dashboard.subscription_restricted') }}</a>
+    @elseif ($owner && $accountPhase === \App\Support\SubscriptionAccess::GRACE)
+        <a class="mt-5 block rounded-[12px] border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] px-4 py-3 font-semibold text-[var(--pn-warning)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('tenant.subscription.show') }}" role="status">{{ __('actor_dashboard.subscription_grace') }}</a>
+    @endif
+
+    @if ($owner)
+        <a class="mt-5 flex min-h-14 items-center justify-between gap-4 rounded-[12px] border border-[var(--pn-border)] bg-[var(--pn-primary-soft)] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('tenant.setup') }}">
+            <span><strong class="block text-sm text-[var(--pn-primary)]">{{ __('actor_dashboard.setup') }}</strong><span class="mt-1 block text-sm text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.setup_help') }}</span></span>
+            <span class="text-xl text-[var(--pn-primary)] rtl:rotate-180" aria-hidden="true">›</span>
+        </a>
+        <section class="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-border)] xl:grid-cols-4" aria-label="{{ __('actor_dashboard.titles.owner') }}">
+            @foreach ([['active_branches','branches'],['active_staff','staff'],['active_sessions','active'],['pending_payments','pending']] as [$label,$key])
+                <div class="bg-[var(--pn-surface)] p-4 sm:p-5"><p class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.'.$label) }}</p><p class="mt-2 text-2xl font-bold tabular-nums"><bdi dir="ltr">{{ $totals[$key] }}</bdi></p></div>
+            @endforeach
+        </section>
+    @elseif (! $selectedBranch)
+        <section class="mt-7" aria-labelledby="branch-choice-heading">
+            <h2 class="text-lg font-bold" id="branch-choice-heading">{{ __('actor_dashboard.choose_branch') }}</h2>
+            <p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.choose_branch_help') }}</p>
+            @if ($branches->isEmpty())
+                <div class="mt-4 rounded-[14px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-6" role="status"><strong>{{ __('actor_dashboard.no_branch') }}</strong><p class="mt-2 text-sm text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.no_branch_staff') }}</p></div>
+            @else
+                <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($branches as $branch)
+                        <form method="POST" action="{{ route('branch-context.store', $branch) }}">@csrf<button class="flex min-h-16 w-full items-center justify-between rounded-[12px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-4 text-start font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit"><bdi dir="auto">{{ $branch->name }}</bdi><span aria-hidden="true" class="rtl:rotate-180">›</span></button></form>
+                    @endforeach
                 </div>
             @endif
-        </header>
+        </section>
+    @endif
 
-        @if (! $hasBranchContext)
-            <section class="mt-6 max-w-4xl" aria-labelledby="branches-heading" data-pn-branch-gate>
-                <div class="flex flex-wrap items-end justify-between gap-3">
-                    <div>
-                        <h2 class="text-lg font-bold" id="branches-heading">{{ __('dashboard.gate_title') }}</h2>
-                        <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('dashboard.gate_description') }}</p>
-                    </div>
-                    <span class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ trans_choice('dashboard.branch_count', $branches->count(), ['count' => $branches->count()]) }}</span>
-                </div>
-
-                @if ($branches->isEmpty())
-                    <div class="mt-4 rounded-[14px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-6" role="status">
-                        <p class="font-semibold">{{ __('No active branches are available.') }}</p>
-                        <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('dashboard.gate_empty_description') }}</p>
-                    </div>
-                @else
-                    <ul class="mt-4 grid list-none gap-3 p-0 sm:grid-cols-2" aria-label="{{ __('Available branches') }}">
-                        @foreach ($branches as $branch)
-                            <li>
-                                <form method="POST" action="{{ route('branch-context.store', $branch) }}">
-                                    @csrf
-                                    <button class="flex min-h-16 w-full items-center justify-between gap-4 rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-4 text-start hover:border-[var(--pn-border-strong)] hover:bg-[var(--pn-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" type="submit">
-                                        <span class="flex min-w-0 items-center gap-3">
-                                            <span class="grid size-10 shrink-0 place-items-center rounded-[10px] bg-[var(--pn-surface-subtle)] text-[var(--pn-primary)]" aria-hidden="true">
-                                                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-                                            </span>
-                                            <span class="min-w-0">
-                                                <strong class="block truncate">{{ $branch->name }}</strong>
-                                                <small class="mt-1 block text-xs text-[var(--pn-ink-muted)]">{{ __('dashboard.open_workspace') }}</small>
-                                            </span>
-                                        </span>
-                                        <svg class="size-5 shrink-0 text-[var(--pn-primary)] rtl:rotate-180" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"/></svg>
-                                    </button>
-                                </form>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
-            </section>
-        @else
-            <section class="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] lg:items-start">
-                <div class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5 sm:p-6" aria-labelledby="quick-actions-heading">
-                    <div class="flex flex-wrap items-end justify-between gap-3">
-                        <div>
-                            <h2 class="text-lg font-bold" id="quick-actions-heading">{{ __('dashboard.quick_actions') }}</h2>
-                            <p class="mt-1 text-sm leading-6 text-[var(--pn-ink-muted)]">{{ __('dashboard.quick_actions_description') }}</p>
-                        </div>
-                        <span class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ $roleLabel }}</span>
-                    </div>
-
-                    @if ($actions->isNotEmpty())
-                        @php($primaryAction = $actions->first())
-                        <a class="mt-5 flex min-h-20 items-center justify-between gap-4 rounded-[14px] bg-[var(--pn-primary)] px-5 py-4 text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" href="{{ route($primaryAction['route']) }}" data-pn-primary-action>
-                            <span class="min-w-0">
-                                <strong class="block text-base">{{ $primaryAction['label'] }}</strong>
-                                <span class="mt-1 block text-sm leading-5 text-[color:oklch(0.97_0.007_205_/_0.85)]">{{ $primaryAction['description'] }}</span>
-                            </span>
-                            <svg class="size-6 shrink-0 rtl:rotate-180" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"/></svg>
-                        </a>
-
-                        @if ($actions->count() > 1)
-                            <ul class="mt-3 grid list-none gap-3 p-0 sm:grid-cols-2" aria-label="{{ __('dashboard.more_actions') }}">
-                                @foreach ($actions->skip(1) as $action)
-                                    <li>
-                                        <a class="flex min-h-16 items-center justify-between gap-3 rounded-[10px] border border-[var(--pn-border)] px-4 py-3 hover:border-[var(--pn-border-strong)] hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route($action['route']) }}">
-                                            <span class="min-w-0">
-                                                <strong class="block truncate text-sm">{{ $action['label'] }}</strong>
-                                                <span class="mt-1 block text-xs leading-5 text-[var(--pn-ink-muted)]">{{ $action['description'] }}</span>
-                                            </span>
-                                            <svg class="size-5 shrink-0 text-[var(--pn-primary)] rtl:rotate-180" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"/></svg>
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    @else
-                        <div class="mt-5 rounded-[10px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface-subtle)] p-4" role="status">
-                            <p class="font-semibold">{{ __('dashboard.no_actions') }}</p>
-                            <p class="mt-1 text-sm leading-5 text-[var(--pn-ink-muted)]">{{ __('dashboard.no_actions_description') }}</p>
-                        </div>
-                    @endif
-                </div>
-
-                <aside class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface-subtle)] p-5" aria-labelledby="workspace-context-heading">
-                    <h2 class="text-base font-bold" id="workspace-context-heading">{{ __('dashboard.workspace_context') }}</h2>
-                    <dl class="mt-4 space-y-3 text-sm">
-                        <div>
-                            <dt class="text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('dashboard.branch_label') }}</dt>
-                            <dd class="mt-1 font-semibold">{{ $selectedBranch->name }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('dashboard.access_label') }}</dt>
-                            <dd class="mt-1 font-semibold">{{ $roleLabel }}</dd>
-                        </div>
-                    </dl>
-
-                    @if ($branches->count() > 1)
-                        <div class="mt-5 border-t border-[var(--pn-border)] pt-4">
-                            <h3 class="text-sm font-bold">{{ __('dashboard.switch_branch') }}</h3>
-                            <ul class="mt-2 space-y-1" aria-label="{{ __('dashboard.switch_branch') }}">
-                                @foreach ($branches as $branch)
-                                    @if (! $selectedBranch->is($branch))
-                                        <li>
-                                            <form method="POST" action="{{ route('branch-context.store', $branch) }}">
-                                                @csrf
-                                                <button class="flex min-h-11 w-full items-center justify-between gap-3 rounded-[10px] px-2 text-start text-sm font-semibold text-[var(--pn-primary)] hover:bg-[var(--pn-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">
-                                                    <span class="truncate">{{ $branch->name }}</span>
-                                                    <svg class="size-4 shrink-0 rtl:rotate-180" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 18 6-6-6-6"/></svg>
-                                                </button>
-                                            </form>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </aside>
+    @if ($selectedBranch && $summary && ! $owner)
+        @if ($summary['overdue'] || $summary['pending'])
+            <section class="mt-5 grid gap-3 sm:grid-cols-2" aria-labelledby="attention-heading">
+                <h2 class="sr-only" id="attention-heading">{{ __('actor_dashboard.attention') }}</h2>
+                @if ($summary['overdue'])<a class="rounded-[12px] border border-[var(--pn-warning)] bg-[var(--pn-warning-soft)] px-4 py-3 font-semibold text-[var(--pn-warning)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('sessions.index', ['status'=>'active']) }}">{{ __('actor_dashboard.overdue', ['count'=>$summary['overdue']]) }}</a>@endif
+                @if ($summary['pending'] && in_array($role, ['branch_manager','cashier'], true))<a class="rounded-[12px] border border-[var(--pn-border-strong)] bg-[var(--pn-surface)] px-4 py-3 font-semibold text-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('sessions.index', ['status'=>'pending_payment']) }}">{{ __('actor_dashboard.pending_payments') }}: <bdi dir="ltr">{{ $summary['pending'] }}</bdi></a>@endif
             </section>
         @endif
-    </main>
+    @endif
+
+    @if ($actions)
+        <section class="mt-6" aria-labelledby="quick-actions-heading">
+            <h2 class="text-lg font-bold" id="quick-actions-heading">{{ __('actor_dashboard.quick_actions') }}</h2>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach ($actions as $index=>$action)
+                    <a class="flex min-h-20 items-center justify-between gap-4 rounded-[14px] {{ $index === 0 ? 'bg-[var(--pn-primary)] text-[var(--pn-surface)]' : 'border border-[var(--pn-border)] bg-[var(--pn-surface)] text-[var(--pn-ink)]' }} px-5 py-4 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" href="{{ $action['url'] }}" @if($index===0)data-pn-primary-action @endif><span><strong class="block">{{ __('actor_dashboard.actions.'.$action['key'].'.label') }}</strong><span class="mt-1 block text-sm {{ $index===0 ? 'opacity-85' : 'text-[var(--pn-ink-muted)]' }}">{{ __('actor_dashboard.actions.'.$action['key'].'.help') }}</span></span><span class="text-xl rtl:rotate-180" aria-hidden="true">›</span></a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    @if ($selectedBranch && $summary && ! $owner)
+        <section class="mt-6 overflow-hidden rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)]" aria-labelledby="today-heading">
+            <div class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--pn-border)] px-5 py-4"><div><h2 class="text-lg font-bold" id="today-heading">{{ __('actor_dashboard.today') }} <bdi class="block sm:inline" dir="auto">{{ $selectedBranch->name }}</bdi></h2><p class="mt-1 text-xs text-[var(--pn-ink-muted)]"><bdi dir="ltr">{{ __('actor_dashboard.local_date', ['date'=>$summary['date']]) }}</bdi></p></div><p class="text-xs font-semibold text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.updated', ['time'=>$summary['updated']]) }}</p></div>
+            <dl class="grid grid-cols-2 gap-px bg-[var(--pn-border)] {{ $finance ? 'xl:grid-cols-4' : 'xl:grid-cols-3' }}">
+                <div class="bg-[var(--pn-surface)] p-4 sm:p-5"><dt class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.active_sessions') }}</dt><dd class="mt-2 text-2xl font-bold tabular-nums"><bdi dir="ltr">{{ $summary['active'] }}</bdi></dd><p class="mt-2 text-xs text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.capacity', ['used'=>$summary['active'],'total'=>$selectedBranch->capacity]) }}</p></div>
+                <div class="bg-[var(--pn-surface)] p-4 sm:p-5"><dt class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.attendance') }}</dt><dd class="mt-2 text-2xl font-bold tabular-nums"><bdi dir="ltr">{{ $summary['attendance'] }}</bdi></dd><p class="mt-2 text-xs text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.due_soon', ['count'=>$summary['due']]) }}</p></div>
+                <div class="bg-[var(--pn-surface)] p-4 sm:p-5 {{ $finance ? '' : 'col-span-2 xl:col-span-1' }}"><dt class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.tickets') }}</dt><dd class="mt-2 text-2xl font-bold tabular-nums"><bdi dir="ltr">{{ $summary['tickets'] }}</bdi></dd></div>
+                @if ($finance)<div class="bg-[var(--pn-surface)] p-4 sm:p-5"><dt class="text-sm font-semibold text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.cash_sales') }}</dt>@forelse ($summary['money'] as $currency=>$amount)<dd class="mt-2 text-xl font-bold tabular-nums"><bdi dir="ltr">{{ $currency }} {{ number_format($amount/100,2) }}</bdi></dd>@empty<p class="mt-2 text-sm text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.no_sales') }}</p>@endforelse<p class="mt-2 text-xs text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.receipts') }}: <bdi dir="ltr">{{ $summary['receipts'] }}</bdi></p></div>@endif
+            </dl>
+        </section>
+    @endif
+
+    @if ($owner)
+        <section class="mt-10" aria-labelledby="branch-overview-heading">
+            <h2 class="text-lg font-bold" id="branch-overview-heading">{{ __('actor_dashboard.branch_overview') }}</h2><p class="mt-1 text-sm text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.branch_overview_help') }}</p>
+            @if ($overview->isEmpty())
+                <div class="mt-4 rounded-[14px] border border-dashed border-[var(--pn-border-strong)] bg-[var(--pn-surface)] p-6" role="status"><strong>{{ __('actor_dashboard.no_branch') }}</strong><p class="mt-2 text-sm text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.no_branch_owner') }}</p></div>
+            @else
+                <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                    @foreach ($overview as $branch) @php($branchSummary=$branchSummaries->get($branch->id))
+                        <article class="rounded-[14px] border border-[var(--pn-border)] bg-[var(--pn-surface)] p-5">
+                            <header class="flex items-start justify-between gap-3"><div><h3 class="font-bold"><bdi dir="auto">{{ $branch->name }}</bdi></h3><p class="mt-1 text-xs text-[var(--pn-ink-muted)]"><bdi dir="ltr">{{ $branch->timezone }} · {{ $branchSummary['date'] }}</bdi></p></div><span class="rounded-full bg-[var(--pn-surface-subtle)] px-3 py-1 text-xs font-semibold {{ $branch->is_active ? 'text-[var(--pn-success)]' : 'text-[var(--pn-ink-muted)]' }}">{{ __('actor_dashboard.'.($branch->is_active?'active':'inactive')) }}</span></header>
+                            <dl class="mt-4 grid grid-cols-3 gap-3 border-y border-[var(--pn-border)] py-4 text-sm"><div><dt class="text-xs text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.active_sessions') }}</dt><dd class="mt-1 font-bold tabular-nums">{{ $branchSummary['active'] }}</dd></div><div><dt class="text-xs text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.attendance') }}</dt><dd class="mt-1 font-bold tabular-nums">{{ $branchSummary['attendance'] }}</dd></div><div><dt class="text-xs text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.pending_payments') }}</dt><dd class="mt-1 font-bold tabular-nums">{{ $branchSummary['pending'] }}</dd></div></dl>
+                            <div class="mt-4 flex flex-wrap items-center justify-between gap-3"><div><span class="block text-xs text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.cash_sales') }}</span>@forelse ($branchSummary['money'] as $currency=>$amount)<strong class="mt-1 block tabular-nums"><bdi dir="ltr">{{ $currency }} {{ number_format($amount/100,2) }}</bdi></strong>@empty<span class="mt-1 block text-sm text-[var(--pn-ink-muted)]">{{ __('actor_dashboard.no_sales') }}</span>@endforelse</div>@if($branch->is_active)<form method="POST" action="{{ route('branch-context.store',$branch) }}">@csrf<button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-4 text-sm font-semibold text-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit">{{ __('actor_dashboard.open_branch') }}</button></form>@endif</div>
+                        </article>
+                    @endforeach
+                </div>
+                <div class="mt-5">{{ $overview->links() }}</div>
+            @endif
+        </section>
+    @elseif ($selectedBranch && $branches->count()>1)
+        <aside class="mt-8 border-t border-[var(--pn-border)] pt-5" aria-labelledby="switch-heading"><h2 class="text-sm font-bold" id="switch-heading">{{ __('dashboard.switch_branch') }}</h2><div class="mt-3 flex flex-wrap gap-2">@foreach($branches as $branch) @unless($selectedBranch->is($branch))<form method="POST" action="{{ route('branch-context.store',$branch) }}">@csrf<button class="min-h-11 rounded-[10px] border border-[var(--pn-border-strong)] px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" type="submit"><bdi dir="auto">{{ $branch->name }}</bdi></button></form>@endunless @endforeach</div></aside>
+    @endif
+</main>
 @endsection

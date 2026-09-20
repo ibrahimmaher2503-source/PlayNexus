@@ -41,7 +41,7 @@
         };
     @endphp
 
-    <main class="mx-auto min-h-screen max-w-7xl px-4 py-6 sm:px-6" data-pn-pricing>
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6" data-pn-pricing>
         <header class="border-b border-[var(--pn-border)] pb-5">
             <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant->name }}</p>
             <h1 class="mt-1 text-2xl font-bold">{{ __('pricing.page_title') }}</h1>
@@ -124,7 +124,7 @@
         </section>
 
         <div class="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,22rem)]">
-            <section aria-labelledby="active-rules-heading">
+            <section class="min-w-0" aria-labelledby="active-rules-heading">
                 <div class="flex flex-wrap items-end justify-between gap-3">
                     <div>
                         <h2 class="text-lg font-bold" id="active-rules-heading">{{ __('pricing.active_rules_heading') }}</h2>
@@ -336,7 +336,7 @@
         </div>
 
         <div id="pricing-tab-types" data-pn-pricing-panel="types" {!! $panelAttributes('types') !!}>
-            <section class="mt-8 max-w-5xl" aria-labelledby="ticket-types-heading">
+            <section class="mt-8" aria-labelledby="ticket-types-heading">
                 <div class="flex flex-wrap items-end justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-bold" id="ticket-types-heading">{{ __('pricing.ticket_types_heading') }}</h2>

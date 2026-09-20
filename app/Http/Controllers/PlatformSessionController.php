@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
+use App\Support\AuthenticatedSessionSecurity;
+use App\Support\AuthenticationAudit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +33,9 @@ class PlatformSessionController extends Controller
             ->first();
 
         if (! $admin || ! Hash::check($credentials['password'], $admin->password)) {
+            $admin
+                ? AuthenticationAudit::platform($request, $admin, 'auth.login_failed', 'failure', 'credentials_rejected')
+                : AuthenticationAudit::unresolved($request, 'platform.auth.login_failed', $credentials['email']);
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -44,12 +49,15 @@ class PlatformSessionController extends Controller
         Auth::login($admin);
         $request->session()->regenerate();
         $request->session()->put('platform_auth_version', (int) $admin->auth_version);
+        AuthenticatedSessionSecurity::start($request);
+        AuthenticationAudit::platform($request, $admin, 'auth.login_succeeded', 'success', 'credentials_accepted');
 
-        return redirect()->intended(route('platform.tenants.index', absolute: false));
+        return redirect()->intended(route('platform.dashboard', absolute: false));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        AuthenticationAudit::platform($request, $request->user(), 'auth.logout', 'success', 'user_logout');
         Auth::logout();
         $request->session()->forget('platform_auth_version');
         $request->session()->invalidate();

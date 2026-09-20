@@ -3,7 +3,7 @@
 @section('title', __('roles.page_title') . ' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
             <p class="text-sm font-semibold text-[var(--pn-primary)]">{{ $tenant->name }}</p>
             <h1 class="mt-1 text-2xl font-bold">{{ __('roles.page_title') }}</h1>

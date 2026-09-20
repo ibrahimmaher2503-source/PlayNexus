@@ -251,6 +251,98 @@ class BranchAssignmentManagementTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_branch_manager_can_manage_reception_and_cashier_only_in_managed_branches(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $manager = $this->staff($tenant, 'Scoped manager');
+        $managed = $this->branch($tenant, 'Managed branch');
+        $unassigned = $this->branch($tenant, 'Unassigned branch');
+        $inactive = $this->branch($tenant, 'Inactive branch');
+        $inactive->update(['is_active' => false]);
+        $manager->branches()->attach($managed, [
+            'tenant_id' => $tenant->id,
+            'role' => 'branch_manager',
+            'is_active' => true,
+        ]);
+
+        $reception = $this->staff($tenant, 'Managed reception');
+        $reception->branches()->attach($managed, [
+            'tenant_id' => $tenant->id,
+            'role' => 'reception_staff',
+            'is_active' => true,
+        ]);
+        $cashier = $this->staff($tenant, 'Managed cashier');
+        $cashier->branches()->attach($managed, [
+            'tenant_id' => $tenant->id,
+            'role' => 'cashier',
+            'is_active' => true,
+        ]);
+        $otherStaff = $this->staff($tenant, 'Other branch staff');
+        $otherStaff->branches()->attach($unassigned, [
+            'tenant_id' => $tenant->id,
+            'role' => 'cashier',
+            'is_active' => true,
+        ]);
+        $managerTarget = $this->staff($tenant, 'Another manager');
+        $managerTarget->branches()->attach($managed, [
+            'tenant_id' => $tenant->id,
+            'role' => 'branch_manager',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($manager)
+            ->get(route('assignments.index'))
+            ->assertOk()
+            ->assertSee($reception->name)
+            ->assertSee($cashier->name)
+            ->assertDontSee($otherStaff->name)
+            ->assertDontSee($managerTarget->name)
+            ->assertDontSee($owner->name);
+
+        $this->putJson(route('assignments.update', [$reception, $managed]), [
+            'role' => 'cashier',
+            'is_active' => true,
+            'expected_role' => 'reception_staff',
+            'expected_is_active' => true,
+        ])->assertOk()->assertJsonPath('changed', true);
+
+        $this->putJson(route('assignments.update', [$reception, $unassigned]), [
+            'role' => 'cashier',
+            'is_active' => true,
+            'expected_role' => null,
+            'expected_is_active' => null,
+        ])->assertNotFound();
+
+        $this->putJson(route('assignments.update', [$cashier, $inactive]), [
+            'role' => 'cashier',
+            'is_active' => true,
+            'expected_role' => null,
+            'expected_is_active' => null,
+        ])->assertNotFound();
+
+        $this->putJson(route('assignments.update', [$reception, $managed]), [
+            'role' => 'branch_manager',
+            'is_active' => true,
+            'expected_role' => 'cashier',
+            'expected_is_active' => true,
+        ])->assertForbidden();
+
+        $this->putJson(route('assignments.update', [$managerTarget, $managed]), [
+            'role' => 'cashier',
+            'is_active' => true,
+            'expected_role' => 'branch_manager',
+            'expected_is_active' => true,
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('branch_user', [
+            'tenant_id' => $tenant->id,
+            'branch_id' => $managed->id,
+            'user_id' => $reception->id,
+            'role' => 'cashier',
+            'is_active' => 1,
+        ]);
+    }
+
     public function test_owner_and_foreign_targets_or_branches_are_not_manageable(): void
     {
         [$tenant, $owner] = $this->owner();

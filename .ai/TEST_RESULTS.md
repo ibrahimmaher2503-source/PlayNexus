@@ -1,5 +1,168 @@
 # Test Results
 
+## 2026-09-17 Checkpoint 02 — Tenant, Branches & Configuration
+
+- Baseline scoped profile/branch tests: **37 passed / 332 assertions**.
+- Affected venue integration command: `php artisan test --compact tests/Feature/BranchAdministrationTest.php tests/Feature/BranchSettingsTest.php tests/Feature/TenantSettingsTest.php tests/Feature/TenantBranchTest.php tests/Feature/BranchViewAuthorizationTest.php tests/Feature/OwnerBranchAccessTest.php tests/Feature/PlaySessionCheckInTest.php tests/Feature/TicketLifecycleTest.php tests/Feature/OrdinaryPosOrderPaymentTest.php tests/Feature/ReceiptTest.php tests/Feature/M6ReportsTest.php` — **89 passed / 859 assertions**.
+- Focused manager/configuration/limit/navigation: `php artisan test --compact tests/Feature/BranchAdministrationTest.php tests/Feature/BranchSettingsTest.php tests/Feature/TenantSettingsTest.php tests/Feature/TenantSubscriptionEnforcementTest.php tests/Feature/NavigationUiTest.php` — **37 passed / 324 assertions**.
+- Final settings role/revocation checks: `php artisan test --compact tests/Feature/BranchSettingsTest.php` — **10 passed / 109 assertions**.
+- Receipt/timezone and settlement regression: `php artisan test --compact tests/Feature/ReceiptTest.php tests/Feature/OrdinaryPosOrderPaymentTest.php tests/Feature/PlaySessionCashSettlementTest.php` — **19 passed / 176 assertions**.
+- Final full SQLite suite: `php artisan test --compact` — **454 total / 450 passed / 4 explicit MySQL-only skips / 3,642 assertions**, 76.855 seconds.
+- One intermediate full run was invalidated by running `view:cache` concurrently: **18 failures** due to deleted compiled Blade files (`filemtime` errors). Sequential reruns passed; this is recorded rather than concealed or treated as a product fix.
+- Real browser: `node tools/browser-checkpoint02.mjs` — actual Edge 153 CDP, disposable migrated/seeded SQLite, EN profile validation/save, draft branch/settings validation/save, activate/deactivate/reactivate, actual selector click, inactive historical report, scoped manager list/no create, Reception **403**, authenticated Arabic management/profile/settings, RTL/tablet overflow **false**, **zero unexpected console errors** (two intentional 403 resource logs). Evidence: `deliverables/qa/checkpoint-02-tenant-branch/`. Status submissions bypassed native dialogs; no native-confirmation click claim. New receipt issue-time presentation was tested via bilingual HTTP, not a separate browser receipt journey.
+- `php vendor/bin/pint --test` — passed. `npm run build` — passed, 31 modules; optional fontaine warning only.
+- Sequential final `php artisan view:cache` — passed. `python tools/validate_documentation.py` — passed, 42 Markdown files, zero errors/two existing placeholder warnings. `git diff --check` — passed (line-ending notices only).
+- No current MySQL verification, staging UAT, automated accessibility/screen-reader acceptance or production approval is claimed.
+
+Checkpoint **PARTIAL**: local configuration/readiness/scoped management is repaired and verified, but UC-13 active-session deactivation/handoff policy is unspecified. See `.ai/checkpoints/02-TENANT-BRANCH-CONFIG.md` and `.ai/BLOCKERS.md`. No Platform/OQ-04 reclassification, commit, push or production deployment.
+
+## 2026-09-17 Checkpoint 01 — Platform / Super Admin
+
+Checkpoint 01 closes the local Platform Administration vertical slice without changing OQ-04: separated Platform authentication/authorization, atomic tenant plus first-owner provisioning, hashed expiring single-use owner invitations, safe tenant detail, reasoned administrative suspension/reactivation with effective established-session revocation, scoped OQ-14 break-glass support access, Tenant Owner-visible support history, and privileged audit evidence.
+
+- Focused Platform/support: `php artisan test --compact tests/Feature/PlatformAdministrationTest.php tests/Feature/SupportAccessSecurityTest.php` — **34 passed / 362 assertions**.
+- Affected cross-module regression: Platform, support, auth, tenant context, branches, assignments, staff/RBAC, families, check-in/sessions, POS/payment, reports and audit — **188 total / 187 passed / 1 explicit skip / 1,576 assertions**.
+- Full SQLite suite: `php artisan test --compact` — **449 total / 445 passed / 4 explicit MySQL-only skips / 3,599 assertions**.
+- Real browser: Microsoft Edge 153 CDP against isolated migrated/seeded SQLite — Platform login; tenant list; tenant creation and one-time invitation; safe tenant detail; scoped branch-configuration break-glass; old Tenant Owner session redirected to `/login` after suspension; reactivation and fresh login; Arabic RTL with no page overflow; **zero console warnings/errors**. Evidence: `deliverables/qa/checkpoint-01-platform/`.
+- SQLite migration: `php artisan migrate:fresh --seed --force` passed all migrations, including `support_access_grants` and `tenant_owner_invitations`.
+- Frontend/Blade: `npm run build` passed (31 modules); `php artisan view:cache` passed.
+- Current-checkpoint PHP formatting, documentation, and whitespace validation passed after the final evidence update.
+
+The module classification is **IMPLEMENTED**, not `PRODUCTION_READY`. The new schema/workflows were not rerun on MySQL in this checkpoint; staging/production migration rehearsal, Security/Legal support-access validation, accessibility acceptance, named UAT and go/no-go remain release gates. Invitation transport remains an explicit manual secure handoff because provider procurement is outside this checkpoint.
+
+## 2026-09-17 OQ-04 end-to-end implementation
+
+The approved bounded SaaS catalog is now coherent in code: direct plan pricing, immutable subscription price snapshots, one authoritative `tenants.current_subscription_id`, historical subscriptions, request-time and scheduled trial/grace lifecycle enforcement, branch/user limits with serialized tenant-row checks, expiring commercial overrides, Super Admin management UI, Tenant Owner read-only subscription/usage UI, manual SaaS billing records isolated from venue POS, and platform audit history.
+
+- Focused OQ-04 SQLite: `php artisan test tests/Unit/SubscriptionAccessTest.php tests/Feature/SubscriptionLifecycleDomainTest.php tests/Feature/TenantSubscriptionEnforcementTest.php tests/Feature/PlatformSubscriptionAdministrationTest.php` — **27 passed / 142 assertions**.
+- Platform regression: `php artisan test tests/Feature/PlatformSubscriptionAdministrationTest.php tests/Feature/PlatformAdministrationTest.php` — **27 passed / 278 assertions**.
+- Venue regression (branch, assignments, staff/RBAC, sessions/check-in/checkout/cash settlement, POS/payment/discount/refund, finance concurrency and reports) — **142 tests / 140 passed / 2 explicit skips / 1,114 assertions**.
+- Full SQLite suite: `php artisan test` — **437 total / 433 passed / 4 explicit skips / 3,455 assertions**.
+- SQLite schema: in-memory `migrate:fresh` passed; focused rollback/reapply passed.
+- `vendor/bin/pint --test` on OQ-04 PHP files — passed.
+- `npm run build` — passed (31 modules; Vite 8.2.2).
+- `php artisan view:cache` — passed.
+
+MySQL OQ-04 verification was not run because no local MySQL service/client or Docker runtime was available and `127.0.0.1:3306` refused connections. No browser automation package/runtime is present, so the new pages were rendered through HTTP feature tests and Blade compilation but were not exercised in a real browser. Under the OQ-04 Definition of Done this keeps the final classification **PARTIAL**, not `PRODUCTION_READY`, despite the completed code slice. Recurring billing, online subscription payment, provider callbacks, automatic collection/dunning and raw card handling remain deferred and unimplemented.
+
+## 2026-09-15 GAP-02–06/09 closure and documentation reconciliation
+
+**Final superseding database evidence:** fresh isolated MySQL 8.4.11/InnoDB at `127.0.0.1:33447`, database `playnexus_gap_goal_20260915a`, passes **410/410 tests / 3,411 assertions** under strict mode and `ONLY_FULL_GROUP_BY`. The authoritative focused evidence is the final full-suite result; disregard the preliminary 118-test assertion count below.
+
+Central grouped acceptance passes after reviewing the Luna/xhigh shared-worktree changes and fixing the integrated report/security regressions. The final SQLite suite reports **410 total / 406 passed / 4 explicit MySQL-only skips / 3,313 assertions**. The focused locale/auth/platform/staff/report/audit batch reports **118/118 / 972 assertions** after repair. Vite build and Blade cache pass; authenticated browser acceptance on isolated local SQLite at `127.0.0.1:8231` proves login EN→AR, Manager branch selection, scoped Reception status change, USD/America-New_York revenue summary/net/payment-method breakdown, full session history, Arabic RTL, and zero console errors. The existing M6 isolated MySQL 8.4/InnoDB, concurrency, restore, dependency/security and performance evidence remains the database acceptance baseline for unchanged infrastructure; the new grouped SQLite tests cover this follow-up code. Final Pint, documentation validation, route parsing and diff checks are recorded after formatting reconciliation.
+
+This closes GAP-02–06 and GAP-09 locally. GAP-07/08 and OQ-05/13/21/22 remain decision/approval gates. OQ-04 code is implemented and SQLite-green, while MySQL concurrency and real-browser acceptance remain unverified environment gates. `PILOT_READY` is not claimed.
+
+## 2026-09-15 GAP-01 POS ticket-sale closure
+
+| Check | Actual result |
+|---|---|
+| Focused regression | PASS: `PosCatalogTest`, `OrdinaryPosOrderPaymentTest`, `DiscountApprovalTest`, and `ReceiptTest`; 27 tests / 230 assertions |
+| Scope and safety | PASS: eligible verified/consented family required; missing, ineligible and foreign tenant/branch attempts rejected; full phone hidden; family choices not loaded for Reception |
+| Browser | PASS on task-local SQLite at `127.0.0.1:8245` as synthetic Cashier: missing facts disabled quote with visible validation; selected masked family + `2026-09-16`; quote 200 for EGP 150.00; draft 201; cash payment 201; ticket 3 issued for guardian 1/child 1/date `2026-09-16`; receipt `PN-ALPHA-2026-000001` rendered paid with no browser errors |
+| Static/build | PASS: scoped Pint and Vite production build |
+
+Status: `GAP-01 CLOSED`. This isolated SQLite journey does not replace the existing MySQL acceptance history or any external `PILOT_READY` gate.
+
+## 2026-09-15 UI wireframe audit and sidebar redesign
+
+| Check | Actual result |
+|---|---|
+| Wireframe implementation audit | PASS with explicit scope: all 15 surfaces mapped in `docs/10-UI-UX-Wireframes.md`; provider delivery/manual resend and incidents remain deferred behind OQ-05/OQ-13/OQ-20 rather than falsely marked complete |
+| Focused UI/report/notification regression | PASS: 24 tests / 154 assertions |
+| Dashboard committed-money regression | PASS: branch-local half-open day; posted payment minus executed `refunded` records; focused rendering proves EGP 150.00 - EGP 25.00 = EGP 125.00 |
+| Full SQLite regression | PASS: 401 total / 397 passed / 4 explicit MySQL-only skips / 3,232 assertions |
+| Browser desktop | PASS at task-local `127.0.0.1:8233`: grouped expanded 248px sidebar, persistent 80px rail, branch/local time, notification shortcut and committed Operations snapshot |
+| Browser responsive/bilingual | PASS: Arabic RTL at 820x900, responsive topbar/drawer breakpoint, translated snapshot, and actual login show/hide-password toggle; no console warnings/errors |
+| Connection safety | PASS under browser-offline emulation: persistent Arabic warning rendered, non-GET controls were disabled, logout remained available, and normal state returned after reconnection |
+| Static/build/docs | PASS: Pint, Vite build, Blade cache, documentation validator (35 Markdown files, 0 errors / 2 historical placeholder warnings) and `git diff --check` |
+
+Status: `LOCALLY_ENGINEERING_ACCEPTED` for the approved wireframe baseline. This does not approve or implement the explicitly deferred provider/incident contracts and does not change the existing external `PILOT_READY` gates.
+
+
+## 2026-09-15 M6 final local engineering acceptance
+
+| Check | Actual result |
+|---|---|
+| Focused M6 regression | PASS: 24 tests / 150 assertions, including Luna-review fixes for refund occurrence dates, per-branch multi-role staff scope, stale session alerts, required session filters and database-level append-only audit |
+| Full SQLite / PHP 8.4.21 | PASS: 398 total / 394 passed / 4 explicit MySQL-only skips / 3,206 assertions |
+| Full SQLite / PHP 8.5.8 | PASS: 398 total / 394 passed / 4 explicit MySQL-only skips / 3,206 assertions |
+| Full MySQL 8.4.11 / InnoDB | PASS on isolated `127.0.0.1:33447`: 398/398 tests / 3,304 assertions; task-local environment only |
+| Real concurrency | PASS on isolated MySQL: `M5FinancialConcurrencyTest` plus `TicketConcurrencyTest`, 3 tests / 76 assertions |
+| Migration/rollback | PASS: notification migration rollback preserved earlier order data; final 28th append-only migration created two audit triggers, rollback removed both while audit/notification rows remained, and reapply restored both |
+| Backup/restore | PASS: final `mysqldump` SHA-256 `4D15153A3B400E836B33D0DE581758D64FEE537FA42F3776F6DF60B402909808` restored into a separate MySQL database; 28 migrations, 1 order, 1 payment, 2 sessions, 2 notification messages, 1 audit row and 2 audit triggers verified |
+| Queue/scheduler core | PASS: restored database worker processed two persisted intents into two `sent` messages and two append-only accepted attempts; no `delivered` claim |
+| Performance profile | PASS after final occurrence-based reconciliation against 1,000 synthetic committed orders/payments: 10 authenticated report navigations, 25-row page, 165 ms median, 194 ms observed p95/max, no horizontal overflow; engineering target is provisional pending OQ-21 |
+| Browser | PASS at `127.0.0.1:8231`: Owner English LTR and Arabic RTL reports/audit/notifications; Reception operations-only report navigation; Cashier receipt-only notification filter/rows; keyboard skip link; no raw keys, horizontal page overflow, browser warnings or errors |
+| Security/dependencies | PASS: Composer advisory audit, npm production audit (0 vulnerabilities), repository secret-pattern scan (0 matching files), tenant/branch/role/masking focused tests |
+| Static/build/docs | PASS: global Pint, Vite build, Blade cache, route inspection, documentation validator (35 Markdown files, 0 errors / 2 historical placeholder warnings), and `git diff --check` |
+
+Status: `LOCALLY_ENGINEERING_ACCEPTED`. This is not `PILOT_READY`; staging deployment/monitoring, Finance/Legal approval, staff rehearsal/sign-off and named go/no-go remain external gates.
+
+## 2026-09-15 M5 final CodeGraph/code-review pass
+
+| Check | Actual result |
+|---|---|
+| Focused M5 regression | PASS: 55 tests / 368 assertions |
+| Full SQLite regression | PASS on PHP 8.4.21 and PHP 8.5.8: 383 total / 379 passed / 4 explicit MySQL-only skips / 3,131 assertions |
+| Payment configuration | PASS: ordinary and session cash payments fail closed when cash is disabled; successful identical session replay still returns the original result after a configuration change |
+| Discount workflow | PASS: Cashier request, separate Manager/Owner approval/rejection, approved exact Cashier payment, expiry/payload/version/self-approval and cross-scope negatives, plus role-correct rendered controls |
+| Static/build/docs | PASS: global Pint, Vite build, Blade cache, POS route inspection, documentation validator (34 Markdown files, 0 errors / 2 historical placeholder warnings), and `git diff --check` |
+| Browser | PASS: authenticated Arabic RTL Owner desktop surface on isolated SQLite shows approval review but no Cashier request form; browser warnings/errors: none |
+| MySQL 8.4/InnoDB | PASS: official isolated MySQL 8.4.11/InnoDB on `127.0.0.1:33437`; full regression 383 tests / 3,229 assertions |
+| M5 financial contention | PASS: `M5FinancialConcurrencyTest`, 1 test / 29 assertions; two independent PHP processes produce one settlement/payment/receipt/completion and one refund execution/audit with safe identical replay |
+| MySQL portability repair | PASS: receipt snapshot comparison now treats JSON object key order as insignificant; focused `ReceiptTest` 2 / 26 |
+
+## Historical 2026-09-15 M5 SQLite/browser checkpoint — superseded above
+
+| Check | Actual result |
+|---|---|
+| Coordinator defects repaired | Permission matrix now allows active Tenant Owner and assigned Branch Manager/Cashier; seller name snapshots tenant legal/display name; ordinary receipt counter advances by explicit sequence-row `id`; transaction history loads branch currency before refund eligibility |
+| Focused finance regressions | Order/payment/session/receipt: 15 tests / 159 assertions PASS; history/receipt/refund: 14 tests / 93 assertions PASS; the sequence regression verifies consecutive `000001` and `000002` receipts |
+| Full SQLite regression | `php artisan test --compact` — PASS, 379 total / 376 passed / 3 skipped / 3,109 assertions |
+| Static gates | Global Pint PASS; Vite build PASS with only the optional `fontaine` notice; POS/transaction/order routes inspected; documentation validator PASS, 34 files / 0 errors / 2 historical marker warnings; `git diff --check` PASS |
+| Authenticated desktop browser | PASS on task-local SQLite at `127.0.0.1:8207`: synthetic Owner added `QA Water`, quoted 15.00 EGP, created and paid an exact cash order, rendered QR receipt `PN-ALPHA-2026-000002` with tenant legal seller name, and saw matching refund eligibility in transaction history; English LTR and Arabic RTL rendered with no browser console errors |
+| Runtime isolation | `.codex/m5-ui-review.sqlite`; no shared application database or `.env` migration/change |
+| MySQL 8.4/InnoDB | `BLOCKED_BY_ENVIRONMENT`: the listening 3306 service identifies as MariaDB 10.4.32; no Docker or MySQL 8.4 client/runtime is available, so MariaDB is not counted as MySQL concurrency evidence |
+| Optional external OpenAPI validator | Not run because `openapi_spec_validator` is absent from the default Python runtime; repository documentation/OpenAPI validation passed |
+
+## 2026-09-15 M5 remediation integration — PARTIAL, not acceptance
+
+Follow-up coordinator run after receipt return-type correction: `php artisan test --compact tests/Feature/PlaySessionCashSettlementTest.php tests/Feature/CashRefundTest.php tests/Feature/ReceiptTest.php` PASS 14 tests / 115 assertions. This supersedes the earlier receipt-return failure only. Discount/ordinary-ticket integration and the newly requested visible POS/history/refund controls still need central acceptance. MySQL concurrency and actual browser/print are not proven by these HTML/JSON response tests.
+
+Second coordinator follow-up: `php artisan test --compact tests/Feature/OrdinaryPosOrderPaymentTest.php tests/Feature/DiscountApprovalTest.php` PASS 9 tests / 74 assertions. This supersedes the outdated discount fixture failures. Covers persisted draft/payment and lost-response replay, retired catalog denial, wrong-order discount rejection, payment-bound line reconciliation and ticket issuance after payment without duplicate retry. Ordinary receipt seller/QR consistency and visible finance controls remained under review at this checkpoint; final combined regression/runtime gates are still pending.
+
+Intermediate full coordinator snapshot during POS UI integration: `php artisan test --compact` 369 total / 362 passed / 3 skipped / 4 failures / 3,002 assertions. Failures were POS Blade parse errors (`unexpected endif`) introduced while wiring finance controls; returned to the UI owner. This run is explicitly not final regression acceptance and does not supersede successful domain-focused tests. Re-run after workers finish writing.
+
+Coordinator ran focused `PosCatalogTest`, `ReceiptTest`, `CashRefundTest`, `OrdinaryPosOrderPaymentTest`, `DiscountApprovalTest`, and `PlaySessionCashSettlementTest` while remediation was being integrated: 29 tests / 26 passed / 194 assertions, two failures and one error. Receipt HTML reprint exposed a JSON-only return-type mismatch; legacy discount fixtures still supplied fake products/empty lines and failed the new fail-closed contract. Findings returned to owning workers; no green or milestone closure claimed. Current documentation validator passes 0 errors / 2 existing placeholder warnings after ERD/API/OpenAPI reconciliation. `git diff --check` passes. CodeGraph incremental refresh indexed 268 files (32 changed); dynamic Laravel route dispatch still requires direct route/controller inspection.
+
+POS worker separately reports 8 tests / 41 assertions plus scoped Pint/Blade/Vite passing for XSS, selected branch, tenant-wide SKU and Owner-only global writes. This worker evidence is not full financial/MySQL/browser/print acceptance. Ordinary POS payment, discount line reconciliation, refund/ticket execution and printable receipt changes remain subject to final central regression and runtime proof.
+
+## 2026-09-14 M5 first integrated implementation checkpoint
+
+| Check | Actual result |
+|---|---|
+| M5 focused SQLite | `M5FinancialFoundationTest`, `PlaySessionCashSettlementTest`, `PosCatalogTest`, `DiscountApprovalTest`, `CashRefundTest` — PASS, 21 tests / 127 assertions |
+| Full SQLite regression | `php artisan test --compact` — PASS after the refund slice, 353 total / 350 passed / 3 skipped / 2,901 assertions |
+| Cash settlement | PASS: Cashier-only exact EGP amount, immutable receipt, completed session, replay/conflict, tenant/branch denial, malformed-snapshot rollback and first-sequence race hardening |
+| POS quote/catalog | PASS: scoped active catalog, Owner/Manager changes, server-only price/tax, inclusive/exclusive tax, foreign/inactive/client-price rejection; no ordinary payment posting yet |
+| Approvals/refund | PASS on SQLite: separate discount approval and single-use consumption; same-branch/same-local-day full cash refund with separate Manager/Owner approval, immutable original receipt and replay protection |
+| Static | Global Pint, Vite, documentation validator and whitespace PASS; docs retain two existing review-placeholder warnings and Vite retains the optional `fontaine` notice |
+| Outstanding | Full regression after refund, isolated MySQL/concurrency, browser/print, OpenAPI/ERD/traceability and ordinary POS payment/ticket issuance |
+
+## 2026-09-14 desktop UI, Arabic, audit and family-history closure
+
+| Check | Actual result |
+|---|---|
+| Full SQLite regression | `php artisan test --compact` — PASS, 332 total / 329 passed / 3 skipped / 2,774 assertions |
+| Full MySQL 8.4 regression | Isolated MySQL 8.4.11/InnoDB — PASS, 332 passed / 2,843 assertions |
+| Focused UI behavior | Audit, family profile and session lifecycle — PASS, 23 total / 22 passed / 1 MySQL-only skip / 173 assertions |
+| Browser desktop acceptance | PASS at 1920×1080 in Arabic RTL across dashboard, staff, roles, branches, branch settings, tenant settings, audit, families, pricing, tickets and sessions; no horizontal page overflow or raw translation keys |
+| Layout and language | Operational content uses the 1440px desktop canvas, ticket tables stay tabular from 1024px, sparse boards fill available columns, and operational Arabic was rewritten as simple meaningful MSA |
+| Static gates | Pint, Vite build, documentation validator and whitespace check — PASS; Vite retains only the existing optional `fontaine` notice |
+
+M4 remains bounded to checkout preparation and lifecycle controls. Payment, completion, receipt, refund, child release and M5 behavior were not added.
+
 ## 2026-09-14 M0 repair acceptance
 
 | Check | Actual command / result |
@@ -81,7 +244,7 @@ Three user-requested `gpt-5.6-luna` / `xhigh` workers delivered the bounded sess
 | Frontend | `npm run build` — PASS; only the existing optional `fontaine` fallback notice |
 | Authenticated browser | `node .codex/session-ui-smoke.cjs` using bundled Playwright/Edge — PASS on isolated `http://127.0.0.1:8214/app/sessions?branch_id=1`; synthetic Owner check-in and Cashier read-only board, Arabic RTL/English LTR, mobile/tablet/desktop, no global overflow, GET `no-store`, no page errors, no raw guardian phone |
 
-The accepted command atomically revalidates fresh tenant/role/branch scope, ticket/family eligibility, tenant-wide Active/Paused child uniqueness and hard branch capacity; then it consumes the issued ticket, creates one Active session with immutable price/time snapshot, appends a `checked_in` event, scan evidence and audit. Same UUID/payload replays the session, changed payload conflicts, and rejected requests do not mutate business state. The board is server-filtered, masked, paginated and contains no quote/final-charge claim.
+The accepted command atomically revalidates fresh tenant/role/branch scope, ticket/family eligibility, tenant-wide active-child uniqueness (paused is deferred) and hard branch capacity; then it consumes the issued ticket, creates one Active session with immutable price/time snapshot, appends a `checked_in` event, scan evidence and audit. Same UUID/payload replays the session, changed payload conflicts, and rejected requests do not mutate business state. The board is server-filtered, masked, paginated and contains no quote/final-charge claim.
 
 Visual evidence is stored in ignored synthetic QA artifacts under `deliverables/qa/sessions/`. Existing port 8206 and its database were untouched.
 
@@ -657,3 +820,65 @@ The integration branch was fast-forwarded into `main`. Navigation assertions now
 | Whitespace | `git diff --check` — PASS |
 | Scope | Bilingual due/overdue labels, 30-minute extension, reasoned Manager/Owner adjustment and cancellation, frozen pending-payment invoice breakdown; no payment/receipt/refund/shift/child-release/provider notifications |
 | Runtime/browser boundary | Browser click-through and isolated MySQL remain unverified; lifecycle extend/cancel endpoints currently return JSON for native HTML form posts |
+# 2026-09-17 Wave 01 foundation/access/config acceptance
+
+| Check | Result |
+|---|---|
+| Focused Wave regression | `php artisan test --compact` with Tenant setup/profile, Branch, Staff/RBAC, Auth/MFA, Platform/support suites — PASS, 138 tests / 1,290 assertions |
+| MFA/refund timezone regression | `php artisan test --compact tests/Feature/AccountMfaTest.php tests/Feature/CashRefundTest.php tests/Feature/ReceiptTest.php tests/Feature/AccountSessionSecurityTest.php tests/Feature/TenantRouteBindingTest.php` — PASS, 24 tests / 153 assertions |
+| Full SQLite regression | `php artisan test --compact` — PASS, 473 total / 469 passed / 4 MySQL-only skipped / 3,859 assertions |
+| Real browser | `node tools/browser-wave01.mjs` — PASS (exit 0), 100 evidence entries; all functional/authorization journeys passed; EN/AR 390/820/1440 layouts have 0 overflow, 0 console errors and 0 HTTP 5xx. Targeted `node tools/browser-wave01-recheck.mjs` also passes the corrected Assignment layout and Tenant profile administrative-contact/country context at all three widths. |
+| Frontend | `npm run build` — PASS, 31 modules; optional `fontaine` notice only |
+| Browser data | Fresh isolated SQLite migrations and `DatabaseSeeder` + `Wave01BrowserSeeder` — PASS |
+| Formatting / views | `vendor/bin/pint --test`; `php artisan view:cache` — PASS |
+| Dependency audit | verified Composer PHAR `audit`; `npm audit --audit-level=high` — PASS, no advisories/vulnerabilities |
+| Documentation / whitespace | `python tools/validate_documentation.py` — PASS, 42 Markdown files / 0 errors / 2 existing placeholder warnings; `git diff --check` — PASS (line-ending warnings only) |
+| MySQL gate | `php tools/ensure-safe-database.php` — BLOCKED safely: `.env` does not name an explicit disposable DB and `PLAYNEXUS_DB_TARGET` does not match; no MySQL claim |
+
+Wave 01 introduced approved OQ-22 idle/MFA/password controls, Staff identity and stronger revocation, a derived Owner setup guide, one shared Branch readiness predicate, per-account MFA throttling, and immutable receipt-timezone refund eligibility. It did not alter OQ-04 commercial architecture. Current MySQL/staging, formal accessibility/security, load and UAT evidence remain production gates.
+
+# 2026-09-17 Actor dashboard acceptance
+
+| Check | Result |
+|---|---|
+| Focused dashboard/security regression | `php artisan test tests/Feature/ActorDashboardTest.php tests/Feature/PlatformDashboardTest.php tests/Feature/NavigationUiTest.php tests/Feature/LocaleSwitchTest.php tests/Feature/AuthenticationTest.php tests/Feature/AccountMfaTest.php tests/Feature/PlatformAdministrationTest.php tests/Feature/OwnerBranchAccessTest.php tests/Feature/BranchViewAuthorizationTest.php` — PASS, 80 tests / 785 assertions |
+| Full SQLite regression | `php artisan test` — PASS, 483 total / 479 passed / 4 MySQL-only skipped / 3,930 assertions |
+| Post-format dashboard/platform regression | `php artisan test tests/Feature/ActorDashboardTest.php tests/Feature/PlatformDashboardTest.php tests/Feature/BranchAdministrationTest.php tests/Feature/SupportAccessSecurityTest.php tests/Feature/TenantRouteBindingTest.php tests/Feature/NavigationUiTest.php tests/Feature/LocaleSwitchTest.php` — PASS, 48 tests / 374 assertions |
+| Real browser | `node tools/browser-actor-dashboards.mjs` — PASS, 53 checks / 30 screenshots; five actors, EN/AR, 390/820/1440, no root overflow, console errors, or HTTP 5xx |
+| Formatting / views | `vendor/bin/pint --test`; `php artisan view:cache` — PASS |
+| Frontend | `npm run build` — PASS, 31 modules; optional Fontaine notice only |
+| Documentation / whitespace | `py tools/validate_documentation.py` — PASS, 42 Markdown files / 0 errors / 2 existing review-marker warnings; `git diff --check` — PASS (line-ending warnings only) |
+
+Actor dashboards are locally implemented and browser-verified. Current MySQL/staging, formal accessibility/security, load, UAT, and release approval remain Production gates; this evidence does not classify them Production Ready.
+
+# 2026-09-18 Wave 02 families/privacy/pricing/tickets acceptance
+
+| Check | Result |
+|---|---|
+| Consent/retention focused | `php artisan test tests/Feature/EgyptFamilyContractTest.php tests/Feature/FamilyPrivacyRetentionTest.php` — PASS, 13 tests / 89 assertions |
+| Focused Wave 02 | 17 Family/Pricing/Ticket feature classes — PASS, 116 total / 114 passed / 2 MySQL-only skipped / 1,046 assertions |
+| Closed-module regression | Platform/Tenant/Branch/Auth/RBAC/Dashboard/Session/POS/Receipt/Report/Refund set — PASS, 174 total / 173 passed / 1 skipped / 1,549 assertions |
+| Full SQLite regression | `php artisan test` — PASS, 489 total / 485 passed / 4 MySQL-only skipped / 3,977 assertions |
+| MySQL migration | Isolated MySQL 8.4.11 `php artisan migrate:fresh --force` — PASS after explicit shortening of one overlong generated billing index name; all migrations applied |
+| MySQL family/privacy | Selected consent, hold lifecycle and cross-tenant FK tests — PASS, 3 tests / 29 assertions |
+| MySQL ticket contention | `php artisan test tests/Feature/TicketConcurrencyTest.php` — PASS, 2 tests / 47 assertions |
+| Real browser | `node tools/browser-wave02.mjs` — PASS, 48 checks / 31 screenshots; Reception family-to-ticket flow, owner privacy, manager pricing, authorization negatives, EN/AR and 390/820/1440; 0 overflow, console errors or HTTP 5xx |
+| Master HTML update | `node tools/update-wave02-master-checklist.mjs` — PASS, 119 exact rows updated; `node tools/verify-master-checklist-wave02.mjs` — PASS in isolated Edge, 653 total / 227 reviewed / 119 Wave 2 notes / 0 mismatches; combined status 201 implemented, 20 partial, 5 blocked, 1 deferred |
+| Formatting/views/build | `vendor/bin/pint --test`; `php artisan view:cache`; `npm run build` — PASS; 31 modules, optional Fontaine notice only |
+| Dependency audits | `npm audit --audit-level=high` — PASS, 0 vulnerabilities; Composer audit not run because `composer` is unavailable on this shell's `PATH` |
+| Documentation/whitespace | `python tools/validate_documentation.py` — PASS, 42 Markdown files / 0 errors / 2 known warnings; `git diff --check` — PASS with line-ending warnings only |
+
+Wave 02 is `CLOSED_WITH_BLOCKERS`: approved runtime behavior is implemented and verified; DEC-RET-01 deliberately blocks destructive retention execution until Legal/DPO approval. Full evidence and exact 119-row mapping are in `.ai/waves/02-FAMILIES-PRIVACY-PRICING-TICKETS.md`.
+
+# 2026-09-19 actor dashboard UI review
+
+| Check | Result |
+|---|---|
+| Screenshot baseline | Reviewed all 30 actor-dashboard images for five actors, English/Arabic, and 390/820/1440px. |
+| Focused feature regression | `php artisan test --compact tests/Feature/ActorDashboardTest.php tests/Feature/PlatformDashboardTest.php` — PASS, 9 tests / 64 assertions. |
+| Blade | `php artisan view:cache` — PASS. |
+| Browser | Isolated `database/wave01.sqlite`, seeded with `M6PilotSeeder` and `Wave01BrowserSeeder`; actual Edge UI showed `/app` Owner, Reception, Cashier and `/platform` Platform. English desktop and phone, Arabic phone, action order, localized labels, RTL branch-name order, and no root horizontal overflow observed at phone width. Reviewed phone captures are in `deliverables/qa/actor-dashboards-enhanced/`. |
+| Build | `npm run build` — PASS, 31 modules; optional Fontaine notice. |
+| Scope | Presentation only; no authorization, query, finance, or routing change. Baseline screenshots were not overwritten. |
+
+The temporary Laravel server was stopped. Automatic approval review rejected deletion of the isolated `database/wave01.sqlite` QA fixture with a policy block, so that ignored local file remains for cleanup.

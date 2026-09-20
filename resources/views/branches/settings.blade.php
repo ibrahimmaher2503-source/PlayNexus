@@ -3,7 +3,7 @@
 @section('title', __('branch_settings.page_title') . ' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--pn-border)] pb-5">
             <div>
                 <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('branches.manage') }}">{{ __('branch_settings.back_to_branches') }}</a>
@@ -77,7 +77,8 @@
                 <div class="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                     <div>
                         <label class="block text-sm font-semibold" for="timezone">{{ __('branch_settings.timezone') }}</label>
-                        <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="timezone" name="timezone" value="{{ old('timezone', $branch->timezone) }}" maxlength="64" placeholder="Africa/Cairo" required>
+                        <input class="mt-2 min-h-11 w-full rounded-[10px] border border-[var(--pn-border)] bg-[var(--pn-surface)] px-3 focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" id="timezone" name="timezone" list="branch-timezones" dir="ltr" value="{{ old('timezone', $branch->timezone) }}" maxlength="64" required>
+                        <datalist id="branch-timezones">@foreach (\DateTimeZone::listIdentifiers() as $zone)<option value="{{ $zone }}">{{ str_replace('_', ' ', substr($zone, strrpos($zone, '/') + 1)) }}</option>@endforeach</datalist>
                         @error('timezone')<p class="mt-1 text-sm text-[var(--pn-danger)]">{{ $message }}</p>@enderror
                     </div>
                     <div>

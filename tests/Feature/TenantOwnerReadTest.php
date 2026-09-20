@@ -143,7 +143,7 @@ class TenantOwnerReadTest extends TestCase
 
         $this->assertFalse($decision->allowed());
         $this->assertSame(404, $decision->status());
-        $this->get(route('tenant.show'))->assertNotFound();
+        $this->get(route('tenant.show'))->assertRedirect(route('login'));
     }
 
     public function test_foreign_tenant_policy_denies_as_not_found(): void

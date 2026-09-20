@@ -1,8 +1,14 @@
 # PlayNexus Permission Matrix
 
+## 2026-09-15 M6 enforcement subset
+
+The existing report/notification/audit matrix is enforced in the session-authenticated UI: Owner has tenant scope; assigned Manager has branch scope and non-PII CSV; Reception/Cashier see permitted operational reports and their own staff activity but cannot export; notification visibility is branch-scoped and purpose-limited (Reception session alerts, Cashier receipts, Manager both). Hidden unassigned branch filters return 404 and active in-scope roles without the required report capability return 403.
+
+Pause/resume has no permission in the approved Egypt MVP. The row retained in the matrix below is a superseded target entry and is not seeded or exposed; supported session actions are check-in, extension, adjustment, cancellation, checkout preparation, and settlement.
+
 ## 2026-09-13 check-in/session policy implementation
 
-`PlaySessionPolicy` permits active Tenant Owner and assigned Branch Manager/Reception roles to check in within current active branch scope. Cashier may view the scoped masked board but cannot check in; a custom role with `branches.view` alone receives no session ability. Foreign, unassigned and inactive branch scope remains hidden as 404; an active in-scope fixed role missing check-in permission receives 403. Authorization is repeated under the transaction lock before replay or mutation. No role can override hard capacity or tenant-wide Active/Paused child uniqueness.
+`PlaySessionPolicy` permits active Tenant Owner and assigned Branch Manager/Reception roles to check in within current active branch scope. Cashier may view the scoped masked board but cannot check in; a custom role with `branches.view` alone receives no session ability. Foreign, unassigned and inactive branch scope remains hidden as 404; an active in-scope fixed role missing check-in permission receives 403. Authorization is repeated under the transaction lock before replay or mutation. No role can override hard capacity or tenant-wide active-child uniqueness (paused is deferred).
 
 The read-only live estimate inherits board visibility: Owner, assigned Branch Manager/Reception/Cashier may see it only for sessions already visible in active branch scope. It grants no checkout/payment permission, accepts no client amount, and exposes no additional guardian PII.
 
@@ -131,7 +137,7 @@ Built-in MVP roles stay fixed and seeded. The user-approved custom-role slice is
 | Cancel unused ticket `tickets.cancel` | — | T | B/A | R | R | — | R/future |
 | View session `sessions.view` | support only | T | B | B | B | — | O/future |
 | Create check-in `sessions.check_in` | — | T | B | B | — | — | future |
-| Pause/resume session `sessions.pause_resume` | — | T | B | B | — | — | — |
+| Pause/resume session `sessions.pause_resume` | — | — | — | — | — | — | — (deferred; superseded target row) |
 | Extend session with configured option `sessions.extend` | — | T | B | B | B/session handoff | — | — |
 | Verified checkout `sessions.checkout` | — | T | B | B | — | — | — |
 | Cancel active session `sessions.cancel` | — | T/A | B/A | R | — | — | — |
@@ -164,11 +170,11 @@ Reception checkout preparation without override requires an active checkout-capa
 | Execute full refund `refunds.execute` | — | T | B | — | B with approval | — | — |
 | Void unpaid order `orders.void` | — | T/A | B/A | R | R | — | — |
 
-A user cannot approve a discount/refund/payment void/order void they requested. Under ASM-08/ASM-10 pending OQ-09, the draft permission baseline accepts exactly one full posted payment and at most one full refund per order; split/partial payment and partial-refund permissions are not seeded. Cashier shifts and cash-drawer balancing remain absent pending OQ-24. An approved refund does not itself prove cash was returned; execution records who completed the full reversal and when.
+A user cannot approve a discount/refund/payment void/order void they requested. Approved OQ-09 accepts exactly one full posted cash payment and at most one full same-day refund per order; split/partial permissions are absent. OQ-24 defers cashier shifts and drawer balancing. Approval alone does not mean cash was returned; execution records who completed the reversal and when.
 
 ## 7. Conditional basic incidents; games deferred
 
-All incident permissions in this section remain unseeded and routes remain disabled unless OQ-20 explicitly adds basic incident recording/search to the MVP.
+All incident permissions in this section remain unseeded and routes remain disabled because approved OQ-20 defers incident management from Egypt V1. A later approved contract is required to reopen it.
 
 | Action / permission code | Super Admin | Tenant Owner | Branch Manager | Reception | Cashier | Game Operator | Parent |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -225,7 +231,7 @@ Rules:
 | Guardian phone | last 4 digits after search result selection | Tenant Owner, Branch Manager, Reception; Cashier only current sale | mask in logs; PII-export permission required |
 | Guardian email | first character + masked domain/local part | Tenant Owner, Branch Manager, Reception; Cashier only current receipt | mask in logs |
 | Child photo | placeholder/thumbnail only | Owner/Manager/Reception | never in logs/exports by default |
-| Child age/DOB representation | proposed pending OQ-15 | Owner/Manager/Reception only after policy approval | ordinary reports expose approved age band, never infer a precision not stored |
+| Child age/DOB representation | optional DOB under approved OQ-15 | Owner/Manager/Reception under purpose-limited policy | ordinary reports expose approved age band, never infer a precision not stored |
 | Child safety notes | “Safety note exists” flag | explicit `children.safety_notes.view` and need-to-know | encrypted at rest; excluded from normal exports/audit snapshots |
 | Incident narrative | severity/title only | explicit sensitive incident permission within branch | encrypted; export requires separate PII approval |
 | Payment external reference | last 4/short suffix | Owner/Manager/Cashier on current order | never store PAN/CVV; mask logs |
@@ -299,7 +305,7 @@ Error messages must not disclose that another tenant's resource exists.
 - Every resource endpoint is tested with a second tenant's valid ID and must return `404`.
 - Every approval action tests self-approval, expiry, payload mismatch, stale version, replay, and cross-branch use.
 - Every masked field has serializer/view tests for Reception, Cashier, Manager, Owner, and support mode.
-- Future Game Operator, games, shifts, marketing, parent login, split/partial payment, and partial-refund permissions are absent from the MVP seed and route registration. Incident permissions are also absent until OQ-20 is approved.
+- Future Game Operator, games, shifts, marketing, parent login, split/partial payment, partial-refund, and incident permissions are absent from the Egypt V1 seed and route registration. OQ-20 explicitly defers incidents.
 - Disabling a user or branch invalidates new operations immediately.
 - No Parent/Guardian API token can be issued until own-record policies and identity proofing are implemented.
 

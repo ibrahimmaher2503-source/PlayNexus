@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,6 +21,8 @@ class Tenant extends Model
         'is_active',
         'internal_identifier',
         'plan_reference',
+        'current_subscription_id',
+        'billing_status',
         'status',
         'provisioning_key',
         'provisioning_payload_hash',
@@ -33,6 +36,16 @@ class Tenant extends Model
     public function branches(): HasMany
     {
         return $this->hasMany(Branch::class);
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function currentSubscription(): BelongsTo
+    {
+        return $this->belongsTo(Subscription::class, 'current_subscription_id');
     }
 
     public function users(): HasMany

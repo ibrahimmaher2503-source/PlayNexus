@@ -16,6 +16,39 @@ class StaffManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_branch_manager_cannot_change_global_status_of_staff_with_an_outside_branch_assignment(): void
+    {
+        [$tenant] = $this->owner();
+        $managed = Branch::factory()->create(['tenant_id' => $tenant->id]);
+        $outside = Branch::factory()->create(['tenant_id' => $tenant->id]);
+        $manager = User::factory()->create(['tenant_id' => $tenant->id]);
+        $target = User::factory()->create(['tenant_id' => $tenant->id]);
+        $manager->branches()->attach($managed, ['tenant_id' => $tenant->id, 'role' => 'branch_manager', 'is_active' => true]);
+        foreach ([$managed, $outside] as $branch) {
+            $target->branches()->attach($branch, ['tenant_id' => $tenant->id, 'role' => 'cashier', 'is_active' => true]);
+        }
+        $this->actingAs($manager)->patch(route('staff.status', $target), ['status' => 'suspended', 'expected_status' => 'active'])->assertForbidden();
+        $this->assertSame('active', $target->fresh()->status);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', 'staff.status.changed')->count());
+    }
+
+    public function test_suspend_then_reactivate_never_restores_an_old_established_session(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $target = User::factory()->create(['tenant_id' => $tenant->id]);
+        $version = (int) $target->auth_version;
+        $this->actingAs($owner)->patch(route('staff.status', $target), [
+            'status' => 'suspended', 'expected_status' => 'active',
+        ])->assertRedirect(route('staff.index'));
+        $this->patch(route('staff.status', $target), [
+            'status' => 'active', 'expected_status' => 'suspended',
+        ])->assertRedirect(route('staff.index'));
+        $this->assertGreaterThan($version, (int) $target->fresh()->auth_version);
+        $this->actingAs($target)->withSession(['auth_version' => $version])
+            ->getJson(route('dashboard'))->assertUnauthorized();
+        $this->assertGuest();
+    }
+
     public function test_owner_can_view_scoped_staff_and_update_an_existing_account(): void
     {
         [$tenant, $owner] = $this->owner();
@@ -85,7 +118,83 @@ class StaffManagementTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseHas('users', ['id' => $target->id, 'status' => 'active']);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
+    }
+
+    public function test_branch_manager_can_view_and_suspend_only_reception_and_cashier_in_managed_branches(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $manager = User::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Scoped manager']);
+        $managed = Branch::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Managed branch']);
+        $unassigned = Branch::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Unassigned branch']);
+        $manager->branches()->attach($managed, [
+            'tenant_id' => $tenant->id,
+            'role' => 'branch_manager',
+            'is_active' => true,
+        ]);
+
+        $target = User::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Managed cashier', 'status' => 'active']);
+        $target->branches()->attach($managed, [
+            'tenant_id' => $tenant->id,
+            'role' => 'cashier',
+            'is_active' => true,
+        ]);
+        $outside = User::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Outside cashier']);
+        $outside->branches()->attach($unassigned, [
+            'tenant_id' => $tenant->id,
+            'role' => 'cashier',
+            'is_active' => true,
+        ]);
+        $otherManager = User::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Other manager']);
+        $otherManager->branches()->attach($managed, [
+            'tenant_id' => $tenant->id,
+            'role' => 'branch_manager',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($manager)
+            ->get(route('staff.index'))
+            ->assertOk()
+            ->assertSee($target->name)
+            ->assertDontSee($outside->name)
+            ->assertDontSee($otherManager->name)
+            ->assertDontSee(__('staff.add_link'));
+
+        $this->actingAs($manager)
+            ->get(route('staff.create'))
+            ->assertForbidden();
+
+        $this->actingAs($manager)
+            ->patch(route('staff.status', $target), [
+                'status' => 'suspended',
+                'expected_status' => 'active',
+            ])
+            ->assertRedirect(route('staff.index'))
+            ->assertSessionHas('success', __('staff.updated'));
+
+        $this->actingAs($manager)
+            ->patchJson(route('staff.status', $outside), [
+                'status' => 'suspended',
+                'expected_status' => 'active',
+            ])
+            ->assertNotFound();
+
+        $this->actingAs($manager)
+            ->patchJson(route('staff.status', $otherManager), [
+                'status' => 'suspended',
+                'expected_status' => 'active',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($manager)
+            ->patchJson(route('staff.status', $owner), [
+                'status' => 'suspended',
+                'expected_status' => 'active',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('users', ['id' => $target->id, 'status' => 'suspended']);
+        $this->assertSame(1, DB::table('audit_logs')->where('action', 'staff.status.changed')->count());
     }
 
     public function test_owner_targets_and_self_are_hidden_from_status_mutation(): void
@@ -104,7 +213,7 @@ class StaffManagementTest extends TestCase
 
         $this->assertDatabaseHas('users', ['id' => $owner->id, 'status' => 'active']);
         $this->assertDatabaseHas('users', ['id' => $secondOwner->id, 'status' => 'active']);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_foreign_target_is_hidden_before_validation(): void

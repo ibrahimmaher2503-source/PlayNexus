@@ -236,6 +236,68 @@ html[lang='ar'] {
 }
 
 @media (min-width: 1024px) {
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar] {
+        width: 80px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-main] {
+        padding-inline-start: 80px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-topbar] {
+        inset-inline-start: 80px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar-label],
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-nav-section-title] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar] > div:first-child,
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar] a,
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar-footer] > div {
+        justify-content: center;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar] > div:first-child {
+        padding-inline: 4px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar] > div:first-child > a {
+        flex: 0 0 auto;
+        padding-inline: 0;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar] > a {
+        min-height: 48px;
+        margin-inline: 8px;
+        padding: 6px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar-scroll] {
+        padding-inline: 8px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar-scroll] section {
+        margin-bottom: 12px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar-scroll] a {
+        padding-inline: 6px;
+    }
+
+    [data-pn-shell][data-pn-sidebar-collapsed='true'] [data-pn-sidebar-toggle-icon] {
+        rotate: 180deg;
+    }
+
     [data-pn-sidebar-scroll] {
         scrollbar-gutter: stable;
     }
@@ -263,7 +325,7 @@ html[lang='ar'] {
     }
 }
 
-@media (max-width: 1599px) {
+@media (max-width: 1023px) {
     [data-pn-tickets] [role='region'][aria-labelledby='tickets-heading'] {
         overflow: visible;
     }

@@ -109,6 +109,11 @@ class PlaySessionPolicy
         return $this->canActOnSession($user, $session, self::CHECKOUT_ROLES);
     }
 
+    public function settle(User $user, PlaySession $session): bool
+    {
+        return $this->canActOnSession($user, $session, ['branch_manager', 'cashier']);
+    }
+
     public function extend(User $user, PlaySession $session): bool
     {
         return $this->canActOnSession($user, $session, self::CHECK_IN_ROLES);

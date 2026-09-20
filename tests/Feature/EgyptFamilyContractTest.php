@@ -77,13 +77,22 @@ class EgyptFamilyContractTest extends TestCase
                 'consent_type' => 'marketing',
                 'expected_version' => 1,
             ])
-            ->assertOk();
+            ->assertOk()
+            ->assertJsonPath('changed', true);
+        $this->actingAs($owner)
+            ->patchJson(route('families.children.consent.withdraw', [Guardian::query()->firstOrFail(), $child]), [
+                'consent_type' => 'marketing',
+                'expected_version' => 1,
+            ])
+            ->assertOk()
+            ->assertJsonPath('changed', false);
         $this->assertDatabaseHas('family_consent_events', [
             'child_id' => $child->id,
             'consent_type' => 'marketing',
             'status' => 'withdrawn',
         ]);
         $this->assertDatabaseHas('children', ['id' => $child->id, 'status' => 'active', 'lock_version' => 1]);
+        $this->assertSame(2, DB::table('family_consent_events')->where('child_id', $child->id)->where('consent_type', 'marketing')->count());
     }
 
     public function test_cashier_cannot_write_safety_notes_or_manage_consent_and_relationships(): void
@@ -128,6 +137,86 @@ class EgyptFamilyContractTest extends TestCase
         $this->assertDatabaseHas('children', ['id' => $child->id, 'status' => 'restricted', 'lock_version' => 2]);
         $this->assertDatabaseHas('family_consent_events', ['child_id' => $child->id, 'consent_type' => 'child_data', 'status' => 'granted']);
         $this->assertDatabaseHas('family_consent_events', ['child_id' => $child->id, 'consent_type' => 'child_data', 'status' => 'withdrawn']);
+        $this->assertSame(2, DB::table('family_consent_events')->where('child_id', $child->id)->where('consent_type', 'child_data')->count());
+    }
+
+    public function test_verified_legal_guardian_can_record_renewed_consent_without_overwriting_history(): void
+    {
+        [, $owner] = $this->owner();
+        [$guardian, $child] = $this->registeredFamily($owner);
+
+        $this->actingAs($owner)->patchJson(route('families.children.consent.withdraw', [$guardian, $child]), [
+            'consent_type' => 'child_data',
+            'expected_version' => 1,
+        ])->assertOk();
+
+        $this->actingAs($owner)
+            ->get(route('families.show', $guardian))
+            ->assertOk()
+            ->assertSee(__('families.consent_status_withdrawn'))
+            ->assertSee(__('families.restore_child_data_consent'));
+
+        $this->actingAs($owner)->postJson(route('families.children.consent.grant', [$guardian, $child]), [
+            'expected_version' => 2,
+            'notice_version' => FamilyController::NOTICE_VERSION,
+            'child_data_consent' => true,
+        ])->assertOk()->assertJsonPath('changed', true);
+
+        $this->assertDatabaseHas('children', ['id' => $child->id, 'status' => 'active', 'lock_version' => 3]);
+        $events = DB::table('family_consent_events')
+            ->where('child_id', $child->id)
+            ->where('consent_type', 'child_data')
+            ->orderBy('id')
+            ->pluck('status')
+            ->all();
+        $this->assertSame(['granted', 'withdrawn', 'granted'], $events);
+        $this->assertDatabaseHas('audit_logs', [
+            'tenant_id' => $guardian->tenant_id,
+            'action' => 'family.consent.granted',
+            'subject_type' => 'child',
+            'subject_id' => (string) $child->id,
+        ]);
+    }
+
+    public function test_non_consent_relationship_cannot_renew_child_data_consent(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        [$guardian, $child] = $this->registeredFamily($owner);
+        $pickup = Guardian::factory()->create([
+            'tenant_id' => $tenant->id,
+            'phone_e164' => '+201008887766',
+            'created_by_user_id' => $owner->id,
+            'updated_by_user_id' => $owner->id,
+        ]);
+        DB::table('guardian_child')->insert([
+            'tenant_id' => $tenant->id,
+            'guardian_id' => $pickup->id,
+            'child_id' => $child->id,
+            'relationship_type' => 'authorized_pickup',
+            'can_consent' => false,
+            'can_check_out' => true,
+            'is_primary' => false,
+            'verification_method' => 'registered_phone_last_four',
+            'verified_at' => now(),
+            'verified_by_user_id' => $owner->id,
+            'is_active' => true,
+            'created_by_user_id' => $owner->id,
+            'updated_by_user_id' => $owner->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $this->actingAs($owner)->patchJson(route('families.children.consent.withdraw', [$guardian, $child]), [
+            'consent_type' => 'child_data',
+            'expected_version' => 1,
+        ])->assertOk();
+
+        $this->actingAs($owner)->postJson(route('families.children.consent.grant', [$pickup, $child]), [
+            'expected_version' => 2,
+            'notice_version' => FamilyController::NOTICE_VERSION,
+            'child_data_consent' => true,
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseHas('children', ['id' => $child->id, 'status' => 'restricted', 'lock_version' => 2]);
         $this->assertSame(2, DB::table('family_consent_events')->where('child_id', $child->id)->where('consent_type', 'child_data')->count());
     }
 

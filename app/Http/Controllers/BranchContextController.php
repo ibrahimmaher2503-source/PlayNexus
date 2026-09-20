@@ -3,25 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
-use App\Services\TenantContext;
+use App\Services\ActorDashboard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class BranchContextController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, ActorDashboard $dashboard)
     {
-        $user = $request->user();
-        $branches = $user->accessibleBranches()->orderBy('name')->get()
-            ->filter(fn (Branch $branch): bool => Gate::forUser($user)->allows('view', $branch))
-            ->values();
-
-        return view('dashboard', [
-            'tenant' => app(TenantContext::class)->current($user),
-            'branches' => $branches,
-            'selectedBranch' => $branches->firstWhere('id', $request->session()->get('branch_id')),
-        ]);
+        return $dashboard->show($request);
     }
 
     public function store(Request $request, Branch $branch): RedirectResponse

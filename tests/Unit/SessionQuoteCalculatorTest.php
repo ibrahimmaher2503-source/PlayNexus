@@ -51,6 +51,22 @@ class SessionQuoteCalculatorTest extends TestCase
         $this->assertSame(30000, $quote['subtotal_minor']);
     }
 
+    public function test_overtime_ceiling_boundaries_are_exact(): void
+    {
+        foreach ([
+            4199 => [0, 0],
+            4200 => [0, 0],
+            4201 => [1, 1],
+            5999 => [1799, 1],
+            6000 => [1800, 1],
+            6001 => [1801, 2],
+        ] as $elapsed => [$overtimeSeconds, $overtimeUnits]) {
+            $quote = $this->calculate($elapsed);
+            $this->assertSame($overtimeSeconds, $quote['overtime_seconds'], "Overtime seconds at {$elapsed}");
+            $this->assertSame($overtimeUnits, $quote['overtime_units'], "Overtime units at {$elapsed}");
+        }
+    }
+
     public function test_exclusive_fourteen_percent_tax_is_rounded_once_from_subtotal(): void
     {
         $quote = $this->calculate(4201, ['tax_rate_bps' => 1400, 'tax_mode' => 'exclusive']);

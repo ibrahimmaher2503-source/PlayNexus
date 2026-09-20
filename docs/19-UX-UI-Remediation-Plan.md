@@ -1,6 +1,14 @@
 # خطة المعالجة الشاملة لتجربة PlayNexus
 
-الحالة: **مراجعة بصرية مكتملة؛ لا تعديل للكود. M3 مقبولة محليًا وM4 لم تبدأ.**
+## 2026-09-19 actor dashboard screenshot review
+
+Reviewed all 30 existing Platform, Owner, Manager, Reception, and Cashier captures across English/Arabic and 390/820/1440px. The main mobile issue was that full-height KPI blocks delayed the role's primary action; the Reception 820px three-metric grid also left an empty tinted cell. The Platform menu hid destinations behind horizontal scrolling, and mixed English branch names reordered in Arabic text.
+
+The implemented dashboard keeps alerts first, moves staff actions ahead of metrics, uses compact two-column phone metrics without a blank tablet cell, wraps Platform navigation, groups Platform status counts, and isolates data names with bidirectional markup. Existing routes, permissions, financial calculations, and tenant/branch scopes are unchanged. Current browser checks cover Owner/Reception/Cashier phone views and Platform English desktop/Arabic phone views; the original 30-image set remains a baseline, with reviewed new captures in `deliverables/qa/actor-dashboards-enhanced/`.
+
+الحالة: **تم تنفيذ وإغلاق المعالجة المحلية عبر M6:** shell/sidebar، Desktop وresponsive، العربية RTL/الإنجليزية LTR، POS النقدي، التقارير، والإشعارات المحلية. الإرسال عبر provider والحوادث ما زالا قرارًا مؤجلًا، وليسا فجوة واجهة محلية.
+
+**تحديث 2026-09-15:** أُضيفت رحلة الدفع/الإيصال/الاسترداد المعتمدة، وتقارير العملة/التوقيت والصافي والتفاصيل، وإدارة Reception/Cashier بواسطة مدير الفرع، وتبديل اللغة الفعلي من login والصفحات المحمية. الأدلة الحالية في `.ai/TEST_RESULTS.md`؛ التاريخ الأدنى يصف لقطته الزمنية فقط.
 
 النطاق هو PlayNexus وفق PRD. عناصر marketplace/cart/delivery/storefront المذكورة في قالب الطلب **N/A** وليست نواقص.
 

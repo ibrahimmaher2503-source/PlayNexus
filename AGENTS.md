@@ -6,7 +6,7 @@ Deliver the smallest safe vertical slice of the PlayNexus MVP with a polished, f
 
 ## Current repository state
 
-Laravel M1 access/branch foundation, the approved Egypt M2 family engineering contract, and M3 immutable pricing/tickets/check-in/live sessions/read-only estimates are implemented in the integration worktree. Read the newest `docs/agent-plan.md` and `.ai/CURRENT_MILESTONE.md` entries; historical acceptance entries are not evidence for a later slice. Validation alone is not check-in, cancellation is not a financial refund, and a live estimate is not a completed checkout. Do not infer production readiness or M4/M5 behavior.
+Laravel M1-M6 venue workflows and the bounded OQ-04 subscription slice exist in the integration worktree. Read the newest `docs/agent-plan.md`, `.ai/CURRENT_MILESTONE.md`, `.ai/REQUIREMENT_STATUS_MATRIX.md`, and `.ai/DECISION_REGISTER.md`; historical entries are not current decision or acceptance authority. OQ-04 remains partial and the product is not production ready.
 
 ## Verified scaffold commands
 
@@ -28,7 +28,7 @@ vendor/bin/pint --test
 
 ## Next implementation boundary
 
-M3 is locally accepted and the product owner stopped before M4. OQ-12 guardian verification is approved; OQ-19 station ownership/recovery remains open. Do not begin M4 or add final billing, guardian release, payment, receipt or refund behavior until the owner explicitly resumes it with a bounded contract. Preserve existing dirty changes.
+All OQ-01 through OQ-24 items now have an approved baseline or explicit deferment. Do not implement open provider/procurement, exact security/retention, external API, recurring billing, incidents, shifts, pause/resume, or other deferred behavior without the decision register and an authorized bounded contract. Preserve existing dirty changes.
 
 ## Architecture rules
 

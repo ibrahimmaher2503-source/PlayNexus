@@ -81,7 +81,7 @@ class PricingRuleVersionAdversarialTest extends TestCase
             'status' => 'active',
             'version' => 1,
         ]);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_reception_and_cashier_cannot_version_a_rule(): void
@@ -105,7 +105,7 @@ class PricingRuleVersionAdversarialTest extends TestCase
             'version' => 1,
         ]);
         $this->assertSame(1, PricingRule::query()->where('tenant_id', $tenant->id)->count());
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_branch_manager_cannot_version_cashier_only_or_unassigned_branch(): void
@@ -129,7 +129,7 @@ class PricingRuleVersionAdversarialTest extends TestCase
         $this->assertSame(2, PricingRule::query()->where('tenant_id', $tenant->id)->count());
         $this->assertDatabaseHas('pricing_rules', ['id' => $cashierRule->id, 'status' => 'active']);
         $this->assertDatabaseHas('pricing_rules', ['id' => $unassignedRule->id, 'status' => 'active']);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_audit_failure_rolls_back_retirement_and_new_rule(): void

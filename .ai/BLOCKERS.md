@@ -1,5 +1,39 @@
 # Blockers
 
+## 2026-09-17 Checkpoint 02 — active-session branch deactivation
+
+UC-13 requires operational handling of already-active sessions before intentional deactivation, but no concrete handling choice is specified. Owner: Product Owner + Operations/Safety. Approve whether deactivation is denied while sessions remain active, or a controlled handoff/continued checkout path is permitted. Current guards prevent new work and preserve records but also deny operational access on inactive branches; no auto-completion/deletion occurs. The management UI now exposes the active-session count and warning. Checkpoint 02 remains PARTIAL until this safety procedure is approved and verified. This does not reopen Platform Administration or OQ-04.
+
+## 2026-09-15 M6 open decisions and external gates
+
+- **OQ-05/OQ-13:** channel order, lead time and retry behavior are approved. Provider, sender identity, bilingual template approval, callback capability and cost ownership remain separate procurement/operations decisions. Independent M6 work uses deterministic database transport; real delivery and `delivered` confirmation remain blocked.
+- **OQ-21:** p95 and availability targets are approved. The environment-specific normal/peak workload profile and deployed measurements remain Engineering/Architecture/QA release evidence, not an open Product behavior.
+- **OQ-22:** idle timeouts, minimum password length, immediate revocation, MFA, throttling principle, immutable audit, external secrets and production-debug-off are approved. Absolute timeout, exact rate-limit values and audit/log retention remain separately registered decisions; deployed proof remains a release gate.
+- **External gates:** selected staging environment, deployed monitoring/alerts, isolated restore from an environment backup, Finance/Legal approval, staff rehearsal/sign-off and named go/no-go approval remain required for `PILOT_READY`.
+- **OQ-20:** incident management remains deferred; no table, route, permission, UI or API was added.
+
+## 2026-09-15 M5 final review blocker status
+
+No known local engineering blocker remains in the bounded M5 slice. An official isolated MySQL 8.4.11/InnoDB runtime passed the full 383-test suite and the dedicated two-process settlement/refund contention test. Hosted CI, production Finance/Legal approval and operational release controls remain external release gates, not M5 implementation defects.
+
+## Historical 2026-09-15 M5 closure gate — resolved above
+
+No product decision or known SQLite/browser defect blocks the bounded M5 implementation. Full local closure still requires the isolated MySQL 8.4/InnoDB migration and real lock/concurrency suite. The available listener is XAMPP MariaDB 10.4.32, not acceptable MySQL 8.4 evidence, and Docker/MySQL 8.4 tooling is unavailable. Do not claim full M5 or production readiness until that gate passes. Hosted CI and production Finance/Legal validation remain external release gates; shift/drawer and provider delivery are approved later scope, not defects.
+
+## 2026-09-14 M5 remaining acceptance gates
+
+No owner decision blocks M5. The current local implementation is partial until ordinary POS cash posting/ticket issuance, payment-bound discount consumption, transaction/refund UI, canonical API/ERD/traceability updates, isolated MySQL 8.4 locking/concurrency, and authenticated Arabic/English browser plus receipt-print evidence pass. Luna subagent execution is temporarily unavailable because the account usage limit was reached; this is an execution-capacity constraint, not a product decision.
+
+## 2026-09-14 M5 implementation gate cleared
+
+The owner approved OQ-09 as same-branch, same-local-business-day, full cash refund with separate Manager/Owner approval; OQ-24 shifts/drawer are deferred; every positive discount requires approval; zero-total checkout is disabled. No product-decision blocker remains for bounded M5 implementation. Production Finance/Legal validation and M6 receipt-provider delivery remain later release gates.
+
+## 2026-09-14 M5 decision gates
+
+M5 planning is complete and no code has started. OQ-09 still blocks refund schema/routes/UI and OQ-24 still decides whether any cashier shift exists. The plan recommends one full same-branch, same-branch-local-day cash refund with separate Manager/Owner approval, and deferring shifts. Two smaller product choices also need confirmation before their slices: a zero-basis-point threshold so every positive discount requires approval, and no zero-total checkout in the first pilot.
+
+These gates do not block implementing the core cash settlement, immutable receipt, atomic session completion, or non-session catalog/cart after the owner authorizes M5 and records the defaults. Receipt provider delivery remains M6 behind OQ-05/OQ-13; production Finance/Legal validation remains a release gate, not a local engineering blocker.
+
 ## 2026-09-14 M0 closure gate
 
 M0 repairs and their local SQLite/MySQL 8.4 equivalents pass. The sole M0 closure blocker is external: `.github/workflows/ci.yml` has not yet run on the hosted provider because this local review did not push. Composer is documented as a workstation prerequisite; strict validation passed through the available local phar.

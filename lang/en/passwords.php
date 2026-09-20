@@ -21,7 +21,7 @@ return [
         'token_required' => 'This password reset link is invalid.',
         'token_invalid' => 'This password reset link is invalid.',
         'password_required' => 'Enter a new password.',
-        'password_invalid' => 'Use a password between 8 and 255 characters.',
+        'password_invalid' => 'Use a password between 12 and 255 characters.',
         'password_confirmation' => 'The password confirmation does not match.',
     ],
 ];

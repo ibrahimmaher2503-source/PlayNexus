@@ -60,7 +60,7 @@ class TenantBranchTest extends TestCase
         $this->getJson('/branches/'.$branch->id)->assertNotFound();
         $branch->update(['is_active' => true]);
         $tenant->update(['is_active' => false]);
-        $this->getJson('/branches/'.$branch->id)->assertNotFound();
+        $this->getJson('/branches/'.$branch->id)->assertUnauthorized();
     }
 
     public function test_schema_has_scope_constraints_and_indexes(): void

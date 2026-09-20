@@ -21,31 +21,32 @@ class BranchAssignmentController extends Controller
 {
     private const ROLES = ['branch_manager', 'reception_staff', 'cashier'];
 
+    private const MANAGED_STAFF_ROLES = ['reception_staff', 'reception', 'cashier'];
+
     private const SEARCH_MAX_LENGTH = 100;
 
     public function index(Request $request): View
     {
-        [$actor, $tenant] = $this->ownerContext($request);
+        [$actor, $tenant] = $this->staffContext($request);
+        $isOwner = $this->isOwner($actor, $tenant);
         $search = $this->normalizeSearch($request->query('q'));
-        $staff = $this->staffQuery($tenant, $search)->paginate(25)->withQueryString();
+        $staff = $this->staffQuery($tenant, $search, $actor, $isOwner)->paginate(25)->withQueryString();
         if ($request->query('q') !== null) {
             $staff->appends(['q' => $search]);
         }
-        $selectedUser = $this->selectedUser($request, $tenant);
+        $selectedUser = $this->selectedUser($request, $tenant, $actor, $isOwner);
         $branches = collect();
         $assignments = collect();
-        $customRoles = CustomRole::query()
-            ->where('tenant_id', $tenant->id)
-            ->whereHas('permissions', fn ($query) => $query->where('permission', 'branches.view'))
-            ->orderBy('name')
-            ->pluck('name', 'code');
+        $customRoles = $isOwner
+            ? CustomRole::query()
+                ->where('tenant_id', $tenant->id)
+                ->whereHas('permissions', fn ($query) => $query->where('permission', 'branches.view'))
+                ->orderBy('name')
+                ->pluck('name', 'code')
+            : collect();
 
         if ($selectedUser) {
-            $branches = Branch::query()
-                ->where('tenant_id', $tenant->id)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name', 'is_active']);
+            $branches = $this->manageableBranches($actor, $tenant, $isOwner)->get(['id', 'name', 'is_active']);
             $assignments = DB::table('branch_user')
                 ->where('tenant_id', $tenant->id)
                 ->where('user_id', $selectedUser->id)
@@ -54,22 +55,31 @@ class BranchAssignmentController extends Controller
                 ->keyBy('branch_id');
         }
 
-        return view('assignments.index', compact('actor', 'tenant', 'staff', 'selectedUser', 'branches', 'assignments', 'search', 'customRoles'));
+        return view('assignments.index', compact('actor', 'tenant', 'staff', 'selectedUser', 'branches', 'assignments', 'search', 'customRoles', 'isOwner'));
     }
 
     public function update(Request $request, User $user, Branch $branch): JsonResponse|RedirectResponse
     {
-        [$actor, $tenant] = $this->ownerContext($request);
-        [$target, $scopedBranch] = $this->scopedTarget($user, $branch, $tenant);
+        [$actor, $tenant] = $this->staffContext($request);
+        $isOwner = $this->isOwner($actor, $tenant);
+        [$target, $scopedBranch] = $this->scopedTarget($user, $branch, $tenant, $actor, $isOwner);
 
         if ($target->status !== 'active') {
             throw new HttpException(409, __('assignments.conflict'));
         }
 
+        if (! $isOwner) {
+            $this->authorizeManagerTarget($actor, $tenant, $target);
+
+            if ($request->has('role') && ! in_array($request->input('role'), self::MANAGED_STAFF_ROLES, true)) {
+                abort(403);
+            }
+        }
+
         $validator = Validator::make(
             $request->all(),
             [
-                'role' => ['required', 'string', 'max:50', Rule::in($this->allowedRoles($tenant))],
+                'role' => ['required', 'string', 'max:50', Rule::in($this->allowedRoles($tenant, $isOwner))],
                 'is_active' => ['required', 'boolean'],
                 'expected_role' => ['present', 'nullable', 'string', 'max:50'],
                 'expected_is_active' => ['present', 'nullable', 'boolean'],
@@ -101,7 +111,7 @@ class BranchAssignmentController extends Controller
             ? null
             : filter_var($data['expected_is_active'], FILTER_VALIDATE_BOOLEAN);
 
-        $result = DB::transaction(function () use ($actor, $tenant, $target, $scopedBranch, $desiredRole, $desiredActive, $expectedRole, $expectedActive): array {
+        $result = DB::transaction(function () use ($actor, $tenant, $target, $scopedBranch, $desiredRole, $desiredActive, $expectedRole, $expectedActive, $isOwner): array {
             $lockedTenant = Tenant::query()
                 ->whereKey($tenant->id)
                 ->where('is_active', true)
@@ -109,7 +119,7 @@ class BranchAssignmentController extends Controller
                 ->firstOrFail();
 
             $freshActor = User::query()->lockForUpdate()->findOrFail($actor->id);
-            Gate::forUser($freshActor)->authorize('view', $lockedTenant);
+            Gate::forUser($freshActor)->authorize('manageStaff', $lockedTenant);
 
             $lockedTarget = User::query()
                 ->whereKey($target->id)
@@ -137,12 +147,20 @@ class BranchAssignmentController extends Controller
                 ->first();
             abort_unless($lockedBranch, 404);
 
+            if (! $isOwner) {
+                Gate::forUser($freshActor)->authorize('manageStaff', $lockedBranch);
+            }
+
             $pivot = DB::table('branch_user')
                 ->where('tenant_id', $lockedTenant->id)
                 ->where('user_id', $lockedTarget->id)
                 ->where('branch_id', $lockedBranch->id)
                 ->lockForUpdate()
                 ->first();
+
+            if (! $isOwner && $pivot && ! in_array($pivot->role, self::MANAGED_STAFF_ROLES, true)) {
+                abort(403);
+            }
 
             $hasExpectedState = $pivot !== null
                 ? $expectedRole !== null
@@ -205,7 +223,7 @@ class BranchAssignmentController extends Controller
                 'reason_code' => 'access_review',
                 'before_json' => $before === null ? null : json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(),
+                'request_id' => (string) request()->attributes->get('request_id', Str::uuid()),
                 'occurred_at' => $now,
             ]);
 
@@ -225,17 +243,25 @@ class BranchAssignmentController extends Controller
             ->with('status', $message);
     }
 
-    private function ownerContext(Request $request): array
+    private function staffContext(Request $request): array
     {
         $actor = User::query()->findOrFail($request->user()->getAuthIdentifier());
         $tenant = Tenant::query()->whereKey($actor->tenant_id)->where('is_active', true)->firstOrFail();
 
-        Gate::forUser($actor)->authorize('view', $tenant);
+        Gate::forUser($actor)->authorize('manageStaff', $tenant);
 
         return [$actor, $tenant];
     }
 
-    private function staffQuery(Tenant $tenant, string $search = '')
+    private function isOwner(User $actor, Tenant $tenant): bool
+    {
+        return DB::table('tenant_owners')
+            ->where('tenant_id', $tenant->getKey())
+            ->where('user_id', $actor->getKey())
+            ->exists();
+    }
+
+    private function staffQuery(Tenant $tenant, string $search = '', ?User $actor = null, bool $isOwner = true)
     {
         $query = User::query()
             ->where('users.tenant_id', $tenant->id)
@@ -247,6 +273,35 @@ class BranchAssignmentController extends Controller
             })
             ->select(['users.id', 'users.name', 'users.email', 'users.status'])
             ->orderBy('users.id');
+
+        if (! $isOwner && $actor) {
+            $query->whereExists(function ($query) use ($actor, $tenant): void {
+                $query->selectRaw('1')
+                    ->from('branch_user as target_assignment')
+                    ->join('branch_user as manager_assignment', function ($join) use ($actor, $tenant): void {
+                        $join->on('manager_assignment.branch_id', '=', 'target_assignment.branch_id')
+                            ->where('manager_assignment.tenant_id', $tenant->id)
+                            ->where('manager_assignment.user_id', $actor->id)
+                            ->where('manager_assignment.role', 'branch_manager')
+                            ->where('manager_assignment.is_active', true);
+                    })
+                    ->join('branches as managed_branch', function ($join) use ($tenant): void {
+                        $join->on('managed_branch.id', '=', 'target_assignment.branch_id')
+                            ->where('managed_branch.tenant_id', $tenant->id)
+                            ->where('managed_branch.is_active', true);
+                    })
+                    ->whereColumn('target_assignment.user_id', 'users.id')
+                    ->where('target_assignment.tenant_id', $tenant->id)
+                    ->whereIn('target_assignment.role', self::MANAGED_STAFF_ROLES);
+            })->whereNotExists(function ($query) use ($tenant): void {
+                $query->selectRaw('1')
+                    ->from('branch_user as manager_target')
+                    ->whereColumn('manager_target.user_id', 'users.id')
+                    ->where('manager_target.tenant_id', $tenant->id)
+                    ->where('manager_target.role', 'branch_manager')
+                    ->where('manager_target.is_active', true);
+            });
+        }
 
         if ($search !== '') {
             $pattern = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search).'%';
@@ -267,8 +322,12 @@ class BranchAssignmentController extends Controller
     }
 
     /** @return list<string> */
-    private function allowedRoles(Tenant $tenant): array
+    private function allowedRoles(Tenant $tenant, bool $isOwner = true): array
     {
+        if (! $isOwner) {
+            return array_values(array_diff(self::ROLES, ['branch_manager']));
+        }
+
         return array_merge(self::ROLES, CustomRole::query()
             ->where('tenant_id', $tenant->id)
             ->whereHas('permissions', fn ($query) => $query->where('permission', 'branches.view'))
@@ -276,7 +335,7 @@ class BranchAssignmentController extends Controller
             ->all());
     }
 
-    private function selectedUser(Request $request, Tenant $tenant): ?User
+    private function selectedUser(Request $request, Tenant $tenant, User $actor, bool $isOwner): ?User
     {
         if ($request->query('user_id') === null || $request->query('user_id') === '') {
             return null;
@@ -285,10 +344,10 @@ class BranchAssignmentController extends Controller
         $selectedId = filter_var($request->query('user_id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         abort_unless($selectedId, 404);
 
-        return $this->staffQuery($tenant)->whereKey($selectedId)->firstOrFail();
+        return $this->staffQuery($tenant, '', $actor, $isOwner)->whereKey($selectedId)->firstOrFail();
     }
 
-    private function scopedTarget(User $user, Branch $branch, Tenant $tenant): array
+    private function scopedTarget(User $user, Branch $branch, Tenant $tenant, User $actor, bool $isOwner): array
     {
         $target = User::query()
             ->whereKey($user->id)
@@ -308,7 +367,67 @@ class BranchAssignmentController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
+        if (! $isOwner) {
+            Gate::forUser($actor)->authorize('manageStaff', $scopedBranch);
+        }
+
         return [$target, $scopedBranch];
+    }
+
+    private function manageableBranches(User $actor, Tenant $tenant, bool $isOwner)
+    {
+        $query = Branch::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('is_active', true)
+            ->orderBy('name');
+
+        if (! $isOwner) {
+            $query->whereExists(function ($query) use ($actor, $tenant): void {
+                $query->selectRaw('1')
+                    ->from('branch_user')
+                    ->whereColumn('branch_user.branch_id', 'branches.id')
+                    ->where('branch_user.tenant_id', $tenant->id)
+                    ->where('branch_user.user_id', $actor->id)
+                    ->where('branch_user.role', 'branch_manager')
+                    ->where('branch_user.is_active', true);
+            });
+        }
+
+        return $query;
+    }
+
+    private function authorizeManagerTarget(User $actor, Tenant $tenant, User $target): void
+    {
+        $managedAssignments = DB::table('branch_user as target_assignment')
+            ->join('branch_user as manager_assignment', function ($join) use ($actor, $tenant): void {
+                $join->on('manager_assignment.branch_id', '=', 'target_assignment.branch_id')
+                    ->where('manager_assignment.tenant_id', $tenant->id)
+                    ->where('manager_assignment.user_id', $actor->id)
+                    ->where('manager_assignment.role', 'branch_manager')
+                    ->where('manager_assignment.is_active', true);
+            })
+            ->join('branches as managed_branch', function ($join) use ($tenant): void {
+                $join->on('managed_branch.id', '=', 'target_assignment.branch_id')
+                    ->where('managed_branch.tenant_id', $tenant->id)
+                    ->where('managed_branch.is_active', true);
+            })
+            ->where('target_assignment.tenant_id', $tenant->id)
+            ->where('target_assignment.user_id', $target->id)
+            ->get(['target_assignment.role']);
+
+        if ($managedAssignments->isEmpty()) {
+            abort(404);
+        }
+
+        if ($managedAssignments->contains(fn (object $assignment): bool => ! in_array($assignment->role, self::MANAGED_STAFF_ROLES, true))
+            || DB::table('branch_user')
+                ->where('tenant_id', $tenant->id)
+                ->where('user_id', $target->id)
+                ->where('role', 'branch_manager')
+                ->where('is_active', true)
+                ->exists()) {
+            abort(403);
+        }
     }
 
     private function validationResponse(Request $request, $validator): JsonResponse|RedirectResponse

@@ -27,6 +27,8 @@ class TenantSettingsTest extends TestCase
         $this->actingAs($owner)->get(route('tenant.settings.edit'))
             ->assertOk()
             ->assertSee(__('tenant_settings.title'))
+            ->assertSee($owner->email)
+            ->assertSee(__('tenant_settings.egypt'))
             ->assertDontSee('name="reason_code"', false);
 
         $this->patch(route('tenant.settings.update'), $this->payload($tenant, ['name' => 'Updated venue', 'legal_name' => 'Updated Venue LLC', 'default_locale' => 'ar', 'reason_code' => 'correction']))
@@ -47,10 +49,13 @@ class TenantSettingsTest extends TestCase
         [$tenant, $owner] = $this->owner();
         $staff = User::factory()->create(['tenant_id' => $tenant->id]);
         $foreign = Tenant::factory()->create();
+        $foreignOwner = User::factory()->create(['tenant_id' => $foreign->id]);
+        DB::table('tenant_owners')->insert(['tenant_id' => $foreign->id, 'user_id' => $foreignOwner->id, 'created_at' => now(), 'updated_at' => now()]);
         $payload = $this->payload($tenant, ['tenant_id' => $foreign->id, 'name' => 'Own changed']);
         $this->actingAs($staff)->get(route('tenant.settings.edit'))->assertForbidden();
         $this->patch(route('tenant.settings.update'), $payload)->assertForbidden();
         $this->actingAs($owner)->patch(route('tenant.settings.update'), $payload)->assertRedirect();
+        $this->get(route('tenant.settings.edit', ['tenant_id' => $foreign->id]))->assertOk()->assertDontSee($foreignOwner->email);
         $this->assertDatabaseHas('tenants', ['id' => $tenant->id, 'name' => 'Own changed']);
         $this->assertDatabaseHas('tenants', ['id' => $foreign->id, 'name' => $foreign->name]);
     }

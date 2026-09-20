@@ -119,7 +119,7 @@ class PricingRuleVersioningTest extends TestCase
             ->assertForbidden();
 
         $this->assertSame('active', $rule->fresh()->status);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_stale_replay_and_retired_targets_conflict_without_writes(): void
@@ -176,7 +176,7 @@ class PricingRuleVersioningTest extends TestCase
 
         $this->assertSame('active', $foreignRule->fresh()->status);
         $this->assertSame('active', $unmanagedRule->fresh()->status);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_invalid_version_input_supports_json_and_html_without_writes(): void

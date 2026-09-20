@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Middleware\AssignRequestId;
+use App\Http\Middleware\AuditSensitiveDenial;
+use App\Http\Middleware\EnsureAccountMfa;
 use App\Http\Middleware\EnsureBranchAccess;
 use App\Http\Middleware\EnsurePlatformAccess;
+use App\Http\Middleware\EnsureSubscriptionAccess;
+use App\Http\Middleware\EnsureSubscriptionLimit;
 use App\Http\Middleware\EnsureTenantAccess;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -13,6 +17,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,9 +34,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', SetLocale::class);
         $middleware->alias([
             'branch.access' => EnsureBranchAccess::class,
+            'account.mfa' => EnsureAccountMfa::class,
+            'security.audit-denials' => AuditSensitiveDenial::class,
             'platform.access' => EnsurePlatformAccess::class,
             'tenant.access' => EnsureTenantAccess::class,
+            'subscription.access' => EnsureSubscriptionAccess::class,
+            'subscription.limit' => EnsureSubscriptionLimit::class,
         ]);
+        $middleware->prependToPriorityList(
+            SubstituteBindings::class,
+            EnsureTenantAccess::class,
+        );
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/app');
     })

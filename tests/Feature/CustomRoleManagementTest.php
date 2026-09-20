@@ -53,7 +53,7 @@ class CustomRoleManagementTest extends TestCase
         ])->assertNotFound();
 
         $this->assertDatabaseMissing('custom_roles', ['tenant_id' => $tenant->id, 'name' => 'Blocked']);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_owner_update_is_atomic_and_rejects_a_stale_version_or_extra_permission(): void

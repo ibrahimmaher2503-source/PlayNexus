@@ -2,7 +2,7 @@
 
 ## 2026-09-13 implementation status
 
-US-TKT-001–003, US-SES-001–002 and the read-only estimate part of US-TIM-001 are implemented: authorized ticket check-in consumes/starts once, rejects wrong scope/state/family/capacity without partial mutation, and exposes a masked responsive board with a non-final immutable-snapshot estimate. Automated MySQL/SQLite/PHP 8.5, exact money/time boundaries, true concurrency and authenticated bilingual browser evidence are current in `.ai/TEST_RESULTS.md`. Session mutations, checkout/release and financial stories remain backlog items.
+US-TKT-001–003, US-SES-001–002, the implemented M4 session mutations, the M5 payment/receipt stories, and the read-only estimate part of US-TIM-001 are implemented within their approved boundaries. Pause/resume stories remain deferred from the Egypt MVP. Current automated MySQL/SQLite/PHP 8.5 and authenticated bilingual browser evidence is recorded in `.ai/TEST_RESULTS.md`; external pilot gates remain separate.
 
 **Document version:** 1.1  
 **Status:** Draft backlog baseline  
@@ -42,9 +42,9 @@ Global acceptance conditions for every story:
 | EP-07 POS and Receipts | Sales, payments, receipts, discounts, and refunds reconcile. | US-POS-001–006 | FR-008–009; BR-006–007; refund detail OQ-09 |
 | EP-08 Operational Insight | Owners and managers can reconcile core activity. | US-RPT-001–004 | FR-010; PRD-MVP-010 |
 | EP-09 Notifications | Parents receive operational alerts/receipts without blocking venue work. | US-NOT-001–003 | PRD-MVP-011; marketing remains Deferred under BR-010 |
-| EP-10 Safety and Accountability | Checkout safety and sensitive actions are traceable. Incident recording is Conditional. | US-SAF-001–003, US-AUD-001 | BR-005, Security/Safety NFR; US-SAF-001–002 Conditional on OQ-20 |
+| EP-10 Safety and Accountability | Checkout safety and sensitive actions are traceable. Incident recording is deferred for Egypt V1. | US-SAF-001–003, US-AUD-001 | BR-005, Security/Safety NFR; US-SAF-001–002 deferred by OQ-20 |
 
-Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, loyalty, parent-app, or marketplace story is authorized. No cashier-shift story is approved until OQ-24 resolves whether the POS module's daily shift close belongs in basic MVP POS.
+Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, loyalty, parent-app, or marketplace story is authorized. Approved OQ-24 defers cashier shifts and drawer balancing from Egypt V1.
 
 ### 2.1 Source business-rule coverage
 
@@ -297,7 +297,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 **Acceptance criteria**
 
 1. **Given** an active branch, eligible child, staff actor, and valid ticket or active pricing rule, **when** I confirm check-in, **then** one Active session is atomically created with the server start time and required references.
-2. **Given** the child already has an Active/Paused tenant session or any required input is invalid, **when** I confirm, **then** check-in fails and no ticket or partial session is consumed/created.
+2. **Given** the child already has an Active tenant session or any required input is invalid, **when** I confirm, **then** check-in fails and no ticket or partial session is consumed/created.
 3. **Given** the submission is repeated or concurrent, **when** the server processes it, **then** one accepted session exists and the UI resolves to that current state.
 
 ### US-SES-002 — Find an active session quickly
@@ -323,7 +323,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 **Acceptance criteria**
 
 1. **Given** an approved pricing example and valid configuration, **when** I save/activate the rule, **then** it becomes selectable in its effective scope and the action is audited.
-2. **Given** incomplete or internally inconsistent duration/rate/rounding/pause/tax settings, **when** I save, **then** activation is rejected with specific validation.
+2. **Given** incomplete or internally inconsistent duration/rate/rounding/tax settings, **when** I save, **then** activation is rejected with specific validation; pause settings are not accepted in the Egypt MVP.
 3. **Given** sessions already reference a rule, **when** I change it, **then** a new effective version/snapshot applies only as approved and old session calculations remain reproducible.
 
 ### US-TIM-002 — Trust the calculated charge
@@ -334,7 +334,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** an approved fixture containing start/end, pauses, extension, rounding, price, and tax, **when** the engine calculates it, **then** every component and final amount matches the approved example exactly within currency precision.
+1. **Given** an approved fixture containing start/end, extension, rounding, price, and tax, **when** the engine calculates it, **then** every component and final amount matches the approved example exactly within currency precision.
 2. **Given** the same stored inputs/rule version in English and Arabic-ready locales, **when** recalculated, **then** numeric results and component codes are identical.
 3. **Given** configuration changes after completion, **when** I reopen the completed session, **then** its stored calculation breakdown remains unchanged and reproducible.
 
@@ -346,21 +346,21 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** an Active/Paused session, **when** I view the active board, **then** current state, elapsed/billable time, expected ending/alert information, and estimated charge reflect authoritative data.
-2. **Given** a pause or extension changes the due time, **when** the command succeeds, **then** the current alert schedule is recalculated and stale schedules cannot send duplicates.
+1. **Given** an Active session, **when** I view the active board, **then** current state, elapsed time, expected ending/alert information, and estimated charge reflect authoritative data.
+2. **Given** an extension changes the due time, **when** the command succeeds, **then** the current alert schedule is recalculated and stale schedules cannot send duplicates.
 3. **Given** a session completes or cancels before alert due time, **when** the scheduler runs, **then** no ending alert is sent for that stale schedule.
 
-### US-SES-004 — Pause and resume a session
+### US-SES-004 — Pause and resume a session (deferred)
 
 **As an** authorized staff member, **I want** to pause/resume using an approved reason/type **so that** billable time follows policy.  
-**Priority:** Must  
+**Priority:** Deferred for Egypt MVP
 **Requirement links:** FR-SES-003, FR-SES-004, FR-TIM-003, BR-012, BR-014
 
 **Acceptance criteria**
 
-1. **Given** an Active session and permitted pause type, **when** I pause with required reason, **then** it becomes Paused with one open server-timed interval and an audit event.
-2. **Given** a Paused session, **when** I resume, **then** the interval closes, state becomes Active, and its billable treatment follows the snapshotted rule.
-3. **Given** an invalid state, missing permission, or duplicate concurrent command, **when** pause/resume is attempted, **then** only the valid transition can commit.
+1. **Given** the Egypt MVP has no pause contract, **when** a pause is requested, **then** no route or permission accepts it and the session remains unchanged.
+2. **Given** a Paused session is only historical target data, **when** resume is requested, **then** no route or permission accepts it.
+3. **Given** a later scope change explicitly enables pause/resume, **when** it is approved, **then** its synchronized schema, policy, API, UI, and tests must be added before exposure.
 
 ### US-SES-005 — Extend or adjust a session
 
@@ -370,7 +370,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** an Active/Paused session and allowed extension, **when** I select it, **then** incremental time/price is previewed and committed once after confirmation.
+1. **Given** an Active session and allowed extension, **when** I select it, **then** incremental time/price is previewed and committed once after confirmation.
 2. **Given** a manual time/price change, **when** I lack permission, reason, or required approval, **then** it cannot be finalized.
 3. **Given** an approved adjustment, **when** saved, **then** original values remain available and new values, requester, approver, reason, and effect appear in calculation/audit.
 
@@ -382,7 +382,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** an Active/Paused session and required permission/reason/approval, **when** I cancel, **then** any open pause closes safely, state becomes Cancelled, alerts are invalidated, and history is retained.
+1. **Given** an Active session and required permission/reason/approval, **when** I cancel, **then** state becomes Cancelled, alerts are invalidated, and history is retained.
 2. **Given** missing authorization or reason, **when** I attempt cancellation, **then** state is unchanged.
 3. **Given** a Cancelled/Completed session, **when** another operational transition is attempted, **then** the terminal state rejects it.
 
@@ -396,7 +396,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 
 **Acceptance criteria**
 
-1. **Given** an Active/Paused session, **when** I request checkout, **then** elapsed, included/excluded pauses, extension, rounding, base/overage, adjustments, tax/discount where relevant, payments, and amount due are displayed.
+1. **Given** an Active session, **when** I request checkout, **then** elapsed, extension, rounding, base/overage, adjustments, tax/discount where relevant, payments, and amount due are displayed.
 2. **Given** an approved worked example, **when** the quote is produced, **then** its components and total match exactly within currency precision.
 3. **Given** the underlying session changes before final confirmation, **when** I submit a stale quote, **then** the server reports a conflict and requires refresh rather than completing with stale totals.
 
@@ -490,7 +490,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 ### US-POS-005 — Record an approved refund
 
 **As an** authorized Manager, **I want** to record an eligible refund with a reason **so that** corrections remain controlled and reports reconcile.  
-**Priority:** Must capability; refund type/window/method are Open Decision OQ-09  
+**Priority:** Must; approved OQ-09 permits one full same-day cash refund at the original branch
 **Requirement links:** FR-POS-010, FR-POS-011, FR-POS-012, BR-007, OQ-09
 
 **Acceptance criteria**
@@ -502,7 +502,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 ### US-POS-006 — Keep advanced payment scope out of MVP
 
 **As a** Product Owner, **I want** the POS limited to approved basics **so that** delivery is not delayed by hidden payment complexity.  
-**Priority:** Scope guard; payment/refund detail remains Open Decision  
+**Priority:** Scope guard; OQ-01 and OQ-09 are approved, while online capture and split/partial tender remain outside Egypt V1
 **Requirement links:** FR-POS-013, INT-PAY-001, INT-PAY-002, OQ-01, OQ-09, ASM-08, ASM-10
 
 **Acceptance criteria**
@@ -603,7 +603,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 ### US-SAF-001 — Record a safety incident (proposed)
 
 **As an** authorized staff member, **I want** to record a child/venue incident **so that** facts and follow-up are traceable.  
-**Priority:** Conditional on OQ-20; not an approved MVP story  
+**Priority:** Deferred by approved OQ-20; not an Egypt V1 story
 **Requirement links:** FR-SAF-003, FR-SAF-004, FR-SAF-006, FR-AUD-001, OQ-20
 
 **Acceptance criteria**
@@ -615,7 +615,7 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 ### US-SAF-002 — Search incidents (proposed)
 
 **As an** authorized Manager or safety user, **I want** to find incidents by operational dimensions **so that** I can review follow-up and patterns.  
-**Priority:** Conditional on OQ-20; not an approved MVP story  
+**Priority:** Deferred by approved OQ-20; not an Egypt V1 story
 **Requirement links:** FR-SAF-005, SEC-PII-001, DATA-TEN-002
 
 **Acceptance criteria**
@@ -647,14 +647,14 @@ Source FR-011 and FR-012 are explicitly future requirements; no MVP membership, 
 2. **Given** an audit event, **when** an application user attempts to edit/delete it, **then** the action is denied.
 3. **Given** audit/log data, **when** it is displayed or searched, **then** credentials, tokens, full payment credentials, and unnecessary child-sensitive values are absent.
 
-## 13. Conditional stories held outside the baseline
+## 13. Deferred stories held outside the baseline
 
-These are decision placeholders, not sprint-ready MVP stories.
+These are explicitly deferred scope placeholders, not sprint-ready Egypt V1 stories. Reopening requires a later approved contract.
 
 ### US-INT-001 — Capture an online payment
 
 **As a** Product Owner, **I want** an approved regional payment gateway **so that** PlayNexus can capture rather than merely record eligible payments.  
-**Priority:** Conditional on OQ-01  
+**Priority:** Deferred by approved OQ-01
 **Requirement links:** INT-PAY-002
 
 **Acceptance gate:** An approved gateway, jurisdiction/security assessment, detailed payment/refund/reconciliation state model, API/webhook specification, failure/idempotency scenarios, estimates, and change control are complete.
@@ -662,7 +662,7 @@ These are decision placeholders, not sprint-ready MVP stories.
 ### US-INT-002 — Operate proprietary wristband/kiosk hardware
 
 **As an** Operations Owner, **I want** approved wristband/kiosk integration **so that** the venue can use selected hardware beyond browser QR.  
-**Priority:** Conditional on OQ-02  
+**Priority:** Deferred beyond the approved browser-scanner OQ-02 baseline
 **Requirement links:** INT-HW-002
 
 **Acceptance gate:** Supported hardware/SDK, ownership, security, failure fallback, device matrix, field-test plan, estimates, and change control are approved.
@@ -670,7 +670,7 @@ These are decision placeholders, not sprint-ready MVP stories.
 ### US-OPS-001 — Work offline
 
 **As a** Branch Manager, **I want** continuity during internet loss **so that** essential venue operations can continue.  
-**Priority:** Conditional on OQ-03  
+**Priority:** Deferred by approved online-only OQ-03
 **Source/decision links:** ASM-04, OQ-03
 
 **Acceptance gate:** Offline data authority, identity, numbering, timing, payment safety, synchronization/conflict, security, recovery, and operational limits are specified and approved. Until then the MVP uses a documented manual continuity procedure.

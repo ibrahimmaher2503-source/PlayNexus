@@ -1,5 +1,43 @@
 # Decisions
 
+## 2026-09-15: Approve the Production V1 commercial and operational defaults
+
+**Authority:** The product owner replied `Approved as recommended. Proceed`, authorized implementation, and requested editable demo plan prices.
+
+**OQ-04 subscriptions:** Launch editable Starter (1 branch/5 users), Growth (3/15), Professional (10/50), and Enterprise (custom) demo plans. Plans have editable EGP monthly/yearly prices and annual discount, sale-active state, and quantitative limits only. Subscriptions use `trialing`, `active`, `past_due`, `grace_period`, `suspended`, `cancelled`, and `expired`; the trial is 14 days and grace is 7 days. Grace permits normal work. After grace, tenants become restricted/read-only: no new sessions, sales, branches, or staff, while Tenant Owners retain historical reports. Existing data is never deleted for expiry. Super Admin may change plan/custom limits, extend trial, suspend/reactivate/cancel, record effective dates and reasoned temporary/permanent commercial overrides, and view audit history.
+
+**Commercial billing boundary:** Store manual SaaS invoice/reference, integer-minor-unit amount, currency, billing period, payment date/method, and notes separately from venue POS payments. Online recurring billing is a later provider-specific integration; no speculative gateway abstraction is approved.
+
+**OQ-05/OQ-13 notifications:** Customer-channel priority is WhatsApp, then SMS fallback, with email for receipts/administration. Session-end alerts start 10 minutes before expected end, retry after 2 minutes and then 5 minutes on technical failure, stop at three attempts, and do not resend after provider-confirmed delivery. Every attempt/callback is audited. Actual vendor adapters, sender identities, production credentials and approved bilingual templates remain procurement/deployment inputs, not invented code.
+
+**GAP-07 support access:** Super Admin has no tenant-content access by default. A support session is tenant-specific, reason-required, least-privilege, revocable, fully audited, visible to Tenant Owners, automatically expires, and is capped at 60 minutes. Permanent impersonation is prohibited. Security/Legal validation remains a production gate, not a reason to keep the approved local workflow absent.
+
+**GAP-08 retention:** Family/operational data is eligible three years after last activity or relationship closure, subject to financial/audit statutory retention and documented legal holds. Prefer anonymization/pseudonymization where required. Provide hold/release and eligibility/dry-run administration; destructive production execution stays disabled until Legal/DPO approves the final schedule.
+
+**OQ-21/OQ-22 production defaults:** Acceptance targets are p95 under 500 ms for normal UI/API, under 1 second for critical transactions, under 3 seconds for standard reports, and 99.9% availability. Large lists require pagination and bounded queries. Staff idle timeout is 30 minutes; Super Admin/support-sensitive idle timeout is 15 minutes; passwords require at least 12 characters; disable/suspend revokes access immediately; Super Admin MFA is mandatory and Tenant Owner MFA is enforceable; audit is immutable, secrets remain outside the repository, and production debug is off. The environment-specific load profile and deployed availability evidence remain go-live evidence, not an open product behavior.
+
+**Explicit V1 exclusions and release gate:** No current external `/api/v1` consumer is identified, so the web release is not blocked on implementing it. Incident management, cashier shifts/drawer reconciliation, and pause/resume remain outside Egypt V1. Separate staging/production, CI/CD, safe migrations, secrets, HTTPS, monitoring, health/error/queue/scheduler/database visibility, backup/restore, rollback, smoke tests and role-based UAT are mandatory before go-live. Human role assignees and vendor credentials must be named in the deployment record; engineering must not invent identities.
+
+## 2026-09-15: Bounded M5 review-remediation engineering contract
+
+The owner's request to fix all review findings authorizes implementation against the existing permission matrix, not Cashier-only permissions that contradict it. Tenant Owner and assigned Branch Manager/Cashier may record cash payment and request/execute an approved refund; approval still requires another authorized person. Tenant-global product writes are Owner-only because a branch Manager must not mutate other branches' shared catalog.
+
+Use dedicated domain records already introduced for the cash pilot instead of scaffolding a speculative generic approval framework: discount approvals carry a reviewable server-derived locked cart snapshot and are consumed only atomically by payment; refund request/approval/execution is represented in the dedicated refund state machine. Canonical ERD/API must describe these bounded records. No empty-line legacy bypass is approved. Original receipt seller/cashier/commercial facts remain immutable and current refund state is an explicit annotation, not a replacement receipt.
+
+## 2026-09-14: Approve the Egypt M5 cash, refund, discount and shift baseline
+
+**Authority:** The product owner explicitly approved the four recommended M5 decisions and authorized implementation.
+
+**Payment and completion:** M5 records one exact in-person cash payment in EGP against the frozen `pending_payment` quote. Posting locks and commits the linked order, immutable payment, branch/year receipt facts and verified session completion atomically. Identical idempotent replay returns the original result; changed replay conflicts. No gateway, split tender, partial payment or raw card data.
+
+**OQ-09 refund:** One full cash refund only, executed at the original branch during the same branch-local business date. It requires a non-empty reason and separate Branch Manager or Tenant Owner approval; the Cashier may execute but cannot approve. Ticket-linked refunds additionally require the approved unused/no-successful-scan/no-session OQ-18 eligibility. No partial refund, store credit, exchange, destructive edit or provider call.
+
+**OQ-24 shift:** Cashier shift open/close, drawer balancing and variance are deferred. Each payment still records tenant, branch, cashier and server timestamp for later daily reconciliation.
+
+**Discount and zero total:** The branch discount threshold starts at zero basis points, so every positive discount requires a current, payload-bound, single-use Manager/Owner approval and reason. Discounts are fixed minor-unit amounts, never change stored unit prices and cannot reduce the order total to zero. Zero-total checkout is not enabled in the first pilot.
+
+**Receipt/provider boundary:** Receipt identity/content follows OQ-08 and is reproducible for browser display/print. Email/SMS/WhatsApp delivery and provider callbacks remain M6 behind OQ-05/OQ-13.
+
 ## 2026-09-13: Close the Egypt M4 no-pause and notification UI boundary
 
 **Authority:** The product owner resumed the bounded M4 implementation and requested the remaining work be distributed to Luna agents.

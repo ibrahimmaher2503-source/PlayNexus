@@ -3,7 +3,7 @@
 @section('title', __('staff.page_title') . ' · PlayNexus')
 
 @section('content')
-    <main class="mx-auto min-h-screen max-w-6xl px-4 py-6 sm:px-6">
+    <main class="mx-auto min-h-screen max-w-[1440px] px-4 py-6 sm:px-6">
         <header class="border-b border-[var(--pn-border)] pb-5">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -13,8 +13,10 @@
                 <nav class="flex flex-wrap gap-2" aria-label="{{ __('staff.access_navigation') }}">
                     <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-primary)] bg-[var(--pn-primary-soft)] px-4 font-semibold text-[var(--pn-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('staff.index') }}" aria-current="page">{{ __('staff.employees_tab') }}</a>
                     <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('assignments.index') }}">{{ __('staff.access_link') }}</a>
-                    <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('roles.index') }}">{{ __('staff.roles_link') }}</a>
-                    <a class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" href="{{ route('staff.create') }}">{{ __('staff.add_link') }}</a>
+                    @if ($isOwner)
+                        <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('roles.index') }}">{{ __('staff.roles_link') }}</a>
+                        <a class="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--pn-primary)] px-4 font-semibold text-[var(--pn-surface)] hover:bg-[var(--pn-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)] focus:ring-offset-2" href="{{ route('staff.create') }}">{{ __('staff.add_link') }}</a>
+                    @endif
                 </nav>
             </div>
         </header>
@@ -115,6 +117,9 @@
                                             <p class="text-sm text-[var(--pn-ink-muted)]">{{ __('staff.self_locked') }}</p>
                                         @else
                                             <div class="flex flex-wrap items-end gap-2" data-pn-row-actions>
+                                                @if ($isOwner)
+                                                    <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('staff.edit', $member) }}">{{ __('staff.edit_identity') }}</a>
+                                                @endif
                                                 <a class="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 text-sm font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]" href="{{ route('assignments.index', ['user_id' => $member->id]) }}">{{ __('staff.manage_access') }}</a>
                                                 <details class="pn-action-details">
                                                     <summary class="inline-flex min-h-11 cursor-pointer list-none items-center rounded-[10px] border border-[var(--pn-border-strong)] px-4 text-sm font-semibold hover:bg-[var(--pn-surface-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--pn-focus)]">{{ __('staff.change_status') }}</summary>

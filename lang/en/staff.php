@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'edit_identity' => 'Edit staff details',
+    'identity_updated' => 'Staff details saved.',
+    'identity_help' => 'Changing the sign-in email revokes existing sessions and reset links. Branch access and roles are managed separately.',
     'conflict_title' => 'Review the latest state',
     'back_to_dashboard' => 'Back to dashboard',
     'back_to_staff' => 'Back to staff accounts',

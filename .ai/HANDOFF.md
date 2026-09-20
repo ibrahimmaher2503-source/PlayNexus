@@ -1,5 +1,38 @@
 # Handoff
 
+## 2026-09-15 available-gap closure handoff
+
+Fresh isolated MySQL 8.4.11/InnoDB acceptance passes 410/410 tests / 3,411 assertions under strict mode and `ONLY_FULL_GROUP_BY`.
+
+Preserve the current uncommitted M0–M6 shared-worktree changes. GAP-01–06/GAP-09 and DOC-01–09 are now closed with central review. Final SQLite regression passes 410 total / 406 passed / 4 explicit MySQL-only skips / 3,313 assertions; Vite/Blade/browser gates pass, including real EN/AR locale switching, Manager-only Reception/Cashier administration, USD/America-New_York revenue/Net/breakdowns, full session history and Arabic RTL without console errors. The canonical status is `docs/23-Decision-and-Implementation-Gap-Ledger.md`.
+
+OQ-04 product behavior is approved and its implementation remains partial/not production ready; do not extend it into recurring/online billing. MySQL concurrency and real-browser acceptance remain environment gates. OQ-05/13 channel/retry, OQ-21 targets, OQ-22 baseline, GAP-07 support rules, and GAP-08 retention baseline are approved; do not invent DEC-NOT-01–05, DEC-SEC-01–03, legal/DPO validation, or deployment evidence. No commit or push was made.
+
+## 2026-09-15 GAP-01 POS ticket-sale closure
+
+GAP-01 is closed in the current uncommitted shared worktree. Continue with GAP-02 only: the locale select is disabled before submit and drops `locale`. Preserve the POS family/date flow and its server-side tenant/eligibility/payment-time checks. Central evidence is 27 tests / 230 assertions, scoped Pint/Vite, and an isolated Cashier browser journey through paid receipt and issued ticket. Luna/xhigh hit its usage limit before its final report, so only coordinator-reviewed evidence is accepted. No commit or push was made.
+
+## 2026-09-15 UI wireframe/sidebar follow-up
+
+The current shared worktree includes a redesigned bilingual application sidebar and the WF-03 committed operations snapshot. The wireframe document now contains the route/runtime audit matrix: approved MVP outcomes are represented, while real provider delivery/manual resend (OQ-05/OQ-13) and incidents (OQ-20) remain explicitly unimplemented. Preserve the existing M0-M6 dirty changes; no dependency, commit or push was added by this follow-up.
+
+
+## 2026-09-15 M6 local-acceptance handoff
+
+M6 is `LOCALLY_ENGINEERING_ACCEPTED` in the current uncommitted shared worktree. Preserve all existing M0-M6 changes; no commit or push was made. Current evidence is focused 24/150; SQLite PHP 8.4/8.5 each 398 total / 394 passed / 4 MySQL-only skips / 3,206; isolated MySQL 8.4.11/InnoDB 398/398 / 3,304; concurrency 3/76; rollback/reapply and isolated restore with append-only triggers; final 1,000-row report profile at 194 ms observed p95/max; dependency/secret/static/build/docs checks; and authenticated bilingual Owner/Reception/Cashier browser acceptance without console errors. Do not add provider credentials/messages/callbacks or incidents. Staging deployment/monitoring, Finance/Legal approval, staff rehearsal/sign-off and named go/no-go are still required for `PILOT_READY`.
+
+## 2026-09-15 M5 final-review closure handoff
+
+Continue from the current shared worktree and preserve unrelated dirty changes. CodeGraph and direct Laravel review closed explicit-cash fail-open behavior, preserved lost-response replay after later branch configuration changes, and completed the role-correct discount UI. Focused M5 regression passes 55 tests / 368 assertions; full SQLite passes on PHP 8.4.21 and PHP 8.5.8 with 383 total / 379 passed / 4 explicit MySQL-only skips / 3,131 assertions. Full isolated MySQL 8.4.11/InnoDB passes 383 / 3,229, and the two-process M5 financial race passes 1 / 29. Pint, Vite, Blade, routes, docs and whitespace pass. Authenticated Arabic Owner desktop inspection at `127.0.0.1:8207` confirms approval review is visible, the Cashier-only request form is absent, and browser warnings/errors are empty.
+
+M5 is locally engineering-closed. Do not infer production readiness: Finance/Legal, hosted CI and operational release controls remain separate gates. M6 has not started.
+
+## Historical 2026-09-15 M5 coordinator handoff — superseded above
+
+Continue from the current shared worktree and preserve unrelated dirty changes. M5 is locally accepted on SQLite and authenticated English/Arabic desktop browser after central fixes to the Owner/Manager/Cashier matrix, tenant legal seller snapshot, ordinary receipt counter update and history refund eligibility. Final SQLite evidence is 379 total / 376 passed / 3 environment skips / 3,109 assertions; Pint, Vite, routes, docs and whitespace pass. Browser QA at `127.0.0.1:8207` used `.codex/m5-ui-review.sqlite`, created receipt `PN-ALPHA-2026-000002`, rendered QR/legal seller identity and matching history eligibility, and reported no console errors.
+
+Do not claim complete M5 or start M6 yet. Run the migrations, full suite and real lock/concurrency cases on an isolated MySQL 8.4/InnoDB listener first. The current 3306 listener is MariaDB 10.4.32 and Docker/MySQL 8.4 tooling is absent. No shared database or `.env` was changed; production/hosted/Finance/Legal gates remain external.
+
 ## 2026-09-14 M0 repair handoff
 
 Continue from this worktree without starting M1 review. The M0 repair set provides guarded setup, deterministic local/testing-only role fixtures and `.github/workflows/ci.yml`. Local acceptance passes: full SQLite 314 total / 311 passed / 3 skipped / 2,659 assertions; focused isolated MySQL 8.4.11 M0 tests 7 / 49 after 21 migrations; Composer validation, Pint, Vite, docs and whitespace all pass. The hosted workflow has not run, so M0 is `LOCALLY_ACCEPTED / HOSTED_CI_PENDING`.
@@ -22,7 +55,7 @@ M3 is locally accepted. The product owner explicitly stopped before M4, so no M4
 
 ## 2026-09-13 ticket-backed check-in/live-board handoff
 
-Continue from the uncommitted integration worktree `C:\Users\N\.codex\worktrees\t08-integration\PlayNexus`; preserve prior M1/M2/pricing/ticket changes. `GET /app/sessions` and `POST /app/sessions/check-in` now implement the bounded ticket-backed arrival flow. A successful authorized check-in consumes one issued ticket and creates one Active play session, expected end, immutable pricing/time snapshot, session event, scan evidence and audit in one transaction. Tenant-wide Active/Paused child uniqueness and hard branch capacity are enforced without override. Cashier is board-only and receives no raw guardian phone.
+Continue from the uncommitted integration worktree `C:\Users\N\.codex\worktrees\t08-integration\PlayNexus`; preserve prior M1/M2/pricing/ticket changes. `GET /app/sessions` and `POST /app/sessions/check-in` now implement the bounded ticket-backed arrival flow. A successful authorized check-in consumes one issued ticket and creates one Active play session, expected end, immutable pricing/time snapshot, session event, scan evidence and audit in one transaction. Tenant-wide active-child uniqueness (paused is deferred) and hard branch capacity are enforced without override. Cashier is board-only and receives no raw guardian phone.
 
 Focused check-in passes 9 / 128; full SQLite and PHP 8.5 pass 270 of 272 / 2,338 with two MySQL-only skips; full isolated MySQL passes 272 / 2,385 and the real two-process gate passes 2 / 47. Authenticated headless Edge checks pass for Owner/Cashier, Arabic/English and mobile/tablet/desktop. Evidence is in `.ai/TEST_RESULTS.md` and `deliverables/qa/sessions/`.
 
@@ -97,11 +130,11 @@ The repository contains the audited PlayNexus product context, the canonical `DE
 ## How to continue
 
 1. Read `README.md`, `AGENTS.md`, `DESIGN.md`, and `docs/00-INDEX.md`.
-2. Review the detailed BRD through traceability matrix and resolve OQ-01–OQ-24 by gate priority.
+2. Review `.ai/DECISION_REGISTER.md`: OQ-01–OQ-24 are resolved or explicitly deferred; address only the registered OPEN child decisions by owner priority.
 3. Update `.ai/DECISIONS.md` with approvals.
 4. Scaffold the chosen Laravel release, replace provisional commands, and implement M1 as a visible vertical slice.
 
-The API contract currently validates as OpenAPI 3.1 with 56 paths, 70 operations, and 93 schemas. The interactive HTML wireframe contains 15 responsive keyboard-navigable screens. Incident artifacts are conditional on OQ-20. There is deliberately no Word/DOCX generator or artifact.
+The API contract currently validates as OpenAPI 3.1 with 56 paths, 70 operations, and 93 schemas. The interactive HTML wireframe contains 15 responsive keyboard-navigable screens. Incident artifacts are historical proposals deferred by OQ-20. There is deliberately no Word/DOCX generator or artifact.
 
 ## Risks
 

@@ -227,7 +227,7 @@ class RoleManagementController extends Controller
             'reason_code' => 'role_management',
             'before_json' => $before === null ? null : json_encode($before, JSON_THROW_ON_ERROR),
             'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-            'request_id' => (string) Str::uuid(),
+            'request_id' => (string) request()->attributes->get('request_id', Str::uuid()),
             'occurred_at' => $now,
         ]);
     }

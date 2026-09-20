@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Branch;
+use App\Models\Plan;
+use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,7 +50,7 @@ class BranchAdministrationTest extends TestCase
             ->assertSee(__('branches.create'));
     }
 
-    public function test_non_owner_cannot_view_or_mutate_branch_administration(): void
+    public function test_unassigned_staff_cannot_view_or_mutate_branch_administration(): void
     {
         $tenant = Tenant::factory()->create();
         $staff = User::factory()->create(['tenant_id' => $tenant->id]);
@@ -62,13 +64,62 @@ class BranchAdministrationTest extends TestCase
         $this->patch(route('branches.status', $branch), [
             'is_active' => false,
             'expected_is_active' => true,
-        ])->assertForbidden();
+        ])->assertNotFound();
 
         $this->assertDatabaseMissing('branches', ['name' => 'Blocked branch']);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
-    public function test_owner_can_create_trimmed_active_branch_and_request_fields_cannot_change_scope(): void
+    public function test_branch_manager_sees_and_controls_only_assigned_branches_but_cannot_create(): void
+    {
+        [$tenant] = $this->owner();
+        $manager = User::factory()->create(['tenant_id' => $tenant->id, 'status' => 'active']);
+        $managed = $this->branch($tenant, 'Managed branch');
+        $inactiveManaged = $this->branch($tenant, 'Inactive managed branch', false);
+        $unassigned = $this->branch($tenant, 'Unassigned branch');
+        $this->makeActivationReady($inactiveManaged);
+
+        foreach ([$managed, $inactiveManaged] as $branch) {
+            DB::table('branch_user')->insert([
+                'tenant_id' => $tenant->id,
+                'branch_id' => $branch->id,
+                'user_id' => $manager->id,
+                'role' => 'branch_manager',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($manager)
+            ->get(route('branches.manage'))
+            ->assertOk()
+            ->assertSee([$managed->name, $inactiveManaged->name])
+            ->assertDontSee($unassigned->name)
+            ->assertDontSee('action="'.route('branches.store').'"', false)
+            ->assertSee(route('branches.manage'), false);
+
+        $this->post(route('branches.store'), ['name' => 'Manager cannot create'])->assertForbidden();
+        $this->patch(route('branches.status', $managed), [
+            'is_active' => false,
+            'expected_is_active' => true,
+        ])->assertRedirect(route('branches.manage'));
+        $this->patch(route('branches.status', $inactiveManaged), [
+            'is_active' => true,
+            'expected_is_active' => false,
+        ])->assertRedirect(route('branches.manage'));
+        $this->patch(route('branches.status', $unassigned), [
+            'is_active' => false,
+            'expected_is_active' => true,
+        ])->assertNotFound();
+
+        $this->assertDatabaseHas('branches', ['id' => $managed->id, 'is_active' => 0]);
+        $this->assertDatabaseHas('branches', ['id' => $inactiveManaged->id, 'is_active' => 1]);
+        $this->assertDatabaseHas('branches', ['id' => $unassigned->id, 'is_active' => 1]);
+        $this->assertSame(2, DB::table('audit_logs')->where('action', 'branch.status.changed')->count());
+    }
+
+    public function test_owner_can_create_trimmed_draft_branch_and_request_fields_cannot_change_scope(): void
     {
         [$tenant, $owner] = $this->owner();
         $foreign = Tenant::factory()->create();
@@ -83,7 +134,7 @@ class BranchAdministrationTest extends TestCase
             ->assertSessionHas('success', __('branches.created'));
 
         $branch = Branch::query()->where('tenant_id', $tenant->id)->where('name', 'New reception')->sole();
-        $this->assertTrue((bool) $branch->is_active);
+        $this->assertFalse((bool) $branch->is_active);
         $this->assertDatabaseMissing('branches', ['tenant_id' => $foreign->id, 'name' => 'New reception']);
 
         $audit = DB::table('audit_logs')->where('action', 'branch.created')->sole();
@@ -149,6 +200,7 @@ class BranchAdministrationTest extends TestCase
     {
         [$tenant, $owner] = $this->owner();
         $branch = $this->branch($tenant, 'Lifecycle branch');
+        $this->makeActivationReady($branch);
 
         $this->actingAs($owner)
             ->patch(route('branches.status', $branch), [
@@ -176,6 +228,43 @@ class BranchAdministrationTest extends TestCase
         $secondAudit = DB::table('audit_logs')->where('action', 'branch.status.changed')->orderByDesc('id')->first();
         $this->assertSame(['is_active' => false], json_decode($secondAudit->before_json, true));
         $this->assertSame(['is_active' => true], json_decode($secondAudit->after_json, true));
+    }
+
+    public function test_draft_branch_cannot_activate_until_operational_configuration_is_complete(): void
+    {
+        [$tenant, $owner] = $this->owner();
+        $branch = $this->branch($tenant, 'Draft branch', false);
+        $branch->forceFill(['code' => null])->save();
+
+        $this->actingAs($owner)->patchJson(route('branches.status', $branch), [
+            'is_active' => true,
+            'expected_is_active' => false,
+        ])->assertUnprocessable()->assertJsonValidationErrors('is_active');
+
+        $this->assertDatabaseHas('branches', ['id' => $branch->id, 'is_active' => 0]);
+        $this->assertDatabaseCount('audit_logs', 0);
+
+        $branch->forceFill([
+            'code' => 'READY', 'capacity' => 20, 'timezone' => 'Africa/Cairo',
+            'currency' => 'EGP', 'tax_rate_bps' => 1400, 'tax_mode' => 'exclusive',
+            'receipt_prefix' => 'READY', 'payment_methods' => ['cash'],
+        ])->save();
+        foreach (range(1, 7) as $weekday) {
+            DB::table('branch_opening_hours')->insert([
+                'tenant_id' => $tenant->id, 'branch_id' => $branch->id, 'weekday' => $weekday,
+                'opens_at' => $weekday === 1 ? '09:00' : null,
+                'closes_at' => $weekday === 1 ? '18:00' : null,
+                'is_closed' => $weekday !== 1, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $this->patchJson(route('branches.status', $branch), [
+            'is_active' => true,
+            'expected_is_active' => false,
+        ])->assertOk()->assertJsonPath('changed', true);
+
+        $this->assertDatabaseHas('branches', ['id' => $branch->id, 'is_active' => 1]);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'branch.status.changed', 'branch_id' => $branch->id]);
     }
 
     public function test_stale_status_returns_conflict_without_audit(): void
@@ -227,7 +316,8 @@ class BranchAdministrationTest extends TestCase
         $this->get(route('dashboard'))
             ->assertOk()
             ->assertSessionMissing('branch_id')
-            ->assertDontSee($branch->name);
+            ->assertSee(__('navigation.choose_branch'))
+            ->assertSee($branch->name);
     }
 
     public function test_validation_rerender_keeps_each_row_action_based_on_persisted_status(): void
@@ -268,6 +358,14 @@ class BranchAdministrationTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $plan = Plan::factory()->create(['limits_json' => ['branches' => 50, 'users' => 50]]);
+        $subscription = Subscription::factory()->create([
+            'tenant_id' => $tenant->id,
+            'plan_id' => $plan->id,
+            'status' => 'active',
+            'current_period_ends_at' => now('UTC')->addMonth(),
+        ]);
+        $tenant->update(['current_subscription_id' => $subscription->id]);
 
         return [$tenant, $owner];
     }
@@ -279,6 +377,32 @@ class BranchAdministrationTest extends TestCase
             'name' => $name,
             'is_active' => $active,
         ]);
+    }
+
+    private function makeActivationReady(Branch $branch): void
+    {
+        $branch->forceFill([
+            'code' => 'READY-'.$branch->id,
+            'capacity' => 20,
+            'timezone' => 'Africa/Cairo',
+            'currency' => 'EGP',
+            'tax_rate_bps' => 1400,
+            'tax_mode' => 'exclusive',
+            'receipt_prefix' => 'PN',
+            'payment_methods' => ['cash'],
+        ])->save();
+        foreach (range(1, 7) as $weekday) {
+            DB::table('branch_opening_hours')->updateOrInsert(
+                ['tenant_id' => $branch->tenant_id, 'branch_id' => $branch->id, 'weekday' => $weekday],
+                [
+                    'opens_at' => $weekday === 1 ? '09:00' : null,
+                    'closes_at' => $weekday === 1 ? '18:00' : null,
+                    'is_closed' => $weekday !== 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            );
+        }
     }
 
     private function formMarkup(string $html, int $branchId): string

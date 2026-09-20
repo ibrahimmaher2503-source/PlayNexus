@@ -1,5 +1,36 @@
 # PlayNexus UI/UX Wireframes
 
+## 2026-09-15 implementation audit
+
+This audit compares the current routes and rendered application with the outcomes in this low-fidelity document. The ASCII layouts are hierarchy guidance, not a pixel-identical contract. `IMPLEMENTED` means the approved MVP outcome is present; `PARTIAL` names a bounded gap; `DEFERRED` means the document itself or a recorded decision keeps the feature outside the approved scope.
+
+The approved Egypt MVP has no pause/resume. Paused-state examples and Resume/Pause controls retained in older ASCII sketches are historical target material and are superseded by the current Active → pending payment → Completed/Cancelled lifecycle.
+
+| Surface | Current evidence | Status |
+| --- | --- | --- |
+| WF-01 Login | Bilingual neutral login, validation, show-password control, password recovery and locale switch | IMPLEMENTED — remember-device remains omitted until policy permits it |
+| WF-02 Tenant onboarding | Platform tenant provisioning plus owner branch, settings and pricing configuration paths | IMPLEMENTED as existing focused screens; no duplicate wizard was added |
+| WF-03 Operations dashboard | Branch selection, action-required alerts, live capacity/due state, committed net revenue, attendance and recent activity | IMPLEMENTED |
+| WF-04 Family registration | Search-first guardian/child registration, consent and guardian relationship controls | IMPLEMENTED under the approved M2 contract |
+| WF-05 Check-in | Ticket validation/consumption, guardian context, capacity/conflict handling and audit | IMPLEMENTED |
+| WF-06 Live sessions | Live board, due/overtime, extension, adjustment and checkout start | IMPLEMENTED — pause/resume is deliberately unavailable in the Egypt MVP |
+| WF-07 Checkout and payment | Guardian verification, frozen breakdown, exact cash settlement and immutable receipt | IMPLEMENTED for the approved cash pilot |
+| WF-08 POS | Scoped server-priced product/ticket lines, eligible guardian/child and service-date ticket sale, exact cash sale, discount approval, immutable receipt and approved full cash refund | IMPLEMENTED for the bounded cash pilot; not a claim for inventory, shifts, split/partial tender or provider delivery |
+| WF-09 Reports | Revenue, attendance, sessions and staff reports with scoped filters, bounded pagination and non-PII CSV | IMPLEMENTED for the bounded report contract; not a claim for PDF/Excel or advanced analytics |
+| WF-10 Staff and permissions | Owner-managed staff, branch assignment and custom-role permissions | IMPLEMENTED for the approved owner administration scope |
+| WF-11 Branch settings | Local time, capacity, payment, tax, receipt and operating-hours controls | IMPLEMENTED |
+| WF-12 Tenant administration | Separate platform login, tenant provisioning, activation and suspension | IMPLEMENTED |
+| WF-13 Ticket lifecycle | Issue, scan/validate, correction, cancellation, reprint and history | IMPLEMENTED |
+| WF-14 Operational notifications | Masked purpose/status history, attempts and truthful sent-versus-delivered state | PARTIAL — real provider delivery, callbacks and manual resend await OQ-05/OQ-13 |
+| WF-15 Incidents and audit | Scoped append-only audit browsing/export is present | DEFERRED in part — OQ-20 excludes incident creation/follow-up from Egypt V1 |
+| Shared shell | Permission groups, current branch and local clock, notifications, persistent 248/80px desktop sidebar, responsive native drawer, RTL/LTR, connection-loss banner and unsafe-write lockout | IMPLEMENTED |
+
+The conditional items above are not missing implementations to infer: provider delivery and incidents require product contracts first. Future parent apps, shifts/drawers, offline writes and other exclusions in section 2 remain outside this wireframe baseline.
+
+## 2026-09-15 implemented report and notification surfaces
+
+WF-09 is implemented as one full-width bilingual report workspace with compact type tabs, native date/branch/state/sort controls, reconciled summary cards, responsive detail tables, bounded empty/validation/denied states and Owner/Manager CSV. WF-14 is implemented as a masked branch/purpose/status notification history with attempt count and explicit sent-versus-delivered language. Both reuse the existing shell, 44px controls, keyboard focus, LTR/RTL logical spacing and responsive table treatment.
+
 **2026-09-13 M4 surface implemented:** `/app/sessions` adds explicit due/overdue labels, active-session 30-minute extension, manager/owner additive adjustment, and reasoned cancellation with no-refund consequence. `pending_payment` cards show a frozen subtotal/tax/total breakdown and explicitly exclude payment, receipt, refund, shift, and child-release controls. Pausing is labelled unavailable for the Egypt MVP. Arabic RTL/English LTR and 44px keyboard/touch controls remain part of the surface contract; provider notifications are deferred.
 
 **Implemented live estimate — 2026-09-13:** Active session cards include a calm bordered estimate panel with server as-of time, base/grace/overtime/net/tax/total lines and an explicit non-final/no-checkout/no-payment notice. It is readable in Arabic RTL and English LTR on mobile, tablet and desktop; two-column desktop cards prevent the breakdown becoming cramped. Cashier can read but receives no mutation control. Invalid snapshots omit the panel instead of displaying guessed money.
@@ -54,7 +85,7 @@ The wireframes cover the complete staff-operated MVP baseline:
 12. Tenant administration
 13. Ticket lifecycle
 14. Operational notifications
-15. Incidents and audit — conditional on OQ-20; audit remains MVP
+15. Incidents and audit — incidents deferred by OQ-20; audit remains MVP
 
 Future parent portals/apps, game setup and participation queues, birthday bookings, memberships, loyalty, marketing campaigns, cashier shift/cash-drawer management, advanced inventory/HR, franchise controls, AI, marketplace, white-label products, and offline writes are not designed here. Branch-wide check-in capacity remains an MVP configuration decision; it does not introduce the deferred games/queue module.
 
@@ -67,7 +98,7 @@ Future parent portals/apps, game setup and participation queues, birthday bookin
 | Branch Manager | Branch dashboard | Resolve alerts and approvals |
 | Reception Staff | Live sessions | Register and check in child |
 | Cashier | POS | Start sale or collect checkout balance |
-| Game Operator | No dedicated MVP game/queue surface | No MVP access by default; incident access only if OQ-20 and an explicit assignment are approved |
+| Game Operator | No dedicated MVP game/queue surface | No Egypt V1 access by default; incidents require a later approved scope and explicit assignment |
 | Parent/Guardian | No authenticated MVP application | Notification recipient and data subject; staff performs MVP actions |
 
 The navigation must be permission aware. Hidden destinations are not a security control; every server request must still authorize the action.
@@ -191,14 +222,14 @@ Rules:
 
 ### Common status vocabulary
 
-- Session: Active, Paused, Due soon, Overtime, Completed, Cancelled.
+- Session (current Egypt MVP): Active, Due soon, Overtime, Pending payment, Completed, Cancelled. Paused is historical target material only.
 - Tenant: Pending, Active, Suspended.
 - Staff: Invited, Active, Suspended.
 - Order: Draft, Paid, Voided, Refunded. Split or partial payment is not an MVP state.
 - Payment: Posted or Voided; a refund is a separate Posted reversal record and moves the order to Refunded. A failed attempt is labelled Failed but does not create a Posted payment.
 - Ticket: Issued, Consumed, Expired, Cancelled. Reprint is an event, not a state.
 - Notification: `queued`, `sending` (UI: Processing), `sent`, `delivered`, `failed_retryable`, `failed_permanent`, `stale` (UI: Cancelled/Stale).
-- Incident: Open, Under review, Closed; exact transition/reopen policy remains OQ-20.
+- Incident: no Egypt V1 states; historical Open/Under review/Closed labels are non-authoritative until a later contract reopens OQ-20 scope.
 - Branch: Active, Inactive.
 - Data freshness: Live, Updating, Stale, Offline.
 
@@ -354,12 +385,12 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 ```text
 +------------------------------------------------------------------------------------------------+
 | Live sessions              [Search/scan________________] [Status v] [Due time v] [Refresh]      |
-| 48 active | 4 paused | 6 due soon | 2 overtime | Updated 14:35:08                              |
+| 48 active | 0 paused (deferred) | 6 due soon | 2 overtime | Updated 14:35:08                              |
 |------------------------------------------------------------------------------------------------|
 | Child       Guardian      Started   Remaining       Status       Band      Next action           |
 | Maya Ahmed  Ahmed Ali     14:02     27 min          Active       A104      [Open] [Checkout]     |
 | Sami Noor   Huda Noor     13:25     00 min +10      Overtime     B221      [Open] [Checkout]     |
-| Lina Omar   Omar Saleh    14:20     Paused 08 min   Paused       C019      [Open] [Resume]       |
+| Lina Omar   Omar Saleh    14:20     Active         Due soon     C019      [Open] [Extend]       |
 |------------------------------------------------------------------------------------------------|
 | Selected: Sami Noor | EGP 35 overage | [Pause] [Extend] [Adjust] [Cancel] [Checkout]            |
 +------------------------------------------------------------------------------------------------+
@@ -373,7 +404,7 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 ### WF-07 Checkout and payment
 
-**Goal:** Verify the collecting guardian, finalize immutable time/price inputs, and submit the payment/completion handoff safely. The single-screen completion shown below is the recommended pilot default, pending the explicit OQ-19 station-handoff decision.
+**Goal:** Verify the collecting guardian, finalize immutable time/price inputs, and submit the approved Reception/Manager-to-Cashier payment handoff safely.
 
 ```text
 +--------------------------------------------------------------------------------+
@@ -395,13 +426,13 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 +--------------------------------------------------------------------------------+
 ```
 
-**Rules:** Recalculate the quote on the server at final submission. Make the payment/completion handoff idempotent so two terminals cannot pay or complete it twice, and expose a recoverable intermediate state if OQ-19 selects separate stations. A guardian mismatch requires a permitted manager override, reason, and audit entry. Completed sessions are read-only except for a separate approved adjustment or refund workflow.
+**Rules:** Recalculate the quote on the server at final submission. The approved OQ-19 flow freezes a recoverable `pending_payment` handoff and makes settlement idempotent so two terminals cannot pay or complete it twice. A guardian mismatch requires a permitted manager override, reason, and audit entry. Completed sessions are read-only except for a separate approved adjustment or refund workflow.
 
 **Recovery:** If payment fails, keep the session operational, preserve verified guardian evidence only for a short policy-defined window, and show a safe retry. If payment posts but completion fails, show `Paid: checkout pending`, reuse the original payment/receipt, and resume completion only after revalidating settlement and guardian evidence. A payment or receipt alone must never imply that child release/session completion succeeded.
 
 ### WF-08 POS
 
-**Goal:** Sell tickets, F&B, merchandise, add-ons, and extensions in one fast cashier surface.
+**Goal (implemented subset):** Sell server-priced product or ticket lines in one scoped cash order, with guardian/child and service date required for ticket lines, then issue the immutable receipt. The category labels below are illustrative; inventory depletion, shift/drawer, split/partial tender, online payment, and provider delivery are outside this contract.
 
 ```text
 +------------------------------------------------------------------------------------------------+
@@ -428,7 +459,7 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 ### WF-09 Reports
 
-**Goal:** Answer one operational or financial question with explicit scope, freshness, and reconciliation context.
+**Goal (implemented subset):** Answer a revenue, attendance, session, or staff-activity question with explicit tenant/branch scope, branch-local date interpretation, freshness, reconciliation context, bounded pagination, and filter-identical non-PII CSV. PDF/Excel and advanced analytics remain deferred.
 
 ```text
 +------------------------------------------------------------------------------------------------+
@@ -446,7 +477,7 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 +------------------------------------------------------------------------------------------------+
 ```
 
-**Behavior:** Filters are represented in the URL and survive refresh. Money reports include totals that reconcile to underlying transactions. Exports use the same authorization and tenant/branch scope as the visible report.
+**Behavior:** Filters are represented in the URL and survive refresh. Revenue totals reconcile to committed orders, posted payments, and executed refunds; session/staff details come from committed session/audit facts. Exports use the same authorization, filters, and tenant/branch scope as the visible report.
 
 **Performance:** Default to today and one branch for operational roles. Require narrower filters or asynchronous export only after measured query or export cost justifies it.
 
@@ -524,7 +555,7 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 +------------------------------------------------------------------------------------------------+
 ```
 
-**States and safety:** Pending, Active, and Suspended transitions require permission, reason where applicable, concurrency control, and platform audit. Approved OQ-14 keeps support access to tenant content denied by default and permits only least-privilege, time-bound, reason-required, audited access. Subscription plans/limits are not invented while OQ-04 is open.
+**States and safety:** Pending, Active, and Suspended transitions require permission, reason where applicable, concurrency control, and platform audit. Approved OQ-14 keeps support access to tenant content denied by default and permits only least-privilege, time-bound, reason-required, audited access. Bounded editable subscription plans/limits are approved; recurring billing and production commercial validation remain deferred.
 
 ### WF-13 Ticket lifecycle
 
@@ -568,7 +599,7 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 
 ### WF-15 Incidents and audit — conditional incident panel
 
-**Goal:** Show the proposed create/search/follow-up incident flow if OQ-20 is approved, alongside the required audit-history concept. If OQ-20 is not approved, hide incident controls and retain audit access only.
+**Goal:** Preserve the historical proposed create/search/follow-up incident flow for later reconsideration. Approved OQ-20 defers it from Egypt V1: hide incident controls and retain audit access only.
 
 ```text
 +------------------------------------------------------------------------------------------------+
@@ -585,7 +616,7 @@ ASCII layouts show reading order in English/LTR. Arabic/RTL mirrors structural d
 +------------------------------------------------------------------------------------------------+
 ```
 
-**States and safety:** Baseline labels are Open, Under review, and Closed; exact transition, reopen, severity, category, visibility, retention, and escalation rules remain OQ-20. Updates append instead of replacing original facts. Searches and detail fields enforce tenant/branch/role scope. The UI states that PlayNexus records incidents but is not emergency dispatch or medical advice.
+**States and safety:** No incident state machine is approved for Egypt V1. Historical labels Open, Under review, and Closed remain a proposal only; transition, reopen, severity, category, visibility, retention, escalation, and ownership require a later approved contract. Any future updates must append rather than replace original facts, enforce tenant/branch/role scope, and state that PlayNexus is not emergency dispatch or medical advice.
 
 ## 9. Critical cross-screen flows
 
@@ -677,9 +708,9 @@ Before implementation starts, product and operations should approve:
 4. Capacity override policy.
 5. Pricing, pause, rounding, and overtime rules.
 6. The first supported barcode scanner and receipt printer combinations.
-7. Whether checkout/payment/completion is one terminal action or a reception-to-cashier handoff (OQ-19).
+7. Checkout/payment/completion uses the approved reception-to-cashier handoff (OQ-19); changing that topology requires change control.
 8. Notification provider/channel, templates, lead times, retry bounds, callbacks, and escalation (OQ-05 and OQ-13).
-9. Incident categories, severities, transitions/reopen rules, visibility, retention, and escalation (OQ-20).
+9. Incident categories, severities, transitions/reopen rules, visibility, retention, escalation, and ownership if OQ-20 scope is later reopened.
 10. Child age/date fields and duplicate-family handling (OQ-15 and OQ-17).
 11. Subscription plans and tenant/branch/user limits; billing automation is not assumed (OQ-04).
 12. Launch-country privacy, consent, retention, deletion, residency, and support-access rules (OQ-07 and OQ-14).

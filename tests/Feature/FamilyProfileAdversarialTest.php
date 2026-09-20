@@ -75,7 +75,7 @@ class FamilyProfileAdversarialTest extends TestCase
 
         $this->assertDatabaseHas('children', ['id' => $otherChild->id, 'full_name' => 'Other guardian child']);
         $this->assertDatabaseHas('children', ['id' => $foreignChild->id, 'full_name' => 'Foreign child']);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_stale_guardian_child_and_add_child_versions_do_not_write_or_audit(): void
@@ -123,7 +123,7 @@ class FamilyProfileAdversarialTest extends TestCase
             'lock_version' => 2,
         ]);
         $this->assertSame(1, DB::table('children')->where('tenant_id', $tenant->id)->count());
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
     }
 
     public function test_duplicate_normalized_phone_has_json_and_html_recovery_without_writes(): void
@@ -205,7 +205,9 @@ class FamilyProfileAdversarialTest extends TestCase
 
         $this->assertDatabaseHas('guardians', ['id' => $guardian->id, 'full_name' => 'Protected guardian']);
         $this->assertDatabaseCount('children', 0);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')
+            ->whereNotIn('action', ['auth.session_revoked', 'security.request_denied'])
+            ->count());
     }
 
     public function test_audit_json_contains_ids_and_changed_fields_but_no_raw_pii(): void

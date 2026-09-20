@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\BranchReadiness;
+use App\Support\SubscriptionAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -13,26 +15,45 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class BranchAdminController extends Controller
 {
     public function index(Request $request): View
     {
-        [, $tenant] = $this->authorizedContext($request);
+        [$actor, $tenant] = $this->tenantContext($request);
+        $canCreate = Gate::forUser($actor)->allows('view', $tenant);
 
         $branches = Branch::query()
+            ->select(['id', 'name', 'is_active'])
             ->where('tenant_id', $tenant->getKey())
+            ->withCount(['playSessions as active_sessions_count' => fn ($query) => $query->where('tenant_id', $tenant->getKey())->where('status', 'active')])
+            ->when(! $canCreate, function ($query) use ($actor, $tenant): void {
+                $query->whereExists(function ($assignment) use ($actor, $tenant): void {
+                    $assignment->selectRaw('1')
+                        ->from('branch_user')
+                        ->whereColumn('branch_user.branch_id', 'branches.id')
+                        ->where('branch_user.tenant_id', $tenant->getKey())
+                        ->where('branch_user.user_id', $actor->getKey())
+                        ->where('branch_user.role', 'branch_manager')
+                        ->where('branch_user.is_active', true);
+                });
+            })
             ->orderBy('name')
             ->orderBy('id')
-            ->get(['id', 'name', 'is_active']);
+            ->get();
 
-        return view('branches.manage', compact('tenant', 'branches'));
+        if (! $canCreate && $branches->isEmpty()) {
+            abort(403);
+        }
+
+        return view('branches.manage', compact('tenant', 'branches', 'canCreate'));
     }
 
     public function store(Request $request): JsonResponse|RedirectResponse
     {
-        [$actor, $tenant] = $this->authorizedContext($request);
+        [$actor, $tenant] = $this->ownerContext($request);
         $rawName = $request->input('name');
         $name = is_string($rawName) ? trim($rawName) : $rawName;
         $validator = Validator::make(
@@ -66,6 +87,14 @@ class BranchAdminController extends Controller
             $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
             Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
 
+            // The tenant row is the serialization point for branch capacity.
+            // A route guard is useful UX, but cannot make this check safe when
+            // two requests race to create the final permitted branch.
+            $subscription = SubscriptionAccess::forTenant($lockedTenant);
+            if (! $subscription->allows('write', true)) {
+                throw new HttpException(402, 'This subscription is read-only. New branches are unavailable.');
+            }
+
             $existing = Branch::query()
                 ->where('tenant_id', $lockedTenant->getKey())
                 ->where('creation_key', $creationKey)
@@ -79,11 +108,22 @@ class BranchAdminController extends Controller
                 return [$existing, false];
             }
 
+            $branchCount = Branch::query()
+                ->where('tenant_id', $lockedTenant->getKey())
+                ->count();
+
+            if (! $subscription->canCreate('branches', $branchCount)) {
+                throw new HttpException(402, 'The effective branch limit has been reached.');
+            }
+
             $branch = new Branch([
                 'tenant_id' => $lockedTenant->getKey(),
                 'creation_key' => $creationKey,
                 'name' => $name,
-                'is_active' => true,
+                'payment_methods' => ['cash'],
+                // Creation produces a safe draft. Operational activation is a
+                // separate gate after authoritative settings are complete.
+                'is_active' => false,
             ]);
             $branch->save();
 
@@ -100,7 +140,7 @@ class BranchAdminController extends Controller
                 'reason_code' => 'setup_change',
                 'before_json' => null,
                 'after_json' => json_encode(['name' => $branch->name], JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(),
+                'request_id' => (string) request()->attributes->get('request_id', Str::uuid()),
                 'occurred_at' => $now,
             ]);
 
@@ -116,11 +156,12 @@ class BranchAdminController extends Controller
 
     public function updateStatus(Request $request, Branch $branch): JsonResponse|RedirectResponse
     {
-        [$actor, $tenant] = $this->authorizedContext($request);
+        [$actor, $tenant] = $this->tenantContext($request);
         $target = Branch::query()
             ->where('tenant_id', $tenant->getKey())
             ->whereKey($branch->getKey())
             ->firstOrFail();
+        Gate::forUser($actor)->authorize('changeStatus', $target);
 
         $validator = Validator::make(
             $request->all(),
@@ -151,14 +192,13 @@ class BranchAdminController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
             $lockedActor = User::query()->lockForUpdate()->findOrFail($actor->getKey());
-            Gate::forUser($lockedActor)->authorize('view', $lockedTenant);
-
             $lockedTarget = Branch::query()
                 ->where('tenant_id', $lockedTenant->getKey())
                 ->whereKey($target->getKey())
                 ->lockForUpdate()
                 ->first();
             abort_unless($lockedTarget, 404);
+            Gate::forUser($lockedActor)->authorize('changeStatus', $lockedTarget);
 
             if ((bool) $lockedTarget->is_active !== $expectedActive) {
                 throw new HttpException(409, __('branches.conflict'));
@@ -166,6 +206,10 @@ class BranchAdminController extends Controller
 
             if ((bool) $lockedTarget->is_active === $desiredActive) {
                 return false;
+            }
+
+            if ($desiredActive) {
+                $this->assertActivationReady($lockedTarget);
             }
 
             $before = ['is_active' => (bool) $lockedTarget->is_active];
@@ -189,7 +233,7 @@ class BranchAdminController extends Controller
                 'reason_code' => 'access_review',
                 'before_json' => json_encode($before, JSON_THROW_ON_ERROR),
                 'after_json' => json_encode($after, JSON_THROW_ON_ERROR),
-                'request_id' => (string) Str::uuid(),
+                'request_id' => (string) request()->attributes->get('request_id', Str::uuid()),
                 'occurred_at' => $now,
             ]);
 
@@ -206,14 +250,21 @@ class BranchAdminController extends Controller
     }
 
     /** @return array{User, Tenant} */
-    private function authorizedContext(Request $request): array
+    private function tenantContext(Request $request): array
     {
-        $actor = User::query()->findOrFail($request->user()->getAuthIdentifier());
+        $actor = User::query()->whereKey($request->user()->getAuthIdentifier())->where('status', 'active')->firstOrFail();
         $tenant = Tenant::query()
             ->whereKey($actor->tenant_id)
             ->where('is_active', true)
             ->firstOrFail();
 
+        return [$actor, $tenant];
+    }
+
+    /** @return array{User, Tenant} */
+    private function ownerContext(Request $request): array
+    {
+        [$actor, $tenant] = $this->tenantContext($request);
         Gate::forUser($actor)->authorize('view', $tenant);
 
         return [$actor, $tenant];
@@ -229,5 +280,19 @@ class BranchAdminController extends Controller
         }
 
         return back()->withErrors($validator)->withInput();
+    }
+
+    private function assertActivationReady(Branch $branch): void
+    {
+        $hours = DB::table('branch_opening_hours')
+            ->where('tenant_id', $branch->tenant_id)
+            ->where('branch_id', $branch->getKey())
+            ->get(['weekday', 'opens_at', 'closes_at', 'is_closed']);
+
+        if (! BranchReadiness::isActivationReady($branch, $hours)) {
+            throw ValidationException::withMessages([
+                'is_active' => __('branches.validation.activation_not_ready'),
+            ]);
+        }
     }
 }

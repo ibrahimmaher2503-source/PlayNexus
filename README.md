@@ -9,7 +9,7 @@ The first release will let a venue configure branches and staff, register guardi
 ## Proposed implementation baseline
 
 - PHP 8.4 or 8.5 and Laravel 13 modular monolith, verified against the official support policy on 24 August 2026.
-- Server-rendered Blade UI with Livewire 4 only for high-interaction operational screens, plus Tailwind CSS 4.
+- Server-rendered Blade UI with small vanilla JavaScript enhancements and Tailwind CSS 4; no Livewire dependency is installed.
 - MySQL 8.4 LTS/InnoDB shared-schema multi-tenancy with mandatory `tenant_id` scoping and database constraints.
 - Session authentication for the web product; Laravel Sanctum for first-party API access.
 - Laravel policies and gates for authorization; database queues initially for receipts and notifications; PHPUnit 12 for focused tests.

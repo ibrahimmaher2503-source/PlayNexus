@@ -48,7 +48,7 @@ class FamilyAuthorizationRegressionTest extends TestCase
         $this->assertDatabaseHas('guardians', ['id' => $guardian->id, 'email' => 'parent@example.test', 'preferred_locale' => 'ar']);
         $this->assertDatabaseHas('children', ['id' => $child->id, 'full_name' => 'Existing child']);
         $this->assertDatabaseCount('children', 1);
-        $this->assertDatabaseCount('audit_logs', 0);
+        $this->assertSame(0, DB::table('audit_logs')->where('action', '!=', 'security.request_denied')->count());
 
         // The owner fixture remains authorized and proves the denial is role-based.
         $this->assertTrue(Gate::forUser($owner)->allows('update', $guardian));

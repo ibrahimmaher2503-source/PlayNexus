@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\AuthenticationAudit;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,10 +41,13 @@ class PasswordResetController extends Controller
             ->where('email', $validated['email'])
             ->where('status', 'active')
             ->whereHas('tenant', fn ($query) => $query->where('is_active', true))
-            ->exists();
+            ->first();
 
         if ($eligible) {
             Password::sendResetLink(['email' => $validated['email']]);
+            AuthenticationAudit::tenant($request, $eligible, 'auth.password_reset_requested', 'success', 'eligible_request');
+        } else {
+            AuthenticationAudit::unresolved($request, 'auth.password_reset_requested_unresolved', $validated['email']);
         }
 
         return back()->with('status', __('passwords.sent'));
@@ -68,7 +72,7 @@ class PasswordResetController extends Controller
             [
                 'token' => ['required', 'string'],
                 'email' => ['required', 'string', 'email', 'max:255'],
-                'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+                'password' => ['required', 'string', 'min:12', 'max:255', 'confirmed'],
             ],
             [
                 'token.required' => __('passwords.validation.token_required'),
@@ -86,8 +90,8 @@ class PasswordResetController extends Controller
         );
 
         $applied = false;
-        $status = DB::transaction(function () use ($validated, &$applied): string {
-            return Password::reset($validated, function (User $user, string $password) use (&$applied): void {
+        $status = DB::transaction(function () use ($request, $validated, &$applied): string {
+            return Password::reset($validated, function (User $user, string $password) use ($request, &$applied): void {
                 $lockedUser = User::query()->lockForUpdate()->find($user->getKey());
                 $lockedTenant = $lockedUser
                     ? Tenant::query()
@@ -106,6 +110,7 @@ class PasswordResetController extends Controller
                     'remember_token' => Str::random(60),
                     'auth_version' => (int) $lockedUser->auth_version + 1,
                 ])->save();
+                AuthenticationAudit::tenant($request, $lockedUser, 'auth.password_reset_completed', 'success', 'valid_single_use_token');
                 $applied = true;
             });
         });

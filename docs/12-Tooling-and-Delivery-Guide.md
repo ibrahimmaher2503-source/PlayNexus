@@ -1,5 +1,13 @@
 # PlayNexus Tooling and Delivery Guide
 
+## 2026-09-15 installed-stack amendment
+
+The delivered repository is Laravel 13 with server-rendered Blade, small vanilla JavaScript enhancements, Tailwind/Vite, PHPUnit, and MySQL 8.4/InnoDB acceptance. It does not install Livewire, Flux, Pest, Dusk, a SPA, or a separate design-system package. Recommendations below for those tools are historical planning options and must not be treated as setup instructions for this checkout. Reuse the installed stack unless a measured need and explicit scope change approve another dependency.
+
+## 2026-09-15 M6 operational tooling
+
+Use Laravel's installed database queue, scheduler, streamed responses and database layer; no provider SDK, reporting package, SPA, microservice or export dependency was added. Release, worker, monitoring, migration, restore, synthetic pilot and staff-walkthrough commands are canonical in `22-M6-Operations-Runbook.md`.
+
 ## 2026-09-13 latest verified delivery gate
 
 M3 pricing/tickets/check-in/live board/read-only estimate passes the full suite on PHP 8.4.21/MySQL 8.4.11 (281 / 2,434) and PHP 8.4.21/8.5.8 with SQLite (279 of 281 / 2,387 with two MySQL-only skips), plus a real two-process InnoDB race and authenticated headless Edge Arabic/English responsive QA. Commands and exact evidence are in `.ai/TEST_RESULTS.md`. Task-local databases and compiled-view paths were used; the pre-existing 8206 runtime was not migrated or restarted.
@@ -18,10 +26,10 @@ M3 pricing/tickets/check-in/live board/read-only estimate passes the full suite 
 - ابدأ بالـdatabase للـqueue والـcache. أضف Redis فقط عندما يظهر احتياج مقاس.
 - انشر Staging يوميًا. استخدم Laravel Cloud لو المنطقة والـdata residency مناسبين، أو Forge على سيرفر في المنطقة المعتمدة.
 - لا تضف React، microservices، Octane، Horizon، WebSockets، Elasticsearch، تطبيق موبايل، أو Offline mode في الـMVP.
-- لا تبنِ الألعاب والطوابير، أعياد الميلاد، العضويات والولاء، الحملات التسويقية، إدارة ورديات الكاشير، أو بوابة ولي الأمر قبل اعتمادها كمرحلة لاحقة؛ سعة الفرع والتنبيهات التشغيلية ضمن النواة، وسجل الحوادث يُبنى فقط إذا تم اعتماد OQ-20.
+- لا تبنِ الألعاب والطوابير، أعياد الميلاد، العضويات والولاء، الحملات التسويقية، إدارة ورديات الكاشير، أو بوابة ولي الأمر قبل اعتمادها كمرحلة لاحقة؛ سعة الفرع والتنبيهات التشغيلية ضمن النواة، وسجل الحوادث مؤجل من إصدار مصر الأول بقرار OQ-20.
 - استخدم Codex في User Story واحدة كل مرة، واطلب منه تشغيل الاختبارات ومراجعة الـdiff، لكن لا تتركه يخترع قواعد التسعير أو الأمان.
 
-**MVP boundary:** The first release is a staff-operated responsive web application. It includes tenant/branch setup, staff access, family records, tickets, sessions/time, safe checkout, basic POS/payment recording/full refund, operational notifications, core reports, and audit. Basic incidents are conditional on OQ-20. Parent self-service, games/participation queues, birthdays, memberships, loyalty, marketing campaigns, cashier shift/cash-drawer management, inventory/HR, franchises, AI, marketplace, white-label products, offline writes, split/partial tender, and online gateway capture remain out until an approved scope change updates the SRS, API, data model, tests, and plan.
+**MVP boundary:** The first release is a staff-operated responsive web application. It includes tenant/branch setup, staff access, family records, tickets, sessions/time, safe checkout, basic POS/payment recording/full refund, operational notifications, core reports, and audit. Approved OQ-20 defers basic incidents. Parent self-service, games/participation queues, birthdays, memberships, loyalty, marketing campaigns, cashier shift/cash-drawer management, inventory/HR, franchises, AI, marketplace, white-label products, offline writes, split/partial tender, and online gateway capture remain out until an approved scope change updates the SRS, API, data model, tests, and plan.
 
 ## 1. The smallest stack that fits
 
@@ -379,7 +387,7 @@ These are outcome milestones, not promises of calendar duration. For one experie
 - Active, paused, completed, cancelled state transitions.
 - Live session list with modest polling.
 - Guardian verification and manager override.
-- Durable, idempotent payment and session-completion boundaries with recoverable handoff state selected by OQ-19; notification remains after-commit.
+- Durable, idempotent payment and session-completion boundaries with the approved OQ-19 recoverable `pending_payment` handoff; notification remains after-commit.
 - Real concurrency tests.
 
 ### M4: POS, payments, discounts, and refunds
@@ -400,7 +408,7 @@ These are outcome milestones, not promises of calendar duration. For one experie
 - Filters and CSV export.
 - Session-ending alert and digital receipt jobs.
 - Audit search for critical actions.
-- If OQ-20 is approved: basic incident create, scoped search, append-only follow-up, and approved state transitions.
+- If a later decision reopens OQ-20 scope: define and approve basic incident create, scoped search, append-only follow-up, and state transitions before implementation.
 - Query plans and agreed standard-range performance checks.
 
 ### M6: Pilot hardening
